@@ -45,7 +45,33 @@ the suite, and `--run` to run it in the sandbox. The sandbox copies the source
 file and generated suite into a temporary directory, launches pytest in a
 subprocess with a timeout, and removes the temporary directory afterward.
 This subprocess boundary and timeout are not an OS-level security sandbox;
-Docker isolation is not part of Phase 1.
+Docker isolation is not currently included.
+
+## Evaluate generated tests
+
+The Phase 2 evaluators are available as Python APIs. Coverage uses coverage.py
+to report line and branch results; mutation evaluation uses mutmut to report
+killed and surviving mutants. Both copy the target and generated tests into a
+temporary directory and execute them in subprocesses with timeouts. The wrong
+test detector runs tests against a canonical benchmark solution or user code;
+failures against user code are reported as needing human review, not as proof
+that either the test or implementation is wrong.
+
+```python
+from pathlib import Path
+
+from testpilot.evaluator import CoverageEvaluator, MutationEvaluator
+
+source = Path("examples/sample.py")
+tests = "from testpilot_target import is_even\n\ndef test_even():\n    assert is_even(2)\n"
+
+coverage = CoverageEvaluator().evaluate(tests, source)
+mutation = MutationEvaluator().evaluate(tests, source)
+print(coverage.line_percent, coverage.branch_percent)
+print(mutation.mutation_score, mutation.surviving_mutant_names)
+```
+
+Mutmut runs natively on macOS, with its `use_setproctitle` option disabled.
 
 Run TestPilot's unit tests with:
 
