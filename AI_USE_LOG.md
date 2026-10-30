@@ -37,3 +37,8 @@
 - Asked: Read CLAUDE.md, add the best-of merge, flaky-test check, and mutant explainer to the dashboard, run all tests, then commit and push.
 - Done: Added greedy mutant-kill test merging, three-run per-test stability checks, diff-based survivor explanations, dashboard/history integration, and tests.
 - Outcome: needed fixes
+
+## 2026-10-30 — Phase 6 HumanEval trial
+- Asked: Run all three engines on 10 HumanEval functions, save CSV results with model/settings/date, report the table and elapsed time, commit and push, then estimate the 164-function run and wait for approval.
+- Done: Added a HumanEval JSONL loader and experiment command; saved 30 trial rows with model, settings, date, and evaluation metrics. The run took 663.5 seconds; 15 rows completed and 15 recorded engine/evaluation errors.
+- Outcome: worked as is

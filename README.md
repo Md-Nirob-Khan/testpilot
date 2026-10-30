@@ -173,3 +173,25 @@ Run TestPilot's unit tests with:
 ```sh
 python -m pytest
 ```
+
+## HumanEval experiment
+
+Download the official MIT-licensed HumanEval JSONL dataset from
+[OpenAI's human-eval repository](https://github.com/openai/human-eval), then
+run a bounded trial before considering the full benchmark:
+
+```sh
+python -m testpilot.experiment \
+  --dataset data/HumanEval.jsonl.gz \
+  --output results/humaneval_trial_10.csv \
+  --limit 10
+```
+
+Each CSV row records the run date, configured LLM model, engine settings,
+generation and evaluation time, line/branch coverage, mutation score, and
+wrong-test results. The three engines are single-shot LLM, Agent LLM
+(three-round maximum), and Pynguin (30-second search, 120-second subprocess
+timeout). Benchmark suites are checked against the canonical solutions.
+Generated tests and Pynguin continue to run only in their timeout-bounded
+subprocesses. Running all 164 problems requires explicitly changing `--limit`;
+measure a trial first and estimate the full run from its observed elapsed time.
