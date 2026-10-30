@@ -32,3 +32,8 @@
 - Asked: Read CLAUDE.md, build the first half of Phase 5 as a Streamlit comparison dashboard with SQLite run history, run all tests, verify startup, then commit and push.
 - Done: Added source upload/paste, function and engine selection, isolated generation/evaluation, metric comparisons, generated-test downloads, and SQLite history.
 - Outcome: needed fixes
+
+## 2026-10-30 — Phase 5 merge and quality checks
+- Asked: Read CLAUDE.md, add the best-of merge, flaky-test check, and mutant explainer to the dashboard, run all tests, then commit and push.
+- Done: Added greedy mutant-kill test merging, three-run per-test stability checks, diff-based survivor explanations, dashboard/history integration, and tests.
+- Outcome: needed fixes

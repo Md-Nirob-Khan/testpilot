@@ -139,6 +139,7 @@ def test_mutation_known_answer_kills_known_mutants(tmp_path: Path) -> None:
     assert result.survived_mutants == 0
     assert result.mutation_score == 1
     assert result.surviving_mutant_names == ()
+    assert len(result.killed_mutant_names) == result.killed_mutants
 
 
 def test_mutation_known_answer_reports_surviving_mutants(tmp_path: Path) -> None:
@@ -154,6 +155,8 @@ def test_mutation_known_answer_reports_surviving_mutants(tmp_path: Path) -> None
     assert result.survived_mutants > 0
     assert result.mutation_score < 1
     assert result.surviving_mutant_names
+    assert len(result.surviving_mutant_diffs) == result.survived_mutants
+    assert all(diff.strip() for _, diff in result.surviving_mutant_diffs)
 
 
 def test_mutation_rejects_non_positive_timeout() -> None:

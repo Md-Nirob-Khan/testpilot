@@ -152,6 +152,63 @@ def _render_results(results: tuple[EngineRun, ...] | list[EngineRun]) -> None:
                         f"{result.engine_name}-{index}"
                     ),
                 )
+            if result.flaky_run_count is not None:
+                _render_flaky_result(result)
+            if result.mutant_explanations:
+                _render_mutant_explanations(result)
+            if result.merge_selected_test_names:
+                st.text(
+                    "Selected tests: "
+                    + ", ".join(result.merge_selected_test_names)
+                )
+                if (
+                    result.merge_mutants_killed is not None
+                    and result.merge_mutants_available is not None
+                ):
+                    st.text(
+                        "Mutants killed by selected cases: "
+                        f"{result.merge_mutants_killed}/"
+                        f"{result.merge_mutants_available}"
+                    )
+
+
+def _render_flaky_result(result: EngineRun) -> None:
+    """Show repeated-run stability and timeout details."""
+    if result.flaky_test_names:
+        st.warning(
+            "Flaky tests: " + ", ".join(result.flaky_test_names)
+        )
+    elif result.flaky_run_count and not (
+        result.flaky_timed_out_runs or result.flaky_inconclusive_runs
+    ):
+        st.caption(
+            f"No flaky tests detected across {result.flaky_run_count} runs."
+        )
+    elif result.flaky_run_count:
+        st.caption(
+            "Flakiness could not be determined for every run."
+        )
+    if result.flaky_timed_out_runs:
+        st.warning(
+            "Flakiness was inconclusive for timed-out runs: "
+            + ", ".join(str(run) for run in result.flaky_timed_out_runs)
+        )
+    if result.flaky_inconclusive_runs:
+        st.warning(
+            "No test outcomes were available for runs: "
+            + ", ".join(str(run) for run in result.flaky_inconclusive_runs)
+        )
+
+
+def _render_mutant_explanations(result: EngineRun) -> None:
+    """Show each surviving mutant and a targeted missing-test suggestion."""
+    st.markdown("**Surviving mutant explanations**")
+    for explanation in result.mutant_explanations:
+        st.text(f"Mutant: {explanation.mutant_name}")
+        st.text(f"What changed: {explanation.description}")
+        st.text(f"Missing test case: {explanation.missing_test_case}")
+        if explanation.diff:
+            st.code(explanation.diff, language="diff")
 
 
 def _table_row(result: EngineRun) -> dict[str, str]:
@@ -173,8 +230,30 @@ def _table_row(result: EngineRun) -> dict[str, str]:
             else "Not scored"
         ),
         "Wrong tests / status": wrong_tests,
+        "Flaky tests": (
+            ", ".join(result.flaky_test_names)
+            if result.flaky_test_names
+            else (
+                (
+                    f"Inconclusive on runs "
+                    f"{result.flaky_timed_out_runs + result.flaky_inconclusive_runs}"
+                )
+                if result.flaky_timed_out_runs or result.flaky_inconclusive_runs
+                else f"None ({result.flaky_run_count} runs)"
+            )
+            if result.flaky_run_count is not None
+            else "-"
+        ),
         "Time (s)": _number(result.wall_clock_seconds),
         "Cost (USD)": _currency(result.estimated_cost_usd),
+        "Merged tests": (
+            f"{len(result.merge_selected_test_names)} selected; "
+            f"{result.merge_mutants_killed}/{result.merge_mutants_available} mutants"
+            if result.merge_selected_test_names
+            and result.merge_mutants_killed is not None
+            and result.merge_mutants_available is not None
+            else "-"
+        ),
         "Run status": result.status,
         "Details": result.error or "",
     }
@@ -194,6 +273,7 @@ def _display_engine(engine_name: str) -> str:
         "single-shot-llm": "Single-shot LLM",
         "agent-llm": "Agent LLM",
         "pynguin": "Pynguin",
+        "best-of-merge": "Best-of merge",
     }.get(engine_name, engine_name)
 
 

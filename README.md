@@ -158,6 +158,16 @@ and download previously generated suites. Generated tests and Pynguin run in
 the existing timeout-bounded subprocesses with a minimal environment that does
 not inherit provider credentials. These are not OS-level security sandboxes.
 
+For each generated suite, the dashboard repeats execution three times and
+flags tests whose outcomes change. The best-of merge isolates passing test
+cases, measures each case's mutant kills, and greedily selects cases with the
+most additional kills; it validates the merged suite before reporting its
+metrics. Survivor explanations are based on mutmut's source diff and suggest a
+test case that distinguishes the original from the mutation. The merge performs
+additional mutation runs and can take longer than generating a single suite.
+The history page retains the merged suite, selected test cases, stability
+results, and mutant explanations along with the original engine outputs.
+
 Run TestPilot's unit tests with:
 
 ```sh

@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
+from testpilot.evaluator.mutant_explainer import MutantExplanation
+
 
 @dataclass(frozen=True)
 class EngineRun:
@@ -25,6 +27,15 @@ class EngineRun:
     wall_clock_seconds: float | None = None
     estimated_cost_usd: float | None = None
     test_code: str | None = None
+    flaky_test_names: tuple[str, ...] = ()
+    flaky_run_count: int | None = None
+    flaky_timed_out_runs: tuple[int, ...] = ()
+    flaky_inconclusive_runs: tuple[int, ...] = ()
+    surviving_mutant_names: tuple[str, ...] = ()
+    mutant_explanations: tuple[MutantExplanation, ...] = ()
+    merge_selected_test_names: tuple[str, ...] = ()
+    merge_mutants_killed: int | None = None
+    merge_mutants_available: int | None = None
 
 
 @dataclass(frozen=True)
@@ -81,9 +92,14 @@ class RunHistory:
                     run_id, function_name, engine_name, status, error,
                     line_percent, branch_percent, mutation_score,
                     wrong_test_count, wrong_test_status, wall_clock_seconds,
-                    estimated_cost_usd, test_code
+                    estimated_cost_usd, test_code, flaky_test_names_json,
+                    flaky_run_count,
+                    flaky_timed_out_runs_json, surviving_mutant_names_json,
+                    mutant_explanations_json, merge_selected_test_names_json,
+                    merge_mutants_killed, merge_mutants_available,
+                    flaky_inconclusive_runs_json
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -100,6 +116,25 @@ class RunHistory:
                         result.wall_clock_seconds,
                         result.estimated_cost_usd,
                         result.test_code,
+                        json.dumps(list(result.flaky_test_names)),
+                        result.flaky_run_count,
+                        json.dumps(list(result.flaky_timed_out_runs)),
+                        json.dumps(list(result.surviving_mutant_names)),
+                        json.dumps(
+                            [
+                                {
+                                    "mutant_name": explanation.mutant_name,
+                                    "description": explanation.description,
+                                    "missing_test_case": explanation.missing_test_case,
+                                    "diff": explanation.diff,
+                                }
+                                for explanation in result.mutant_explanations
+                            ]
+                        ),
+                        json.dumps(list(result.merge_selected_test_names)),
+                        result.merge_mutants_killed,
+                        result.merge_mutants_available,
+                        json.dumps(list(result.flaky_inconclusive_runs)),
                     )
                     for result in results
                 ],
@@ -148,7 +183,11 @@ class RunHistory:
                 SELECT function_name, engine_name, status, error, line_percent,
                        branch_percent, mutation_score, wrong_test_count,
                        wrong_test_status, wall_clock_seconds,
-                       estimated_cost_usd, test_code
+                       estimated_cost_usd, test_code, flaky_test_names_json,
+                       flaky_run_count, flaky_timed_out_runs_json,
+                       surviving_mutant_names_json, mutant_explanations_json,
+                       merge_selected_test_names_json, merge_mutants_killed,
+                       merge_mutants_available, flaky_inconclusive_runs_json
                 FROM engine_runs
                 WHERE run_id = ?
                 ORDER BY result_id
@@ -162,7 +201,7 @@ class RunHistory:
             source_name=row["source_name"],
             function_names=tuple(json.loads(row["function_names_json"])),
         )
-        results = tuple(EngineRun(**dict(result_row)) for result_row in result_rows)
+        results = tuple(_decode_engine_run(result_row) for result_row in result_rows)
         return StoredRun(summary, results)
 
     def _connect(self) -> sqlite3.Connection:
@@ -198,7 +237,80 @@ class RunHistory:
                     wrong_test_status TEXT,
                     wall_clock_seconds REAL,
                     estimated_cost_usd REAL,
-                    test_code TEXT
+                    test_code TEXT,
+                    flaky_test_names_json TEXT NOT NULL DEFAULT '[]',
+                    flaky_run_count INTEGER,
+                    flaky_timed_out_runs_json TEXT NOT NULL DEFAULT '[]',
+                    surviving_mutant_names_json TEXT NOT NULL DEFAULT '[]',
+                    mutant_explanations_json TEXT NOT NULL DEFAULT '[]',
+                    merge_selected_test_names_json TEXT NOT NULL DEFAULT '[]',
+                    merge_mutants_killed INTEGER,
+                    merge_mutants_available INTEGER,
+                    flaky_inconclusive_runs_json TEXT NOT NULL DEFAULT '[]'
                 );
                 """
             )
+            existing_columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(engine_runs)")
+            }
+            added_columns = {
+                "flaky_test_names_json": "TEXT NOT NULL DEFAULT '[]'",
+                "flaky_run_count": "INTEGER",
+                "flaky_timed_out_runs_json": "TEXT NOT NULL DEFAULT '[]'",
+                "surviving_mutant_names_json": "TEXT NOT NULL DEFAULT '[]'",
+                "mutant_explanations_json": "TEXT NOT NULL DEFAULT '[]'",
+                "merge_selected_test_names_json": "TEXT NOT NULL DEFAULT '[]'",
+                "merge_mutants_killed": "INTEGER",
+                "merge_mutants_available": "INTEGER",
+                "flaky_inconclusive_runs_json": "TEXT NOT NULL DEFAULT '[]'",
+            }
+            for name, column_type in added_columns.items():
+                if name not in existing_columns:
+                    connection.execute(
+                        f"ALTER TABLE engine_runs ADD COLUMN {name} {column_type}"
+                    )
+
+
+def _decode_engine_run(row: sqlite3.Row) -> EngineRun:
+    """Reconstruct an engine result and decode its JSON collection fields."""
+    data = {
+        key: row[key]
+        for key in (
+            "function_name",
+            "engine_name",
+            "status",
+            "error",
+            "line_percent",
+            "branch_percent",
+            "mutation_score",
+            "wrong_test_count",
+            "wrong_test_status",
+            "wall_clock_seconds",
+            "estimated_cost_usd",
+            "test_code",
+            "flaky_run_count",
+            "merge_mutants_killed",
+            "merge_mutants_available",
+        )
+    }
+    data.update(
+        flaky_test_names=tuple(json.loads(row["flaky_test_names_json"])),
+        flaky_timed_out_runs=tuple(
+            json.loads(row["flaky_timed_out_runs_json"])
+        ),
+        flaky_inconclusive_runs=tuple(
+            json.loads(row["flaky_inconclusive_runs_json"])
+        ),
+        surviving_mutant_names=tuple(
+            json.loads(row["surviving_mutant_names_json"])
+        ),
+        mutant_explanations=tuple(
+            MutantExplanation(**explanation)
+            for explanation in json.loads(row["mutant_explanations_json"])
+        ),
+        merge_selected_test_names=tuple(
+            json.loads(row["merge_selected_test_names_json"])
+        ),
+    )
+    return EngineRun(**data)

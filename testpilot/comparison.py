@@ -9,10 +9,13 @@ from testpilot.engines import AgentEngine, PynguinEngine, SingleShotEngine
 from testpilot.engines.base import TestGenerationEngine
 from testpilot.evaluator import (
     CoverageEvaluator,
+    FlakyTestChecker,
     MutationEvaluator,
     WrongTestDetector,
+    explain_mutants,
 )
 from testpilot.llm import LLMProvider, create_provider
+from testpilot.merge import BestOfMerger
 from testpilot.storage import EngineRun
 
 ENGINE_NAMES = ("Single-shot LLM", "Agent LLM", "Pynguin")
@@ -43,6 +46,7 @@ def compare_functions(
     coverage_evaluator = CoverageEvaluator()
     mutation_evaluator = MutationEvaluator()
     wrong_test_detector = WrongTestDetector()
+    flaky_test_checker = FlakyTestChecker()
     provider: LLMProvider | None = None
     engines: dict[str, TestGenerationEngine | Exception] = {}
     results: list[EngineRun] = []
@@ -100,6 +104,12 @@ def compare_functions(
             mutation_score: float | None = None
             wrong_test_count: int | None = None
             wrong_test_status: str | None = None
+            surviving_mutant_names: tuple[str, ...] = ()
+            mutant_explanations = ()
+            flaky_test_names: tuple[str, ...] = ()
+            flaky_run_count: int | None = None
+            flaky_timed_out_runs: tuple[int, ...] = ()
+            flaky_inconclusive_runs: tuple[int, ...] = ()
 
             try:
                 correctness = wrong_test_detector.evaluate(
@@ -127,8 +137,24 @@ def compare_functions(
                         source_path,
                     )
                     mutation_score = mutation.mutation_score
+                    surviving_mutant_names = mutation.surviving_mutant_names
+                    mutant_explanations = explain_mutants(
+                        mutation.surviving_mutant_diffs
+                    )
                 except Exception as exc:
                     error_messages.append(f"Mutation: {_format_error(exc)}")
+
+            try:
+                flaky_result = flaky_test_checker.evaluate(
+                    suite.test_code,
+                    source_path,
+                )
+                flaky_test_names = flaky_result.flaky_test_names
+                flaky_run_count = flaky_result.run_count
+                flaky_timed_out_runs = flaky_result.timed_out_runs
+                flaky_inconclusive_runs = flaky_result.inconclusive_runs
+            except Exception as exc:
+                error_messages.append(f"Flaky check: {_format_error(exc)}")
 
             results.append(
                 EngineRun(
@@ -141,9 +167,69 @@ def compare_functions(
                     mutation_score=mutation_score,
                     wrong_test_count=wrong_test_count,
                     wrong_test_status=wrong_test_status,
-                    wall_clock_seconds=time.perf_counter() - started,
+                    wall_clock_seconds=suite.wall_clock_seconds,
                     estimated_cost_usd=suite.estimated_cost_usd,
                     test_code=suite.test_code,
+                    flaky_test_names=flaky_test_names,
+                    flaky_run_count=flaky_run_count,
+                    flaky_timed_out_runs=flaky_timed_out_runs,
+                    flaky_inconclusive_runs=flaky_inconclusive_runs,
+                    surviving_mutant_names=surviving_mutant_names,
+                    mutant_explanations=mutant_explanations,
+                )
+            )
+
+    for function in functions:
+        generated_suites = {
+            result.engine_name: result.test_code
+            for result in results
+            if result.function_name == function.name and result.test_code is not None
+        }
+        if not generated_suites:
+            continue
+        started = time.perf_counter()
+        try:
+            merge = BestOfMerger(
+                mutation_evaluator=mutation_evaluator,
+                wrong_test_detector=wrong_test_detector,
+            ).merge(source_path, generated_suites)
+            coverage = coverage_evaluator.evaluate(merge.test_code, source_path)
+            flaky = flaky_test_checker.evaluate(merge.test_code, source_path)
+            mutation = merge.mutation_result
+            results.append(
+                EngineRun(
+                    function_name=function.name,
+                    engine_name="best-of-merge",
+                    status="completed",
+                    line_percent=coverage.line_percent,
+                    branch_percent=coverage.branch_percent,
+                    mutation_score=mutation.mutation_score,
+                    wrong_test_count=0,
+                    wrong_test_status="passed",
+                    wall_clock_seconds=time.perf_counter() - started,
+                    estimated_cost_usd=0.0,
+                    test_code=merge.test_code,
+                    flaky_test_names=flaky.flaky_test_names,
+                    flaky_run_count=flaky.run_count,
+                    flaky_timed_out_runs=flaky.timed_out_runs,
+                    flaky_inconclusive_runs=flaky.inconclusive_runs,
+                    surviving_mutant_names=mutation.surviving_mutant_names,
+                    mutant_explanations=explain_mutants(
+                        mutation.surviving_mutant_diffs
+                    ),
+                    merge_selected_test_names=merge.selected_test_names,
+                    merge_mutants_killed=merge.mutants_killed_by_selection,
+                    merge_mutants_available=merge.mutants_available,
+                )
+            )
+        except Exception as exc:
+            results.append(
+                EngineRun(
+                    function_name=function.name,
+                    engine_name="best-of-merge",
+                    status="error",
+                    error=_format_error(exc),
+                    wall_clock_seconds=time.perf_counter() - started,
                 )
             )
     return results

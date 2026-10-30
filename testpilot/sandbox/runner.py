@@ -13,6 +13,16 @@ from testpilot.sandbox.environment import isolated_subprocess_environment
 
 
 @dataclass(frozen=True)
+class TestOutcome:
+    """Represent one collected pytest test and its result."""
+
+    __test__ = False
+
+    name: str
+    status: str
+
+
+@dataclass(frozen=True)
 class SandboxResult:
     """Capture pytest results and subprocess output."""
 
@@ -26,6 +36,7 @@ class SandboxResult:
     wall_clock_seconds: float
     stdout: str
     stderr: str
+    test_outcomes: tuple[TestOutcome, ...] = ()
 
 
 class SandboxRunner:
@@ -90,7 +101,7 @@ class SandboxRunner:
                 )
 
             elapsed = time.perf_counter() - started
-            counts = _read_junit_counts(report_path)
+            counts, outcomes = _read_junit_report(report_path)
             return SandboxResult(
                 tests_run=counts[0],
                 passed=counts[1],
@@ -102,20 +113,44 @@ class SandboxRunner:
                 wall_clock_seconds=elapsed,
                 stdout=completed.stdout,
                 stderr=completed.stderr,
+                test_outcomes=outcomes,
             )
 
 
-def _read_junit_counts(report_path: Path) -> tuple[int, int, int, int, int]:
+def _read_junit_report(
+    report_path: Path,
+) -> tuple[tuple[int, int, int, int, int], tuple[TestOutcome, ...]]:
     """Count test outcomes from pytest's JUnit XML report."""
     if not report_path.is_file():
-        return (0, 0, 0, 0, 0)
+        return (0, 0, 0, 0, 0), ()
     root = ET.parse(report_path).getroot()
     test_cases = root.findall(".//testcase")
-    failed = sum(case.find("failure") is not None for case in test_cases)
-    errors = sum(case.find("error") is not None for case in test_cases)
-    skipped = sum(case.find("skipped") is not None for case in test_cases)
+    outcomes = tuple(
+        TestOutcome(
+            name="::".join(
+                item for item in (case.get("classname"), case.get("name")) if item
+            ),
+            status=_test_case_status(case),
+        )
+        for case in test_cases
+    )
+    failed = sum(outcome.status == "failed" for outcome in outcomes)
+    errors = sum(outcome.status == "error" for outcome in outcomes)
+    skipped = sum(outcome.status == "skipped" for outcome in outcomes)
     passed = len(test_cases) - failed - errors - skipped
-    return len(test_cases), passed, failed, errors, skipped
+    return (len(test_cases), passed, failed, errors, skipped), outcomes
+
+
+def _test_case_status(test_case: ET.Element) -> str:
+    """Return one normalized outcome for a JUnit testcase element."""
+    for tag, status in (
+        ("failure", "failed"),
+        ("error", "error"),
+        ("skipped", "skipped"),
+    ):
+        if test_case.find(tag) is not None:
+            return status
+    return "passed"
 
 
 def _output_text(output: str | bytes | None) -> str:

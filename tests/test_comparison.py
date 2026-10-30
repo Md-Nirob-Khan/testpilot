@@ -8,6 +8,7 @@ import pytest
 from testpilot.analyzer import analyze_source
 from testpilot.comparison import compare_functions
 from testpilot.engines.base import GeneratedSuite
+from testpilot.evaluator import MutationResult
 
 
 class _FakeEngine:
@@ -45,7 +46,18 @@ class _FakeMutationEvaluator:
 
     def evaluate(self, test_code, source_path):
         self.events.append("mutation")
-        return SimpleNamespace(mutation_score=0.8)
+        return MutationResult(
+            total_mutants=1,
+            killed_mutants=1,
+            survived_mutants=0,
+            timeout_mutants=0,
+            mutation_score=1.0,
+            surviving_mutant_names=(),
+            wall_clock_seconds=0.1,
+            stdout="",
+            stderr="",
+            killed_mutant_names=("mutant_1",),
+        )
 
 
 def test_comparison_measures_suite_and_runs_correctness_first(
@@ -83,13 +95,25 @@ def test_comparison_measures_suite_and_runs_correctness_first(
         engine_factories={"Pynguin": _FakeEngine},
     )
 
-    assert events == ["wrong-test", "coverage", "mutation"]
+    assert events == [
+        "wrong-test",
+        "coverage",
+        "mutation",
+        "wrong-test",
+        "mutation",
+        "wrong-test",
+        "mutation",
+        "coverage",
+    ]
     assert results[0].engine_name == "pynguin"
     assert results[0].line_percent == 75
     assert results[0].branch_percent == 50
-    assert results[0].mutation_score == 0.8
+    assert results[0].mutation_score == 1
     assert results[0].wrong_test_status == "passed"
     assert results[0].test_code is not None
+    assert results[1].engine_name == "best-of-merge"
+    assert results[1].status == "completed"
+    assert results[1].merge_selected_test_names
 
 
 def test_comparison_does_not_score_mutation_for_failing_suite(

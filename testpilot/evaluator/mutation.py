@@ -28,6 +28,9 @@ class MutationResult:
     wall_clock_seconds: float
     stdout: str
     stderr: str
+    killed_mutant_names: tuple[str, ...] = ()
+    surviving_mutant_diffs: tuple[tuple[str, str], ...] = ()
+    mutant_names: tuple[str, ...] = ()
 
 
 class MutationEvaluator:
@@ -108,9 +111,20 @@ class MutationEvaluator:
                 names = _surviving_names(
                     working_directory / "mutants" / "testpilot_target.py.meta"
                 )
+                killed_names = _killed_names(
+                    working_directory / "mutants" / "testpilot_target.py.meta"
+                )
+                mutant_names = _mutant_names(
+                    working_directory / "mutants" / "testpilot_target.py.meta"
+                )
             except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
                 raise RuntimeError("mutmut statistics were missing or invalid") from exc
 
+            mutant_diffs = _surviving_mutant_diffs(
+                names,
+                working_directory,
+                _remaining_timeout(started, self.timeout_seconds),
+            )
             denominator = killed + survived
             score = killed / denominator if denominator else 0.0
             return MutationResult(
@@ -123,6 +137,9 @@ class MutationEvaluator:
                 wall_clock_seconds=time.perf_counter() - started,
                 stdout=run_result.stdout + stats_result.stdout,
                 stderr=run_result.stderr + stats_result.stderr,
+                killed_mutant_names=killed_names,
+                surviving_mutant_diffs=mutant_diffs,
+                mutant_names=mutant_names,
             )
 
 
@@ -174,10 +191,7 @@ def _read_count(stats: dict[str, object], key: str) -> int:
 
 
 def _surviving_names(metadata_path: Path) -> tuple[str, ...]:
-    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    exit_codes = metadata.get("exit_code_by_key")
-    if not isinstance(exit_codes, dict):
-        raise ValueError("mutmut metadata has no mutant exit codes")
+    exit_codes = _exit_codes(metadata_path)
     return tuple(
         sorted(
             name
@@ -185,6 +199,59 @@ def _surviving_names(metadata_path: Path) -> tuple[str, ...]:
             if isinstance(name, str) and exit_code == 0
         )
     )
+
+
+def _killed_names(metadata_path: Path) -> tuple[str, ...]:
+    """Return mutant identifiers explicitly killed by the test suite."""
+    exit_codes = _exit_codes(metadata_path)
+    return tuple(
+        sorted(
+            name
+            for name, exit_code in exit_codes.items()
+            if isinstance(name, str) and exit_code in (1, 3)
+        )
+    )
+
+
+def _mutant_names(metadata_path: Path) -> tuple[str, ...]:
+    """Return all mutant identifiers, including mutants not fully classified."""
+    return tuple(sorted(_exit_codes(metadata_path)))
+
+
+def _exit_codes(metadata_path: Path) -> dict[str, int | None]:
+    """Load mutmut's exit code for every mutant."""
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    exit_codes = metadata.get("exit_code_by_key")
+    if not isinstance(exit_codes, dict) or any(
+        not isinstance(name, str)
+        or (code is not None and (isinstance(code, bool) or not isinstance(code, int)))
+        for name, code in exit_codes.items()
+    ):
+        raise ValueError("mutmut metadata has invalid mutant exit codes")
+    return exit_codes
+
+
+def _surviving_mutant_diffs(
+    mutant_names: tuple[str, ...],
+    working_directory: Path,
+    timeout_seconds: float,
+) -> tuple[tuple[str, str], ...]:
+    """Load mutmut's source diff for each surviving mutant."""
+    details: list[tuple[str, str]] = []
+    started = time.perf_counter()
+    for mutant_name in mutant_names:
+        result = _run_mutmut(
+            ["show", mutant_name],
+            working_directory,
+            _remaining_timeout(started, timeout_seconds),
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"mutmut could not explain surviving mutant {mutant_name}: "
+                f"{result.stderr or result.stdout}"
+            )
+        details.append((mutant_name, result.stdout))
+    return tuple(details)
 
 
 def _remaining_timeout(started: float, timeout_seconds: float) -> float:

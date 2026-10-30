@@ -5,6 +5,12 @@ from testpilot.evaluator.coverage_evaluator import (
     CoverageResult,
 )
 from testpilot.evaluator.mutation import MutationEvaluator, MutationResult
+from testpilot.evaluator.flaky import (
+    FlakyTestChecker,
+    FlakyTestResult,
+    TestFlakiness,
+)
+from testpilot.evaluator.mutant_explainer import MutantExplanation, explain_mutants
 from testpilot.evaluator.wrong_tests import (
     WrongTestDetector,
     WrongTestResult,
@@ -14,9 +20,14 @@ from testpilot.evaluator.wrong_tests import (
 __all__ = [
     "CoverageEvaluator",
     "CoverageResult",
+    "FlakyTestChecker",
+    "FlakyTestResult",
+    "MutantExplanation",
     "MutationEvaluator",
     "MutationResult",
+    "TestFlakiness",
     "WrongTestDetector",
     "WrongTestResult",
     "WrongTestStatus",
+    "explain_mutants",
 ]

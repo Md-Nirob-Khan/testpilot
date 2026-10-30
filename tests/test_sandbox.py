@@ -23,6 +23,8 @@ def test_sandbox_runs_passing_generated_tests(tmp_path: Path) -> None:
     assert result.failed == result.errors == result.skipped == 0
     assert result.returncode == 0
     assert not result.timed_out
+    assert result.test_outcomes[0].name.endswith("::test_add")
+    assert result.test_outcomes[0].status == "passed"
 
 
 def test_sandbox_reports_assertion_failures(tmp_path: Path) -> None:
@@ -40,6 +42,7 @@ def test_sandbox_reports_assertion_failures(tmp_path: Path) -> None:
     assert result.failed == 1
     assert result.returncode != 0
     assert "AssertionError" in result.stdout
+    assert result.test_outcomes[0].status == "failed"
 
 
 def test_sandbox_enforces_timeout(tmp_path: Path) -> None:
