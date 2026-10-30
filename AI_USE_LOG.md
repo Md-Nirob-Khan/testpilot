@@ -17,3 +17,8 @@
 - Asked: Retry Ollama service/model setup as directed, use the smaller model after llama3.1 EOF failures, run the end-to-end evaluation, run all tests, commit, and push.
 - Done: Generated example tests with qwen2.5-coder:1.5b, corrected three wrong float expectations before scoring, obtained 100% line coverage and a 100% mutation score, and added baseline validation before mutation scoring.
 - Outcome: needed fixes
+
+## 2026-10-30 — Phase 3 agent engine
+- Asked: Add the raw-output scoring rule to CLAUDE.md, read it, implement Phase 3 only, run all tests, then commit and push.
+- Done: Added a bounded iterative engine with wrong-test-first scoring, coverage/mutation feedback, highest-score selection, and unit tests.
+- Outcome: needed fixes

@@ -65,6 +65,7 @@ def generate(function_info: FunctionInfo, source_path: Path) -> GeneratedSuite
 
 - For benchmark functions (HumanEval), the canonical solution is correct, so a test that fails on it is a wrong test (AI hallucination). Count these separately from real bug findings.
 - For the user's own code, correctness is unknown, so a failing test is labeled "needs human review: wrong test or real bug".
+- Never correct generated tests by hand before scoring. Always score the raw output of each engine and let the wrong-test detector count incorrect tests.
 
 ### Flaky check
 

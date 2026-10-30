@@ -75,6 +75,40 @@ print(mutation.mutation_score, mutation.surviving_mutant_names)
 
 Mutmut runs natively on macOS, with its `use_setproctitle` option disabled.
 
+## Iterative agent engine
+
+Phase 3 adds `AgentEngine`, which generates up to three suites by default.
+Every raw suite is sent to the wrong-test detector first. Passing suites are
+measured for coverage and mutation score; failing suites are reported to the
+next model round unchanged. The engine returns the passing suite with the
+highest mutation score, or the last raw suite if none pass.
+The result reports benchmark wrong-test failures and user-code failures needing
+human review separately across all attempted rounds.
+
+```python
+from pathlib import Path
+
+from testpilot.analyzer import analyze_file
+from testpilot.engines import AgentEngine
+from testpilot.llm import create_provider
+
+function_info = analyze_file(Path("examples/sample.py"))[0]
+suite = AgentEngine(create_provider()).generate(
+    function_info,
+    Path("examples/sample.py"),
+)
+print(
+    suite.test_code,
+    suite.rounds,
+    suite.wrong_test_count,
+    suite.needs_human_review_count,
+)
+```
+
+Set `is_benchmark=True` when constructing `AgentEngine` for a canonical
+benchmark implementation so failing tests are classified as wrong tests rather
+than cases needing human review.
+
 Run TestPilot's unit tests with:
 
 ```sh

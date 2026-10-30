@@ -9,7 +9,7 @@ from testpilot.analyzer import FunctionInfo
 
 @dataclass(frozen=True)
 class GeneratedSuite:
-    """Represent one generated pytest suite and its generation metrics."""
+    """Represent a generated pytest suite and its generation metrics."""
 
     test_code: str
     engine_name: str
@@ -17,6 +17,8 @@ class GeneratedSuite:
     llm_tokens_used: int
     estimated_cost_usd: float
     rounds: int = 1
+    wrong_test_count: int = 0
+    needs_human_review_count: int = 0
 
 
 class TestGenerationEngine(Protocol):
