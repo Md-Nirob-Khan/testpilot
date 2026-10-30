@@ -57,3 +57,8 @@
 - Asked: Inspect HumanEval/53 artifacts, compare the regression with the prior commit, add an end-to-end add control, rerun six tasks, run all tests, then commit and push.
 - Done: Found missing target imports in fixed-seed LLM output, made the import instruction explicit, corrected runtime failure classification, pinned Pynguin's seed, added the end-to-end add control, and reran the six selected tasks.
 - Outcome: needed fixes
+
+## 2026-10-30 — HumanEval full-run analysis
+- Asked: Analyze the completed 164-function CSV with paired metrics, failure counts, Wilcoxon tests, Pynguin xfail-only count, and charts; test the summary logic, run all tests, then commit and push.
+- Done: Added an optional SciPy/Matplotlib analysis command, generated `results/v2/summary.md` and three charts, and validated the complete 492-row dataset.
+- Outcome: needed fixes

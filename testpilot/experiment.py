@@ -107,6 +107,7 @@ def run_humaneval_experiment(
     limit: int = 10,
     offset: int = 0,
     task_ids: Sequence[str] | None = None,
+    resume: bool = False,
 ) -> ExperimentSummary:
     """Run all three engines on a HumanEval slice and write a CSV report."""
     started = time.perf_counter()
@@ -139,21 +140,39 @@ def run_humaneval_experiment(
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
+    recorded_engines: dict[str, set[str]] = {}
+    if resume and output.exists():
+        with output.open(newline="", encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file)
+            if tuple(reader.fieldnames or ()) != _CSV_FIELDS:
+                raise ValueError(
+                    f"Cannot resume from {output}: CSV headers do not match"
+                )
+            for existing_row in reader:
+                task_id = existing_row.get("task_id")
+                engine_name = existing_row.get("engine_name")
+                if task_id and engine_name:
+                    recorded_engines.setdefault(task_id, set()).add(engine_name)
+
     rows: list[ExperimentRow] = []
-    with output.open("w", newline="", encoding="utf-8") as csv_file:
+    append = resume and output.exists()
+    with output.open("a" if append else "w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(
             csv_file,
             fieldnames=_CSV_FIELDS,
             lineterminator="\n",
         )
-        writer.writeheader()
-        csv_file.flush()
+        if not append:
+            writer.writeheader()
+            csv_file.flush()
         for problem in problems:
             with TemporaryDirectory(prefix="testpilot-humaneval-") as directory:
                 source_path = Path(directory) / "testpilot_target.py"
                 source_path.write_text(problem.source_code, encoding="utf-8")
                 function = _find_function(problem, source_path)
                 for engine_name, engine_settings, engine_factory in engine_specs:
+                    if engine_name in recorded_engines.get(problem.task_id, set()):
+                        continue
                     row = _run_one(
                         problem=problem,
                         function=function,
@@ -172,6 +191,9 @@ def run_humaneval_experiment(
                     rows.append(row)
                     writer.writerow(asdict(row))
                     csv_file.flush()
+                    recorded_engines.setdefault(problem.task_id, set()).add(
+                        engine_name
+                    )
 
     return ExperimentSummary(
         rows=tuple(rows),
@@ -438,6 +460,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--task-ids", nargs="+")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="append to an existing CSV and skip recorded task/engine results",
+    )
     arguments = parser.parse_args(argv)
     if arguments.limit < 1:
         parser.error("--limit must be positive")
@@ -450,6 +477,7 @@ def main(argv: list[str] | None = None) -> int:
         limit=arguments.limit,
         offset=arguments.offset,
         task_ids=arguments.task_ids,
+        resume=arguments.resume,
     )
     completed = sum(row.status == "completed" for row in summary.rows)
     print(

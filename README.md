@@ -228,3 +228,19 @@ python -m testpilot.experiment \
 
 Use `--task-ids HumanEval/41 HumanEval/42` to rerun selected cases across all
 three engines without running the full benchmark.
+Add `--resume` to append completed rows and skip task/engine pairs already
+present in the output CSV after an interrupted run.
+
+Analyze a completed HumanEval CSV and generate a Markdown report plus PNG
+charts. Install the optional analysis dependencies, then run:
+
+```sh
+python -m pip install -e ".[analysis]"
+python -m testpilot.humaneval_analysis \
+  --input results/v2/humaneval_full_164.csv \
+  --output-dir results/v2
+```
+
+The report includes a complete-case comparison across all three engines,
+all-function failure counts, and paired Wilcoxon signed-rank tests. Charts use
+the same complete-case cohort as the paired comparison.

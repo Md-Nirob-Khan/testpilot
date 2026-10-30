@@ -232,6 +232,33 @@ def test_trial_writes_three_benchmark_engine_rows(
     assert rows[2]["engine_settings"].endswith("seed=42")
     assert events == [True, True, True]
 
+    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows[:2])
+
+    resumed = run_humaneval_experiment(
+        dataset_path,
+        output_path,
+        task_ids=["HumanEval/0"],
+        resume=True,
+    )
+    assert [row.engine_name for row in resumed.rows] == ["pynguin"]
+    with output_path.open(newline="", encoding="utf-8") as csv_file:
+        assert [row["engine_name"] for row in csv.DictReader(csv_file)] == [
+            "single-shot-llm",
+            "agent-llm",
+            "pynguin",
+        ]
+
+    already_complete = run_humaneval_experiment(
+        dataset_path,
+        output_path,
+        task_ids=["HumanEval/0"],
+        resume=True,
+    )
+    assert already_complete.rows == ()
+
 
 def test_experiment_scores_passing_cases_and_records_failure_reasons(
     tmp_path: Path,
