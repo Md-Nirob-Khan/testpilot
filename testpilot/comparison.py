@@ -16,6 +16,7 @@ from testpilot.evaluator import (
 )
 from testpilot.llm import LLMProvider, create_provider
 from testpilot.merge import BestOfMerger
+from testpilot.sandbox import passing_test_selection
 from testpilot.storage import EngineRun
 
 ENGINE_NAMES = ("Single-shot LLM", "Agent LLM", "Pynguin")
@@ -123,18 +124,42 @@ def compare_functions(
                 correctness = None
                 error_messages.append(f"Wrong-test check: {_format_error(exc)}")
 
-            try:
-                coverage = coverage_evaluator.evaluate(suite.test_code, source_path)
-                line_percent = coverage.line_percent
-                branch_percent = coverage.branch_percent
-            except Exception as exc:
-                error_messages.append(f"Coverage: {_format_error(exc)}")
-
-            if correctness is not None and correctness.status == "passed":
+            selection = None
+            if correctness is not None:
+                selection = passing_test_selection(
+                    suite.test_code,
+                    correctness.sandbox_result.test_outcomes,
+                )
+                if selection is not None:
+                    coverage_deselected = selection.for_test_file(
+                        "tests/test_generated.py"
+                    )
+                    mutation_deselected = coverage_deselected
+                    has_passing_tests = selection.passing_test_count > 0
+                else:
+                    coverage_deselected = ()
+                    mutation_deselected = ()
+                    has_passing_tests = False
+            else:
+                coverage_deselected = ()
+                mutation_deselected = ()
+                has_passing_tests = False
+            if has_passing_tests:
+                try:
+                    coverage = coverage_evaluator.evaluate(
+                        suite.test_code,
+                        source_path,
+                        coverage_deselected,
+                    )
+                    line_percent = coverage.line_percent
+                    branch_percent = coverage.branch_percent
+                except Exception as exc:
+                    error_messages.append(f"Coverage: {_format_error(exc)}")
                 try:
                     mutation = mutation_evaluator.evaluate(
                         suite.test_code,
                         source_path,
+                        mutation_deselected,
                     )
                     mutation_score = mutation.mutation_score
                     surviving_mutant_names = mutation.surviving_mutant_names

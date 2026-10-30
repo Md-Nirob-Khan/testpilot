@@ -8,6 +8,7 @@ import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Sequence
 
 from testpilot.sandbox.environment import isolated_subprocess_environment
 
@@ -20,6 +21,7 @@ class TestOutcome:
 
     name: str
     status: str
+    failure_kind: str | None = None
 
 
 @dataclass(frozen=True)
@@ -48,7 +50,12 @@ class SandboxRunner:
             raise ValueError("Timeout must be a finite positive number")
         self.timeout_seconds = timeout_seconds
 
-    def run(self, test_code: str, source_path: Path) -> SandboxResult:
+    def run(
+        self,
+        test_code: str,
+        source_path: Path,
+        deselected_test_ids: Sequence[str] = (),
+    ) -> SandboxResult:
         """Run pytest against a copied source file in a child process."""
         path = Path(source_path)
         if not path.is_file():
@@ -65,13 +72,23 @@ class SandboxRunner:
                 encoding="utf-8",
             )
             report_path = working_directory / "pytest-report.xml"
+            test_path = (working_directory / "test_generated.py").resolve()
             command = [
                 sys.executable,
                 "-m",
                 "pytest",
                 "-q",
+                "--runxfail",
+                *(
+                    argument
+                    for test_id in deselected_test_ids
+                    for argument in (
+                        "--deselect",
+                        f"test_generated.py::{_test_case_suffix(test_id)}",
+                    )
+                ),
                 f"--junitxml={report_path}",
-                str(working_directory / "test_generated.py"),
+                str(test_path),
             ]
 
             started = time.perf_counter()
@@ -131,6 +148,7 @@ def _read_junit_report(
                 item for item in (case.get("classname"), case.get("name")) if item
             ),
             status=_test_case_status(case),
+            failure_kind=_failure_kind(case),
         )
         for case in test_cases
     )
@@ -153,6 +171,26 @@ def _test_case_status(test_case: ET.Element) -> str:
     return "passed"
 
 
+def _failure_kind(test_case: ET.Element) -> str | None:
+    """Classify pytest failures using the JUnit failure or error details."""
+    failure = test_case.find("failure")
+    if failure is not None:
+        return "assertion_failure"
+    error = test_case.find("error")
+    if error is None:
+        return None
+    detail = " ".join(
+        part
+        for part in (error.get("type"), error.get("message"), error.text)
+        if part
+    ).lower()
+    if "syntaxerror" in detail or "indentationerror" in detail:
+        return "syntax_error"
+    if "importerror" in detail or "modulenotfounderror" in detail:
+        return "import_error"
+    return "test_error"
+
+
 def _output_text(output: str | bytes | None) -> str:
     """Convert captured timeout output to text."""
     if output is None:
@@ -160,3 +198,8 @@ def _output_text(output: str | bytes | None) -> str:
     if isinstance(output, bytes):
         return output.decode("utf-8", errors="replace")
     return output
+
+
+def _test_case_suffix(test_id: str) -> str:
+    """Return the case portion after an optional test-file prefix."""
+    return test_id.split("::", maxsplit=1)[-1]

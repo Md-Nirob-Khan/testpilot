@@ -8,7 +8,7 @@ from testpilot.analyzer import analyze_source
 from testpilot.engines import AgentEngine
 from testpilot.evaluator import CoverageResult, MutationResult, WrongTestResult
 from testpilot.llm import LLMResponse
-from testpilot.sandbox import SandboxResult
+from testpilot.sandbox import SandboxResult, TestOutcome
 
 
 class FakeProvider:
@@ -29,10 +29,17 @@ class FakeCoverageEvaluator:
     def __init__(self) -> None:
         self.suites: list[str] = []
         self.source_paths: list[Path] = []
+        self.deselected_test_ids: list[tuple[str, ...]] = []
 
-    def evaluate(self, test_code: str, _source_path: Path) -> CoverageResult:
+    def evaluate(
+        self,
+        test_code: str,
+        _source_path: Path,
+        deselected_test_ids: tuple[str, ...] = (),
+    ) -> CoverageResult:
         self.suites.append(test_code)
         self.source_paths.append(_source_path)
+        self.deselected_test_ids.append(deselected_test_ids)
         return CoverageResult(
             tests_run=1,
             passed=1,
@@ -61,10 +68,17 @@ class FakeMutationEvaluator:
         self.scores = iter(scores)
         self.suites: list[str] = []
         self.source_paths: list[Path] = []
+        self.deselected_test_ids: list[tuple[str, ...]] = []
 
-    def evaluate(self, test_code: str, _source_path: Path) -> MutationResult:
+    def evaluate(
+        self,
+        test_code: str,
+        _source_path: Path,
+        deselected_test_ids: tuple[str, ...] = (),
+    ) -> MutationResult:
         self.suites.append(test_code)
         self.source_paths.append(_source_path)
+        self.deselected_test_ids.append(deselected_test_ids)
         score = next(self.scores)
         total = 10
         killed = round(score * total)
@@ -110,6 +124,14 @@ def _function_and_source(tmp_path: Path):
 
 
 def _wrong_test_result(status: str, failing_tests: int = 0) -> WrongTestResult:
+    test_outcomes = (
+        tuple(
+            TestOutcome(f"test_generated::test_wrong_{index}", "failed")
+            for index in range(failing_tests)
+        )
+        if failing_tests
+        else (TestOutcome("test_generated::test_stub", "passed"),)
+    )
     return WrongTestResult(
         status=status,
         failing_tests=failing_tests,
@@ -124,6 +146,7 @@ def _wrong_test_result(status: str, failing_tests: int = 0) -> WrongTestResult:
             wall_clock_seconds=0.1,
             stdout="AssertionError: incorrect expectation",
             stderr="",
+            test_outcomes=test_outcomes,
         ),
         explanation="Known test outcome",
     )
@@ -200,6 +223,60 @@ def test_agent_scores_raw_wrong_tests_then_uses_feedback(
     assert "AssertionError: incorrect expectation" in provider.prompts[1][1]
 
 
+def test_agent_excludes_xfail_cases_from_scores_and_reports_them(
+    tmp_path: Path,
+) -> None:
+    function_info, source_path = _function_and_source(tmp_path)
+    test_code = (
+        "import pytest\n\n"
+        "@pytest.mark.xfail(strict=True)\n"
+        "def test_expected_exception():\n"
+        "    raise RuntimeError('expected')\n"
+    )
+    provider = FakeProvider([test_code])
+    coverage = FakeCoverageEvaluator()
+    mutation = FakeMutationEvaluator([])
+    correctness = WrongTestResult(
+        status="passed",
+        failing_tests=0,
+        sandbox_result=SandboxResult(
+            tests_run=1,
+            passed=0,
+            failed=1,
+            errors=0,
+            skipped=0,
+            returncode=1,
+            timed_out=False,
+            wall_clock_seconds=0.1,
+            stdout="",
+            stderr="",
+            test_outcomes=(
+                TestOutcome(
+                    "test_generated::test_expected_exception",
+                    "failed",
+                    "assertion_failure",
+                ),
+            ),
+        ),
+        explanation="Only xfail-marked cases failed.",
+        expected_failure_count=1,
+    )
+
+    suite = AgentEngine(
+        provider,
+        max_rounds=1,
+        is_benchmark=True,
+        coverage_evaluator=coverage,
+        mutation_evaluator=mutation,
+        wrong_test_detector=FakeWrongTestDetector([correctness]),
+    ).generate(function_info, source_path)
+
+    assert suite.test_code == test_code.strip()
+    assert suite.wrong_test_count == 0
+    assert coverage.suites == []
+    assert mutation.suites == []
+
+
 def test_agent_returns_last_raw_suite_if_all_rounds_fail(
     tmp_path: Path,
 ) -> None:
@@ -230,6 +307,92 @@ def test_agent_returns_last_raw_suite_if_all_rounds_fail(
     assert all(call[2] for call in wrong_tests.calls)
     assert coverage.suites == []
     assert mutation.suites == []
+
+
+def test_agent_treats_coverage_errors_as_feedback_for_the_next_round(
+    tmp_path: Path,
+) -> None:
+    function_info, source_path = _function_and_source(tmp_path)
+    provider = FakeProvider(["first raw suite", "second raw suite"])
+    mutation = FakeMutationEvaluator([0.3, 0.3])
+
+    class FailingCoverageEvaluator:
+        def evaluate(
+            self,
+            test_code: str,
+            source_path: Path,
+            deselected_test_ids: tuple[str, ...] = (),
+        ) -> CoverageResult:
+            raise RuntimeError("No data to report")
+
+    suite = AgentEngine(
+        provider,
+        max_rounds=2,
+        coverage_evaluator=FailingCoverageEvaluator(),
+        mutation_evaluator=mutation,
+        wrong_test_detector=FakeWrongTestDetector(
+            [_wrong_test_result("passed"), _wrong_test_result("passed")]
+        ),
+    ).generate(function_info, source_path)
+
+    assert suite.rounds == 2
+    assert suite.test_code == "first raw suite"
+    assert "Coverage evaluation failed: RuntimeError: No data to report" in (
+        provider.prompts[1][1]
+    )
+    assert mutation.suites == ["first raw suite", "second raw suite"]
+
+
+def test_agent_scores_only_passing_cases_and_keeps_raw_generation(
+    tmp_path: Path,
+) -> None:
+    function_info, source_path = _function_and_source(tmp_path)
+    raw_suite = (
+        "def test_wrong():\n"
+        "    assert 1 == 2\n\n"
+        "def test_right():\n"
+        "    assert 1 == 1\n"
+    )
+    coverage = FakeCoverageEvaluator()
+    mutation = FakeMutationEvaluator([0.5])
+    correctness = WrongTestResult(
+        status="wrong_test",
+        failing_tests=1,
+        sandbox_result=SandboxResult(
+            tests_run=2,
+            passed=1,
+            failed=1,
+            errors=0,
+            skipped=0,
+            returncode=1,
+            timed_out=False,
+            wall_clock_seconds=0.1,
+            stdout="",
+            stderr="",
+            test_outcomes=(
+                TestOutcome("test_generated::test_wrong", "failed", "assertion_failure"),
+                TestOutcome("test_generated::test_right", "passed"),
+            ),
+        ),
+        explanation="One wrong test",
+    )
+
+    suite = AgentEngine(
+        FakeProvider([raw_suite]),
+        max_rounds=1,
+        is_benchmark=True,
+        coverage_evaluator=coverage,
+        mutation_evaluator=mutation,
+        wrong_test_detector=FakeWrongTestDetector([correctness]),
+    ).generate(function_info, source_path)
+
+    assert suite.test_code == raw_suite.strip()
+    assert suite.wrong_test_count == 1
+    assert coverage.suites == [raw_suite.strip()]
+    assert mutation.suites == [raw_suite.strip()]
+    expected_deselection = ("tests/test_generated.py::test_wrong",)
+    assert coverage.deselected_test_ids == [expected_deselection]
+    assert mutation.deselected_test_ids == [expected_deselection]
 
 
 @pytest.mark.parametrize("max_rounds", [0, -1, 1.5, True])

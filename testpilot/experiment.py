@@ -2,12 +2,13 @@
 
 import argparse
 import csv
+import json
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Callable
+from typing import Callable, Sequence
 
 from testpilot.analyzer import FunctionInfo, analyze_file
 from testpilot.benchmarks import HumanEvalProblem, load_humaneval
@@ -18,7 +19,8 @@ from testpilot.evaluator import (
     MutationEvaluator,
     WrongTestDetector,
 )
-from testpilot.llm import LLMProvider, create_provider
+from testpilot.llm import LLMProvider, LLMProviderError, create_provider
+from testpilot.sandbox import passing_test_selection
 
 _CSV_FIELDS = (
     "run_date",
@@ -43,7 +45,10 @@ _CSV_FIELDS = (
     "killed_mutants",
     "survived_mutants",
     "wrong_test_count",
+    "passing_test_count",
+    "expected_failure_count",
     "wrong_test_status",
+    "wrong_test_reasons_json",
 )
 
 
@@ -73,7 +78,10 @@ class ExperimentRow:
     killed_mutants: int | None
     survived_mutants: int | None
     wrong_test_count: int | None
+    passing_test_count: int | None
+    expected_failure_count: int | None
     wrong_test_status: str
+    wrong_test_reasons_json: str
 
 
 @dataclass(frozen=True)
@@ -92,13 +100,32 @@ def run_humaneval_experiment(
     output_path: Path,
     limit: int = 10,
     offset: int = 0,
+    task_ids: Sequence[str] | None = None,
 ) -> ExperimentSummary:
     """Run all three engines on a HumanEval slice and write a CSV report."""
     started = time.perf_counter()
     started_at = datetime.now().astimezone()
     run_date = started_at.date().isoformat()
     run_started_at = started_at.isoformat(timespec="seconds")
-    problems = load_humaneval(dataset_path, limit=limit, offset=offset)
+    if task_ids is None:
+        problems = load_humaneval(
+            dataset_path,
+            limit=limit,
+            offset=offset,
+        )
+    else:
+        if not task_ids or len(set(task_ids)) != len(task_ids):
+            raise ValueError("task_ids must be a non-empty sequence without duplicates")
+        if offset:
+            raise ValueError("task_ids cannot be combined with a non-zero offset")
+        available = {
+            problem.task_id: problem
+            for problem in load_humaneval(dataset_path)
+        }
+        missing = [task_id for task_id in task_ids if task_id not in available]
+        if missing:
+            raise ValueError(f"Unknown HumanEval task IDs: {', '.join(missing)}")
+        problems = tuple(available[task_id] for task_id in task_ids)
     provider = create_provider()
     model_name = _model_name(provider)
     engine_specs = _engine_specs(provider)
@@ -189,11 +216,17 @@ def _run_one(
     killed_mutants = None
     survived_mutants = None
     wrong_test_count = None
+    passing_test_count = None
+    expected_failure_count = 0
     wrong_test_status = ""
+    wrong_test_reasons: list[dict[str, str]] = []
+    infrastructure_error = False
+    selection = None
     try:
         suite = engine.generate(function, source_path)
     except Exception as exc:
         errors.append(f"generation: {_format_error(exc)}")
+        infrastructure_error = _is_ollama_connection_refused(exc)
 
     if suite is not None:
         try:
@@ -203,26 +236,68 @@ def _run_one(
                 is_benchmark=True,
             )
             wrong_test_status = correctness.status
-            wrong_test_count = correctness.failing_tests
+            selection = passing_test_selection(
+                suite.test_code,
+                correctness.sandbox_result.test_outcomes,
+            )
+            wrong_test_count = (
+                selection.wrong_test_count
+                if selection is not None
+                else correctness.failing_tests
+            )
+            expected_failure_count = (
+                selection.expected_failure_count
+                if selection is not None
+                else correctness.expected_failure_count
+            )
+            wrong_test_reasons = [
+                {
+                    "test_name": outcome.name,
+                    "reason": outcome.failure_kind or "test_error",
+                }
+                for outcome in (
+                    selection.wrong_test_outcomes if selection is not None else ()
+                )
+            ]
         except Exception as exc:
             correctness = None
             errors.append(f"wrong-test check: {_format_error(exc)}")
 
-        try:
-            coverage = CoverageEvaluator(timeout_seconds=30.0).evaluate(
-                suite.test_code,
-                source_path,
-            )
-            line_percent = coverage.line_percent
-            branch_percent = coverage.branch_percent
-        except Exception as exc:
-            errors.append(f"coverage: {_format_error(exc)}")
-
-        if correctness is not None and correctness.status == "passed":
+        if correctness is not None and selection is not None:
+            if selection.passing_test_count > 0:
+                passing_test_count = selection.passing_test_count
+                coverage_deselected = selection.for_test_file(
+                    "tests/test_generated.py"
+                )
+                mutation_deselected = coverage_deselected
+            else:
+                passing_test_count = 0
+                coverage_deselected = ()
+                mutation_deselected = ()
+        elif correctness is not None:
+            passing_test_count = 0
+            coverage_deselected = ()
+            mutation_deselected = ()
+        else:
+            passing_test_count = None
+            coverage_deselected = ()
+            mutation_deselected = ()
+        if passing_test_count:
+            try:
+                coverage = CoverageEvaluator(timeout_seconds=30.0).evaluate(
+                    suite.test_code,
+                    source_path,
+                    coverage_deselected,
+                )
+                line_percent = coverage.line_percent
+                branch_percent = coverage.branch_percent
+            except Exception as exc:
+                errors.append(f"coverage: {_format_error(exc)}")
             try:
                 mutation = MutationEvaluator(timeout_seconds=300.0).evaluate(
                     suite.test_code,
                     source_path,
+                    mutation_deselected,
                 )
                 mutation_score = mutation.mutation_score
                 total_mutants = mutation.total_mutants
@@ -240,7 +315,13 @@ def _run_one(
         engine_name=engine_name,
         model_name=model_name,
         engine_settings=engine_settings,
-        status="error" if errors else "completed",
+        status=(
+            "infrastructure_error"
+            if infrastructure_error
+            else "error"
+            if errors
+            else "completed"
+        ),
         error="; ".join(errors),
         generation_seconds=(suite.wall_clock_seconds if suite else None),
         total_seconds=time.perf_counter() - started,
@@ -254,7 +335,10 @@ def _run_one(
         killed_mutants=killed_mutants,
         survived_mutants=survived_mutants,
         wrong_test_count=wrong_test_count,
+        passing_test_count=passing_test_count,
+        expected_failure_count=expected_failure_count,
         wrong_test_status=wrong_test_status,
+        wrong_test_reasons_json=json.dumps(wrong_test_reasons, sort_keys=True),
     )
 
 
@@ -288,6 +372,15 @@ def _format_error(error: Exception) -> str:
     return f"{type(error).__name__}: {message}"
 
 
+def _is_ollama_connection_refused(error: Exception) -> bool:
+    """Identify a final Ollama connection refusal as an infrastructure failure."""
+    return (
+        isinstance(error, LLMProviderError)
+        and "connection refused" in str(error).lower()
+        and "ollama" in str(error).lower()
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run a bounded HumanEval experiment from the command line."""
     parser = argparse.ArgumentParser(prog="python -m testpilot.experiment")
@@ -295,6 +388,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--offset", type=int, default=0)
+    parser.add_argument("--task-ids", nargs="+")
     arguments = parser.parse_args(argv)
     if arguments.limit < 1:
         parser.error("--limit must be positive")
@@ -306,6 +400,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.output,
         limit=arguments.limit,
         offset=arguments.offset,
+        task_ids=arguments.task_ids,
     )
     completed = sum(row.status == "completed" for row in summary.rows)
     print(

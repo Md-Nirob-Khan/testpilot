@@ -192,6 +192,17 @@ generation and evaluation time, line/branch coverage, mutation score, and
 wrong-test results. The three engines are single-shot LLM, Agent LLM
 (three-round maximum), and Pynguin (30-second search, 120-second subprocess
 timeout). Benchmark suites are checked against the canonical solutions.
+All scoring subprocesses use pytest's `--runxfail` so generated
+`xfail(strict=True)` markers cannot hide failing assertions or interfere with
+mutmut's forced-failure check. Xfail-marked cases are counted separately in
+`expected_failure_count` and are neither classified as wrong tests nor included
+in coverage or mutation scoring. The raw suite remains unchanged; pytest
+deselection excludes wrong and xfail cases from scoring, while the CSV records
+each wrong test and its syntax/import/assertion category. If no passing test
+executes mutated code, mutmut's early-exit diagnostic is reported as a zero
+mutation score with all generated mutants classified as surviving.
+An Ollama connection refusal is retried once; a second refusal is labeled as an
+infrastructure error. Generated test files are not edited.
 Generated tests and Pynguin continue to run only in their timeout-bounded
 subprocesses. Running all 164 problems requires explicitly changing `--limit`;
 measure a trial first and estimate the full run from its observed elapsed time.
@@ -205,3 +216,6 @@ python -m testpilot.experiment \
   --limit 154 \
   --offset 10
 ```
+
+Use `--task-ids HumanEval/41 HumanEval/42` to rerun selected cases across all
+three engines without running the full benchmark.

@@ -93,6 +93,49 @@ def test_provider_surfaces_connection_errors() -> None:
         OllamaProvider().complete("system", "user")
 
 
+def test_ollama_retries_connection_refusal_once() -> None:
+    payload = {"message": {"content": "generated"}, "prompt_eval_count": 1}
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=[
+            URLError(ConnectionRefusedError(61, "Connection refused")),
+            _mock_response(payload),
+        ],
+    ) as urlopen:
+        response = OllamaProvider().complete("system", "user")
+
+    assert response.content == "generated"
+    assert urlopen.call_count == 2
+
+
+def test_ollama_does_not_retry_other_provider_errors() -> None:
+    with (
+        patch(
+            "urllib.request.urlopen",
+            side_effect=URLError("offline"),
+        ) as urlopen,
+        pytest.raises(LLMProviderError, match="request failed"),
+    ):
+        OllamaProvider().complete("system", "user")
+
+    assert urlopen.call_count == 1
+
+
+def test_ollama_stops_after_one_refused_connection_retry() -> None:
+    with (
+        patch(
+            "urllib.request.urlopen",
+            side_effect=URLError(
+                ConnectionRefusedError(61, "Connection refused")
+            ),
+        ) as urlopen,
+        pytest.raises(LLMProviderError, match="Connection refused"),
+    ):
+        OllamaProvider().complete("system", "user")
+
+    assert urlopen.call_count == 2
+
+
 def test_provider_rejects_malformed_response() -> None:
     with (
         patch("urllib.request.urlopen", return_value=_mock_response({"message": {}})),

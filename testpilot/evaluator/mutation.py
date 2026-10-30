@@ -10,6 +10,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Sequence
 
 from testpilot.sandbox import SandboxRunner
 from testpilot.sandbox.environment import isolated_subprocess_environment
@@ -42,13 +43,22 @@ class MutationEvaluator:
             raise ValueError("Timeout must be a finite positive number")
         self.timeout_seconds = timeout_seconds
 
-    def evaluate(self, test_code: str, source_path: Path) -> MutationResult:
+    def evaluate(
+        self,
+        test_code: str,
+        source_path: Path,
+        deselected_test_ids: Sequence[str] = (),
+    ) -> MutationResult:
         """Run mutmut in a disposable copy so target and cache stay isolated."""
         path = Path(source_path)
         if not path.is_file():
             raise FileNotFoundError(f"Source file does not exist: {path}")
 
-        baseline = SandboxRunner(self.timeout_seconds).run(test_code, path)
+        baseline = SandboxRunner(self.timeout_seconds).run(
+            test_code,
+            path,
+            deselected_test_ids,
+        )
         if baseline.timed_out:
             raise TimeoutError(
                 "Generated suite timed out on the original source before "
@@ -75,7 +85,7 @@ class MutationEvaluator:
             )
             config_path = working_directory / "pyproject.toml"
             config_path.write_text(
-                _mutmut_config(),
+                _mutmut_config(deselected_test_ids),
                 encoding="utf-8",
             )
 
@@ -86,9 +96,39 @@ class MutationEvaluator:
                 self.timeout_seconds,
             )
             if run_result.returncode != 0:
+                if _no_tests_cover_mutants(run_result):
+                    metadata_path = (
+                        working_directory
+                        / "mutants"
+                        / "testpilot_target.py.meta"
+                    )
+                    names = _mutant_names(metadata_path)
+                    if not names:
+                        raise RuntimeError(
+                            "mutmut found no tests for any mutant, but no mutant "
+                            "metadata was available to score"
+                        )
+                    mutant_diffs = _surviving_mutant_diffs(
+                        names,
+                        working_directory,
+                        _remaining_timeout(started, self.timeout_seconds),
+                    )
+                    return MutationResult(
+                        total_mutants=len(names),
+                        killed_mutants=0,
+                        survived_mutants=len(names),
+                        timeout_mutants=0,
+                        mutation_score=0.0,
+                        surviving_mutant_names=names,
+                        wall_clock_seconds=time.perf_counter() - started,
+                        stdout=run_result.stdout,
+                        stderr=run_result.stderr,
+                        surviving_mutant_diffs=mutant_diffs,
+                        mutant_names=names,
+                    )
                 raise RuntimeError(
-                    "mutmut failed: "
-                    f"{run_result.stderr or run_result.stdout}"
+                    "mutmut failed:\n"
+                    f"{_subprocess_diagnostics(run_result)}"
                 )
 
             stats_result = _run_mutmut(
@@ -99,7 +139,7 @@ class MutationEvaluator:
             if stats_result.returncode != 0:
                 raise RuntimeError(
                     "mutmut could not export mutation statistics: "
-                    f"{stats_result.stderr or stats_result.stdout}"
+                    f"{_subprocess_diagnostics(stats_result)}"
                 )
             stats_path = working_directory / "mutants" / "mutmut-cicd-stats.json"
             try:
@@ -143,12 +183,20 @@ class MutationEvaluator:
             )
 
 
-def _mutmut_config() -> str:
+def _mutmut_config(deselected_test_ids: Sequence[str] = ()) -> str:
     """Configure one copied module and pytest suite; disable macOS setproctitle."""
+    pytest_arguments = ["--runxfail"]
+    pytest_arguments.extend(
+        f"--deselect={test_id}" for test_id in deselected_test_ids
+    )
+    rendered_arguments = ", ".join(
+        json.dumps(argument) for argument in pytest_arguments
+    )
     return """\
 [tool.mutmut]
 source_paths = ["testpilot_target.py"]
 pytest_add_cli_args_test_selection = ["tests/test_generated.py"]
+pytest_add_cli_args = [""" + rendered_arguments + """]
 use_setproctitle = false
 """
 
@@ -218,6 +266,12 @@ def _mutant_names(metadata_path: Path) -> tuple[str, ...]:
     return tuple(sorted(_exit_codes(metadata_path)))
 
 
+def _no_tests_cover_mutants(result: subprocess.CompletedProcess[str]) -> bool:
+    """Detect mutmut's explicit early exit when tests cover no mutated code."""
+    output = f"{result.stdout}\n{result.stderr}".lower()
+    return "could not find any test case for any mutant" in output
+
+
 def _exit_codes(metadata_path: Path) -> dict[str, int | None]:
     """Load mutmut's exit code for every mutant."""
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -259,3 +313,32 @@ def _remaining_timeout(started: float, timeout_seconds: float) -> float:
     if remaining <= 0:
         raise TimeoutError("mutmut evaluation exceeded its timeout")
     return remaining
+
+
+def _subprocess_diagnostics(
+    result: subprocess.CompletedProcess[str],
+    maximum_lines: int = 20,
+) -> str:
+    """Keep useful final mutmut output while excluding in-place progress spinners."""
+    diagnostics: list[str] = []
+    for label, output in (("stderr", result.stderr), ("stdout", result.stdout)):
+        lines = [
+            line.strip()
+            for line in output.replace("\r", "\n").splitlines()
+            if line.strip()
+            and not any(
+                spinner_title in line
+                for spinner_title in (
+                    "Generating mutants",
+                    "Running forced fail test",
+                    "Running stats",
+                    "Running clean tests",
+                    "Listing all tests",
+                    "Filtering mutations with type checker",
+                )
+            )
+        ]
+        if lines:
+            diagnostics.append(f"{label} (last {maximum_lines} lines):")
+            diagnostics.extend(lines[-maximum_lines:])
+    return "\n".join(diagnostics) or "(mutmut returned no diagnostic output)"

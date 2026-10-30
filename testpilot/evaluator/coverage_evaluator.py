@@ -9,6 +9,7 @@ import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Sequence
 
 from testpilot.sandbox.environment import isolated_subprocess_environment
 
@@ -45,7 +46,12 @@ class CoverageEvaluator:
             raise ValueError("Timeout must be a finite positive number")
         self.timeout_seconds = timeout_seconds
 
-    def evaluate(self, test_code: str, source_path: Path) -> CoverageResult:
+    def evaluate(
+        self,
+        test_code: str,
+        source_path: Path,
+        deselected_test_ids: Sequence[str] = (),
+    ) -> CoverageResult:
         """Measure line and branch coverage without importing source in-process."""
         path = Path(source_path)
         if not path.is_file():
@@ -59,10 +65,11 @@ class CoverageEvaluator:
             )
             tests_directory = working_directory / "tests"
             tests_directory.mkdir()
-            test_path = tests_directory / "test_generated.py"
+            test_path = (tests_directory / "test_generated.py").resolve()
             test_path.write_text(test_code, encoding="utf-8")
             junit_path = working_directory / "pytest-report.xml"
             coverage_path = working_directory / "coverage.json"
+            test_path = tests_directory / "test_generated.py"
             command = [
                 sys.executable,
                 "-m",
@@ -73,8 +80,20 @@ class CoverageEvaluator:
                 "-m",
                 "pytest",
                 "-q",
+                "--runxfail",
+                *(
+                    argument
+                    for test_id in deselected_test_ids
+                    for argument in (
+                        "--deselect",
+                        (
+                            "tests/test_generated.py::"
+                            f"{_test_case_suffix(test_id)}"
+                        ),
+                    )
+                ),
                 f"--junitxml={junit_path}",
-                str(test_path),
+                str(test_path.relative_to(working_directory)),
             ]
 
             started = time.perf_counter()
@@ -177,3 +196,8 @@ def _remaining_timeout(started: float, timeout_seconds: float) -> float:
     if remaining <= 0:
         raise subprocess.TimeoutExpired("coverage json", timeout_seconds)
     return remaining
+
+
+def _test_case_suffix(test_id: str) -> str:
+    """Return the case portion after an optional test-file prefix."""
+    return test_id.split("::", maxsplit=1)[-1]

@@ -140,7 +140,12 @@ class OllamaProvider:
             headers={"content-type": "application/json"},
             method="POST",
         )
-        payload = _post_json(request, self.timeout_seconds, "Ollama")
+        try:
+            payload = _post_json(request, self.timeout_seconds, "Ollama")
+        except LLMProviderError as exc:
+            if not _is_connection_refused(exc):
+                raise
+            payload = _post_json(request, self.timeout_seconds, "Ollama")
         message = payload.get("message")
         if not isinstance(message, dict) or not isinstance(message.get("content"), str):
             raise LLMProviderError("Ollama response is missing message content")
@@ -245,3 +250,8 @@ def _environment_rate(name: str, default: float) -> float:
         return float(value)
     except ValueError as exc:
         raise ValueError(f"{name} must be a number") from exc
+
+
+def _is_connection_refused(error: LLMProviderError) -> bool:
+    """Identify a refused Ollama socket connection eligible for one retry."""
+    return "connection refused" in str(error).lower()

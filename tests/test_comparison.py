@@ -9,6 +9,7 @@ from testpilot.analyzer import analyze_source
 from testpilot.comparison import compare_functions
 from testpilot.engines.base import GeneratedSuite
 from testpilot.evaluator import MutationResult
+from testpilot.sandbox import SandboxResult, TestOutcome
 
 
 class _FakeEngine:
@@ -28,14 +29,30 @@ class _FakeWrongTestDetector:
 
     def evaluate(self, test_code, source_path, is_benchmark):
         self.events.append("wrong-test")
-        return SimpleNamespace(status="passed", failing_tests=0)
+        return SimpleNamespace(
+            status="passed",
+            failing_tests=0,
+            sandbox_result=SandboxResult(
+                tests_run=1,
+                passed=1,
+                failed=0,
+                errors=0,
+                skipped=0,
+                returncode=0,
+                timed_out=False,
+                wall_clock_seconds=0.1,
+                stdout="",
+                stderr="",
+                test_outcomes=(TestOutcome("test_generated::test_add", "passed"),),
+            ),
+        )
 
 
 class _FakeCoverageEvaluator:
     def __init__(self, events):
         self.events = events
 
-    def evaluate(self, test_code, source_path):
+    def evaluate(self, test_code, source_path, deselected_test_ids=()):
         self.events.append("coverage")
         return SimpleNamespace(line_percent=75.0, branch_percent=50.0)
 
@@ -44,7 +61,7 @@ class _FakeMutationEvaluator:
     def __init__(self, events):
         self.events = events
 
-    def evaluate(self, test_code, source_path):
+    def evaluate(self, test_code, source_path, deselected_test_ids=()):
         self.events.append("mutation")
         return MutationResult(
             total_mutants=1,
@@ -133,6 +150,21 @@ def test_comparison_does_not_score_mutation_for_failing_suite(
             evaluate=lambda *args, **kwargs: SimpleNamespace(
                 status="needs_human_review",
                 failing_tests=1,
+                sandbox_result=SandboxResult(
+                    tests_run=1,
+                    passed=0,
+                    failed=1,
+                    errors=0,
+                    skipped=0,
+                    returncode=1,
+                    timed_out=False,
+                    wall_clock_seconds=0.1,
+                    stdout="",
+                    stderr="",
+                    test_outcomes=(
+                        TestOutcome("test_generated::test_add", "failed", "assertion_failure"),
+                    ),
+                ),
             )
         ),
     )
@@ -154,10 +186,11 @@ def test_comparison_does_not_score_mutation_for_failing_suite(
         engine_factories={"Pynguin": _FakeEngine},
     )[0]
 
-    assert events == ["coverage"]
+    assert events == []
     assert result.wrong_test_count == 1
     assert result.wrong_test_status == "needs_human_review"
     assert result.mutation_score is None
+    assert result.line_percent is None
 
 
 def test_comparison_rejects_empty_or_unknown_selections(tmp_path: Path) -> None:

@@ -42,3 +42,8 @@
 - Asked: Run all three engines on 10 HumanEval functions, save CSV results with model/settings/date, report the table and elapsed time, commit and push, then estimate the 164-function run and wait for approval.
 - Done: Added a HumanEval JSONL loader and experiment command; saved 30 trial rows with model, settings, date, and evaluation metrics. The run took 663.5 seconds; 15 rows completed and 15 recorded engine/evaluation errors.
 - Outcome: worked as is
+
+## 2026-10-30 — Phase 6 fairness fixes
+- Asked: Fix mutation diagnostics, score only passing tests, recover the agent from evaluator failures, retry Ollama connection refusals, and exclude xfail-marked tests from wrong-test and quality metrics; verify selected HumanEval cases.
+- Done: Added clearer mutmut diagnostics, zero-score handling when no tests cover mutants, failure categorization and passing-only scoring, evaluator-error feedback, one Ollama refusal retry, and separate xfail counting/exclusion for all engines; preserved interrupted v1 CSVs and reran the six requested functions.
+- Outcome: needed fixes

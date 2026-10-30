@@ -16,15 +16,26 @@ from testpilot.evaluator.coverage_evaluator import CoverageResult
 from testpilot.evaluator.mutation import MutationResult
 from testpilot.evaluator.wrong_tests import WrongTestResult
 from testpilot.llm import LLMProvider
+from testpilot.sandbox import passing_test_selection
 
 
 class _CoverageEvaluator(Protocol):
-    def evaluate(self, test_code: str, source_path: Path) -> CoverageResult:
+    def evaluate(
+        self,
+        test_code: str,
+        source_path: Path,
+        deselected_test_ids: tuple[str, ...] = (),
+    ) -> CoverageResult:
         """Evaluate line and branch coverage."""
 
 
 class _MutationEvaluator(Protocol):
-    def evaluate(self, test_code: str, source_path: Path) -> MutationResult:
+    def evaluate(
+        self,
+        test_code: str,
+        source_path: Path,
+        deselected_test_ids: tuple[str, ...] = (),
+    ) -> MutationResult:
         """Evaluate mutation score."""
 
 
@@ -111,9 +122,42 @@ class AgentEngine:
 
             coverage = None
             mutation = None
-            if correctness.status == "passed":
-                coverage = self._coverage_evaluator.evaluate(test_code, source_path)
-                mutation = self._mutation_evaluator.evaluate(test_code, source_path)
+            selection = passing_test_selection(
+                test_code,
+                correctness.sandbox_result.test_outcomes,
+            )
+            if selection is not None:
+                scoring_test_count = selection.passing_test_count
+                deselected_coverage = selection.for_test_file(
+                    "tests/test_generated.py"
+                )
+                deselected_mutation = deselected_coverage
+            else:
+                scoring_test_count = 0
+                deselected_coverage = ()
+                deselected_mutation = ()
+            evaluator_errors: list[str] = []
+            if scoring_test_count:
+                try:
+                    coverage = self._coverage_evaluator.evaluate(
+                        test_code,
+                        source_path,
+                        deselected_coverage,
+                    )
+                except Exception as exc:
+                    evaluator_errors.append(
+                        f"Coverage evaluation failed: {_format_error(exc)}"
+                    )
+                try:
+                    mutation = self._mutation_evaluator.evaluate(
+                        test_code,
+                        source_path,
+                        deselected_mutation,
+                    )
+                except Exception as exc:
+                    evaluator_errors.append(
+                        f"Mutation evaluation failed: {_format_error(exc)}"
+                    )
 
             candidate = GeneratedSuite(
                 test_code=test_code,
@@ -137,7 +181,12 @@ class AgentEngine:
                 previous_score = score
 
             previous_tests = test_code
-            feedback = _format_feedback(correctness, coverage, mutation)
+            feedback = _format_feedback(
+                correctness,
+                coverage,
+                mutation,
+                evaluator_errors,
+            )
 
         selected_suite = best_suite or latest_suite
         if selected_suite is None:
@@ -158,42 +207,57 @@ def _format_feedback(
     correctness: WrongTestResult,
     coverage: CoverageResult | None,
     mutation: MutationResult | None,
+    evaluator_errors: list[str] | None = None,
 ) -> str:
     """Format evaluator observations for the next generation attempt."""
-    if correctness.status != "passed":
+    feedback = [
+        f"Wrong-test status: {correctness.status}",
+        f"Failing tests: {correctness.failing_tests}",
+        f"Xfail-marked tests excluded: {correctness.expected_failure_count}",
+        f"Explanation: {correctness.explanation}",
+    ]
+    if correctness.failing_tests:
         sandbox_result = correctness.sandbox_result
         details = sandbox_result.stdout or sandbox_result.stderr
-        return (
-            f"Wrong-test status: {correctness.status}\n"
-            f"Failing tests: {correctness.failing_tests}\n"
-            f"Explanation: {correctness.explanation}\n"
-            f"Raw pytest output:\n{details or '(no output)'}"
+        feedback.append(f"Raw pytest output:\n{details or '(no output)'}")
+    if coverage is None:
+        feedback.append("Coverage: unavailable")
+    else:
+        feedback.extend(
+            [
+                (
+                    f"Line coverage: {coverage.line_percent:.1f}% "
+                    f"({coverage.line_covered}/{coverage.line_total})"
+                ),
+                f"Uncovered source lines: {coverage.uncovered_lines or 'none'}",
+                (
+                    f"Branch coverage: {coverage.branch_percent:.1f}% "
+                    f"({coverage.branch_covered}/{coverage.branch_total})"
+                ),
+                f"Uncovered branches: {coverage.uncovered_branches or 'none'}",
+            ]
         )
+    if mutation is None:
+        feedback.append("Mutation score: unavailable")
+    else:
+        feedback.extend(
+            [
+                (
+                    f"Mutation score: {mutation.mutation_score:.1%} "
+                    f"({mutation.killed_mutants}/{mutation.total_mutants} "
+                    f"killed; {mutation.survived_mutants} survived)"
+                ),
+                (
+                    "Surviving mutants: "
+                    f"{mutation.surviving_mutant_names or 'none'}"
+                ),
+            ]
+        )
+    feedback.extend(evaluator_errors or [])
+    return "\n".join(feedback)
 
-    if coverage is None or mutation is None:
-        raise RuntimeError("Passing generated tests require coverage and mutation results")
 
-    return "\n".join(
-        [
-            "Wrong-test status: passed",
-            (
-                f"Line coverage: {coverage.line_percent:.1f}% "
-                f"({coverage.line_covered}/{coverage.line_total})"
-            ),
-            f"Uncovered source lines: {coverage.uncovered_lines or 'none'}",
-            (
-                f"Branch coverage: {coverage.branch_percent:.1f}% "
-                f"({coverage.branch_covered}/{coverage.branch_total})"
-            ),
-            f"Uncovered branches: {coverage.uncovered_branches or 'none'}",
-            (
-                f"Mutation score: {mutation.mutation_score:.1%} "
-                f"({mutation.killed_mutants}/{mutation.total_mutants} "
-                f"killed; {mutation.survived_mutants} survived)"
-            ),
-            (
-                "Surviving mutants: "
-                f"{mutation.surviving_mutant_names or 'none'}"
-            ),
-        ]
-    )
+def _format_error(error: Exception) -> str:
+    """Format evaluator errors for model feedback."""
+    message = " ".join(str(error).split()) or "(no details)"
+    return f"{type(error).__name__}: {message}"

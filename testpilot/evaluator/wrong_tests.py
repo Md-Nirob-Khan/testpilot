@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from testpilot.sandbox import SandboxResult, SandboxRunner
+from testpilot.sandbox import passing_test_selection
 
 WrongTestStatus = Literal[
     "passed",
@@ -22,6 +23,7 @@ class WrongTestResult:
     failing_tests: int
     sandbox_result: SandboxResult
     explanation: str
+    expected_failure_count: int = 0
 
 
 class WrongTestDetector:
@@ -47,13 +49,31 @@ class WrongTestDetector:
                 explanation="The test suite timed out; its correctness is undetermined.",
             )
 
-        failing_tests = result.failed + result.errors
-        if failing_tests == 0 and result.returncode == 0:
+        selection = passing_test_selection(test_code, result.test_outcomes)
+        if selection is None:
+            failing_tests = result.failed + result.errors
+            expected_failure_count = 0
+        else:
+            failing_tests = selection.wrong_test_count
+            expected_failure_count = selection.expected_failure_count
+
+        only_expected_failures = (
+            expected_failure_count > 0
+            and result.returncode == 1
+            and result.failed + result.errors == expected_failure_count
+        )
+        if failing_tests == 0 and (
+            result.returncode == 0 or only_expected_failures
+        ):
             return WrongTestResult(
                 status="passed",
                 failing_tests=0,
                 sandbox_result=result,
-                explanation="All generated tests passed on the supplied implementation.",
+                explanation=(
+                    "All non-xfail generated tests passed; xfail-marked tests "
+                    "are reported separately and excluded from scoring."
+                ),
+                expected_failure_count=expected_failure_count,
             )
         if is_benchmark:
             return WrongTestResult(
@@ -64,6 +84,7 @@ class WrongTestDetector:
                     "The generated suite failed against the canonical benchmark "
                     "solution and is classified as a wrong test suite."
                 ),
+                expected_failure_count=expected_failure_count,
             )
         return WrongTestResult(
             status="needs_human_review",
@@ -73,4 +94,5 @@ class WrongTestDetector:
                 "The generated suite failed against user code; this may indicate "
                 "a wrong test or a real bug and needs human review."
             ),
+            expected_failure_count=expected_failure_count,
         )
