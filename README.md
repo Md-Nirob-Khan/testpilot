@@ -23,6 +23,7 @@ python -m pip install -e ".[dev]"
 provider settings from `.env`, and `pytest` runs the project and generated tests.
 The provider clients use Python's standard-library HTTP support rather than an
 additional SDK.
+Streamlit is the web dashboard runtime.
 
 ## Configure a provider
 
@@ -135,6 +136,27 @@ source = Path("examples/sample.py")
 suite = PynguinEngine().generate(analyze_file(source)[0], source)
 print(suite.test_code)
 ```
+
+## Dashboard and run history
+
+Start the Streamlit dashboard from the project root:
+
+```sh
+streamlit run app.py
+```
+
+Paste Python source or upload a `.py` file, select functions and generation
+engines, then generate and evaluate their suites. The comparison shows line and
+branch coverage, mutation score, wrong-test status, elapsed time, and estimated
+cost, with a download button for each generated suite. LLM engines use the
+provider configured through `.env`; Pynguin runs in `.venv-pynguin`.
+
+Every submitted comparison, including engine failures, is stored in the local
+SQLite database `testpilot_runs.sqlite3`. Set `TESTPILOT_DB_PATH` to choose a
+different database location. Use the Run history page to review saved metrics
+and download previously generated suites. Generated tests and Pynguin run in
+the existing timeout-bounded subprocesses with a minimal environment that does
+not inherit provider credentials. These are not OS-level security sandboxes.
 
 Run TestPilot's unit tests with:
 

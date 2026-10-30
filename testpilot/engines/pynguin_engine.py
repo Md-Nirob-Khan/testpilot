@@ -22,7 +22,7 @@ class PynguinEngine:
         """Generate tests for the module containing the requested function."""
         if not function_info.name:
             raise ValueError("Function name must not be empty")
-        result = self._runner.generate(source_path)
+        result = self._runner.generate(source_path, function_info.name)
         return GeneratedSuite(
             test_code=result.test_code,
             engine_name="pynguin",

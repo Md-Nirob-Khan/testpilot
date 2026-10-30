@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from testpilot.sandbox import SandboxRunner
+from testpilot.sandbox.environment import isolated_subprocess_environment
 
 
 @dataclass(frozen=True)
@@ -147,6 +148,7 @@ def _run_mutmut(
         stderr=subprocess.PIPE,
         text=True,
         start_new_session=True,
+        env=isolated_subprocess_environment(),
     )
     try:
         stdout, stderr = process.communicate(timeout=timeout_seconds)

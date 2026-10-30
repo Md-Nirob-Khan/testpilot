@@ -10,6 +10,8 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 
+from testpilot.sandbox.environment import isolated_subprocess_environment
+
 
 @dataclass(frozen=True)
 class CoverageResult:
@@ -82,6 +84,7 @@ class CoverageEvaluator:
                     cwd=working_directory,
                     capture_output=True,
                     text=True,
+                    env=isolated_subprocess_environment(),
                     timeout=self.timeout_seconds,
                     check=False,
                 )
@@ -97,6 +100,7 @@ class CoverageEvaluator:
                     cwd=working_directory,
                     capture_output=True,
                     text=True,
+                    env=isolated_subprocess_environment(),
                     timeout=_remaining_timeout(started, self.timeout_seconds),
                     check=False,
                 )

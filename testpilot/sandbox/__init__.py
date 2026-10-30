@@ -5,6 +5,7 @@ from testpilot.sandbox.pynguin_runner import (
     PynguinResult,
     PynguinSubprocessRunner,
 )
+from testpilot.sandbox.environment import isolated_subprocess_environment
 from testpilot.sandbox.runner import SandboxResult, SandboxRunner
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "PynguinSubprocessRunner",
     "SandboxResult",
     "SandboxRunner",
+    "isolated_subprocess_environment",
 ]

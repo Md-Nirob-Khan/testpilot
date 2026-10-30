@@ -27,3 +27,8 @@
 - Asked: Read CLAUDE.md, implement Phase 4 only with Pynguin in a separate Python 3.10 environment and a sandboxed subprocess, run all tests, then commit and push.
 - Done: Created `.venv-pynguin`, added the isolated Pynguin runner and engine, tests, and setup documentation.
 - Outcome: worked as is
+
+## 2026-10-30 — Phase 5 dashboard
+- Asked: Read CLAUDE.md, build the first half of Phase 5 as a Streamlit comparison dashboard with SQLite run history, run all tests, verify startup, then commit and push.
+- Done: Added source upload/paste, function and engine selection, isolated generation/evaluation, metric comparisons, generated-test downloads, and SQLite history.
+- Outcome: needed fixes

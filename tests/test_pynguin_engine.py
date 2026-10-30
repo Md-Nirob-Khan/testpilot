@@ -26,14 +26,17 @@ def _fake_pynguin(tmp_path: Path, body: str) -> Path:
 
 def test_pynguin_engine_returns_subprocess_output_and_zero_cost(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     source_path = tmp_path / "subject.py"
     source_path.write_text("def add(left, right):\n    return left + right\n")
     executable = _fake_pynguin(
         tmp_path,
         "assert os.environ['PYNGUIN_DANGER_AWARE'] == '1'\n"
+        "assert 'ANTHROPIC_API_KEY' not in os.environ\n"
         "assert pathlib.Path('testpilot_target.py').is_file()\n"
         "args = sys.argv\n"
+        "assert args[args.index('--only-cover') + 1] == 'add'\n"
         "output_path = pathlib.Path(args[args.index('--output_path') + 1])\n"
         "output_path.mkdir(exist_ok=True)\n"
         "(output_path / 'test_testpilot_target.py').write_text("
@@ -44,6 +47,7 @@ def test_pynguin_engine_returns_subprocess_output_and_zero_cost(
         "def add(left, right):\n    return left + right\n"
     )[0]
     original_danger_aware = os.environ.get("PYNGUIN_DANGER_AWARE")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "not-forwarded")
 
     suite = engine.generate(function, source_path)
 
@@ -74,6 +78,27 @@ def test_pynguin_runner_times_out_and_cleans_up_process_group(
 def test_pynguin_runner_rejects_missing_source(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match="Source file does not exist"):
         PynguinSubprocessRunner().generate(tmp_path / "missing.py")
+
+
+def test_pynguin_runner_can_generate_without_a_function_filter(
+    tmp_path: Path,
+) -> None:
+    source_path = tmp_path / "subject.py"
+    source_path.write_text("VALUE = 1\n", encoding="utf-8")
+    executable = _fake_pynguin(
+        tmp_path,
+        "assert '--only-cover' not in sys.argv\n"
+        "args = sys.argv\n"
+        "output_path = pathlib.Path(args[args.index('--output_path') + 1])\n"
+        "(output_path / 'test_testpilot_target.py').write_text('VALUE = 1')",
+    )
+
+    result = PynguinSubprocessRunner(
+        python_executable=executable,
+        search_time_seconds=1,
+    ).generate(source_path)
+
+    assert result.test_code == "VALUE = 1"
 
 
 @pytest.mark.parametrize("timeout_seconds", [0, float("inf"), float("nan")])

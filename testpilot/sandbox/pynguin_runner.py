@@ -9,6 +9,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from testpilot.sandbox.environment import isolated_subprocess_environment
+
 
 @dataclass(frozen=True)
 class PynguinResult:
@@ -60,7 +62,11 @@ class PynguinSubprocessRunner:
         self.timeout_seconds = timeout_seconds
         self.search_time_seconds = search_time_seconds
 
-    def generate(self, source_path: Path) -> PynguinResult:
+    def generate(
+        self,
+        source_path: Path,
+        function_name: str | None = None,
+    ) -> PynguinResult:
         """Generate tests for a copied source module in an isolated subprocess."""
         source = Path(source_path)
         if not source.is_file():
@@ -85,12 +91,20 @@ class PynguinSubprocessRunner:
                 str(working_directory),
                 "--module-name",
                 "testpilot_target",
-                "--output_path",
-                str(output_directory),
-                "--maximum_search_time",
-                str(self.search_time_seconds),
             ]
-            environment = os.environ.copy()
+            if function_name is not None:
+                if not function_name.strip():
+                    raise ValueError("Function name must not be empty")
+                command.extend(["--only-cover", function_name])
+            command.extend(
+                [
+                    "--output_path",
+                    str(output_directory),
+                    "--maximum_search_time",
+                    str(self.search_time_seconds),
+                ]
+            )
+            environment = isolated_subprocess_environment()
             environment["PYNGUIN_DANGER_AWARE"] = "1"
 
             started = time.perf_counter()
