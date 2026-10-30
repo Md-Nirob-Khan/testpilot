@@ -162,8 +162,10 @@ def run_humaneval_experiment(
                         engine_settings=engine_settings,
                         engine=engine_factory(),
                         model_name=model_name,
-                        temperature=temperature,
-                        seed=seed,
+                        temperature=(
+                            temperature if engine_name != "pynguin" else None
+                        ),
+                        seed=seed if engine_name != "pynguin" else None,
                         run_date=run_date,
                         run_started_at=run_started_at,
                     )
@@ -197,7 +199,7 @@ def _engine_specs(
         ),
         (
             "pynguin",
-            "search_time_seconds=30; timeout_seconds=120",
+            "search_time_seconds=30; timeout_seconds=120; seed=42",
             PynguinEngine,
         ),
     )

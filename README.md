@@ -196,16 +196,18 @@ never execute the target code, record zero coverage and mutation scores and set
 disappearing as missing values. The three engines are
 single-shot LLM, Agent LLM
 (three-round maximum), and Pynguin (30-second search, 120-second subprocess
-timeout). Benchmark suites are checked against the canonical solutions.
+timeout, fixed seed `42`). Benchmark suites are checked against the canonical
+solutions. Sampling metadata is blank for Pynguin because it does not use the
+LLM; its seed is recorded in the engine settings.
 All scoring subprocesses use pytest's `--runxfail` so generated
 `xfail(strict=True)` markers cannot hide failing assertions or interfere with
 mutmut's forced-failure check. Xfail-marked cases are counted separately in
 `expected_failure_count` and are neither classified as wrong tests nor included
 in coverage or mutation scoring. The raw suite remains unchanged; pytest
 deselection excludes wrong and xfail cases from scoring, while the CSV records
-each wrong test and its syntax/import/assertion category. If passing tests exist
-but an evaluator fails, the row retains the evaluator error rather than
-substituting a zero. If no passing test
+each wrong test and its syntax/import/assertion/runtime-error category. If
+passing tests exist but an evaluator fails, the row retains the evaluator error
+rather than substituting a zero. If no passing test
 executes mutated code, mutmut's early-exit diagnostic is reported as a zero
 mutation score with all generated mutants classified as surviving.
 An Ollama connection refusal is retried once; a second refusal is labeled as an

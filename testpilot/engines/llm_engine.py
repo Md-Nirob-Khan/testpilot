@@ -55,9 +55,11 @@ def build_test_prompt(
     prompt = f"""Write a pytest test module for the function below.
 
 The source file is {Path(source_path).name!r}. In the sandbox, it is imported as
-`testpilot_target`, so import the target function from that module. Test normal
-behavior and meaningful edge cases based on the implementation. Do not duplicate
-the implementation in the tests.
+`testpilot_target`. At the top of your test module, include this import:
+`from testpilot_target import {function_info.name}`. Call the imported function
+by name in every test; do not rely on it being a global and do not duplicate the
+implementation in the tests. Test normal behavior and meaningful edge cases
+based on the implementation.
 
 Function: {function_info.name}
 Arguments: {function_info.arguments!r}

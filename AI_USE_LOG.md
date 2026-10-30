@@ -52,3 +52,8 @@
 - Asked: Explain prior missing metrics, report zero scores with a no-scorable flag, make Ollama generation deterministic and record its settings, move the dataset into `data/`, rerun the six selected tasks, run all tests, then commit and push.
 - Done: Added explicit no-scorable metrics/flagging, fixed Ollama temperature and seed metadata, moved the dataset to `data/HumanEval.jsonl.gz`, and reran the six selected tasks.
 - Outcome: needed fixes
+
+## 2026-10-30 — HumanEval scoring regression investigation
+- Asked: Inspect HumanEval/53 artifacts, compare the regression with the prior commit, add an end-to-end add control, rerun six tasks, run all tests, then commit and push.
+- Done: Found missing target imports in fixed-seed LLM output, made the import instruction explicit, corrected runtime failure classification, pinned Pynguin's seed, added the end-to-end add control, and reran the six selected tasks.
+- Outcome: needed fixes

@@ -174,20 +174,28 @@ def _test_case_status(test_case: ET.Element) -> str:
 def _failure_kind(test_case: ET.Element) -> str | None:
     """Classify pytest failures using the JUnit failure or error details."""
     failure = test_case.find("failure")
-    if failure is not None:
-        return "assertion_failure"
     error = test_case.find("error")
-    if error is None:
+    result = failure if failure is not None else error
+    if result is None:
         return None
     detail = " ".join(
         part
-        for part in (error.get("type"), error.get("message"), error.text)
+        for part in (result.get("type"), result.get("message"), result.text)
         if part
     ).lower()
     if "syntaxerror" in detail or "indentationerror" in detail:
         return "syntax_error"
-    if "importerror" in detail or "modulenotfounderror" in detail:
+    if any(
+        error_name in detail
+        for error_name in (
+            "importerror",
+            "modulenotfounderror",
+            "nameerror",
+        )
+    ):
         return "import_error"
+    if "assertionerror" in detail:
+        return "assertion_failure"
     return "test_error"
 
 

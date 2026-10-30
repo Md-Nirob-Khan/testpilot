@@ -32,6 +32,7 @@ class PynguinSubprocessRunner:
         python_executable: Path | None = None,
         timeout_seconds: float = 120.0,
         search_time_seconds: int = 30,
+        seed: int = 42,
     ) -> None:
         """Initialize the Pynguin executable and finite generation limits."""
         if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
@@ -42,6 +43,8 @@ class PynguinSubprocessRunner:
             or search_time_seconds <= 0
         ):
             raise ValueError("Search time must be a positive integer")
+        if isinstance(seed, bool) or not isinstance(seed, int):
+            raise ValueError("Seed must be an integer")
 
         if python_executable is None:
             repository_root = Path(__file__).parents[2]
@@ -61,6 +64,7 @@ class PynguinSubprocessRunner:
         self.python_executable = Path(os.path.abspath(python_executable))
         self.timeout_seconds = timeout_seconds
         self.search_time_seconds = search_time_seconds
+        self.seed = seed
 
     def generate(
         self,
@@ -102,6 +106,8 @@ class PynguinSubprocessRunner:
                     str(output_directory),
                     "--maximum_search_time",
                     str(self.search_time_seconds),
+                    "--seed",
+                    str(self.seed),
                 ]
             )
             environment = isolated_subprocess_environment()

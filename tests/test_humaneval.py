@@ -210,8 +210,16 @@ def test_trial_writes_three_benchmark_engine_rows(
     ]
     assert all(row["status"] == "completed" for row in rows)
     assert all(row["model_name"] == "local-trial-model" for row in rows)
-    assert all(row["temperature"] == "0.0" for row in rows)
-    assert all(row["seed"] == "42" for row in rows)
+    assert all(
+        row["temperature"] == "0.0" and row["seed"] == "42"
+        for row in rows
+        if row["engine_name"] != "pynguin"
+    )
+    assert all(
+        row["temperature"] == "" and row["seed"] == ""
+        for row in rows
+        if row["engine_name"] == "pynguin"
+    )
     assert all(row["wrong_test_status"] == "passed" for row in rows)
     assert all(row["passing_test_count"] == "1" for row in rows)
     assert all(row["expected_failure_count"] == "0" for row in rows)
@@ -221,6 +229,7 @@ def test_trial_writes_three_benchmark_engine_rows(
     assert all(row["branch_percent"] == "50.0" for row in rows)
     assert all(row["mutation_score"] == "0.5" for row in rows)
     assert rows[1]["engine_settings"] == "max_rounds=3; benchmark_mode=true"
+    assert rows[2]["engine_settings"].endswith("seed=42")
     assert events == [True, True, True]
 
 
@@ -505,3 +514,86 @@ def test_experiment_excludes_xfails_for_every_engine(
     assert all(row.mutation_score == 0 for row in summary.rows)
     assert all(row["expected_failure_count"] == "1" for row in rows)
     assert all(row["no_scorable_tests"] == "True" for row in rows)
+
+
+def test_end_to_end_add_control_scores_correct_and_counts_wrong_test(
+    tmp_path: Path,
+) -> None:
+    source_path = tmp_path / "testpilot_target.py"
+    source_path.write_text(
+        "def add(left, right):\n    return left + right\n",
+        encoding="utf-8",
+    )
+    problem = HumanEvalProblem(
+        task_id="HumanEval/0",
+        entry_point="add",
+        prompt="def add(left, right):\n",
+        canonical_solution="    return left + right\n",
+    )
+    function = analyze_source(problem.source_code, source_path)[0]
+
+    class FixedSuiteEngine:
+        def __init__(self, test_code: str) -> None:
+            self.test_code = test_code
+
+        def generate(self, function_info, target_path):
+            return GeneratedSuite(
+                test_code=self.test_code,
+                engine_name="known-answer-control",
+                wall_clock_seconds=0.0,
+                llm_tokens_used=0,
+                estimated_cost_usd=0.0,
+            )
+
+    correct_tests = (
+        "from testpilot_target import add\n\n"
+        "def test_add_positive():\n"
+        "    assert add(2, 3) == 5\n\n"
+        "def test_add_negative():\n"
+        "    assert add(-2, 3) == 1\n"
+    )
+    correct_row = _run_one(
+        problem=problem,
+        function=function,
+        source_path=source_path,
+        engine_name="single-shot-llm",
+        engine_settings="known-answer control",
+        engine=FixedSuiteEngine(correct_tests),
+        model_name="control",
+        run_date="2026-10-30",
+        run_started_at="2026-10-30T00:00:00-05:00",
+    )
+
+    mixed_tests = (
+        "from testpilot_target import add\n\n"
+        "def test_add_correct():\n"
+        "    assert add(2, 3) == 5\n\n"
+        "def test_add_wrong():\n"
+        "    assert add(2, 3) == 6\n"
+    )
+    mixed_row = _run_one(
+        problem=problem,
+        function=function,
+        source_path=source_path,
+        engine_name="single-shot-llm",
+        engine_settings="known-answer control with one wrong test",
+        engine=FixedSuiteEngine(mixed_tests),
+        model_name="control",
+        run_date="2026-10-30",
+        run_started_at="2026-10-30T00:00:00-05:00",
+    )
+
+    assert correct_row.wrong_test_count == 0
+    assert correct_row.passing_test_count == 2
+    assert correct_row.line_percent == 100.0
+    assert correct_row.mutation_score is not None
+    assert correct_row.mutation_score > 0
+    assert not correct_row.no_scorable_tests
+    assert mixed_row.wrong_test_count == 1
+    assert mixed_row.passing_test_count == 1
+    assert json.loads(mixed_row.wrong_test_reasons_json) == [
+        {
+            "test_name": "test_generated::test_add_wrong",
+            "reason": "assertion_failure",
+        }
+    ]

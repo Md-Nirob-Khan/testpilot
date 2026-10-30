@@ -33,6 +33,7 @@ def test_single_shot_engine_strips_outer_fence_and_records_metrics() -> None:
     assert suite.wall_clock_seconds >= 0
     assert provider.prompts is not None
     assert "testpilot_target" in provider.prompts[1]
+    assert "from testpilot_target import double" in provider.prompts[1]
     assert "def double" in provider.prompts[1]
 
 

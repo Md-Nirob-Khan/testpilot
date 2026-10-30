@@ -46,6 +46,35 @@ def test_sandbox_reports_assertion_failures(tmp_path: Path) -> None:
     assert result.test_outcomes[0].failure_kind == "assertion_failure"
 
 
+def test_sandbox_classifies_missing_target_import_as_import_error(
+    tmp_path: Path,
+) -> None:
+    source_path = tmp_path / "subject.py"
+    source_path.write_text("def add(left, right):\n    return left + right\n")
+    test_code = "def test_add():\n    assert add(2, 3) == 5\n"
+
+    result = SandboxRunner().run(test_code, source_path)
+
+    assert result.failed == 1
+    assert result.test_outcomes[0].failure_kind == "import_error"
+
+
+def test_sandbox_does_not_label_runtime_exception_as_assertion_failure(
+    tmp_path: Path,
+) -> None:
+    source_path = tmp_path / "subject.py"
+    source_path.write_text("VALUE = 1\n")
+
+    result = SandboxRunner().run(
+        "def test_runtime_error():\n"
+        "    raise TypeError('unexpected argument shape')\n",
+        source_path,
+    )
+
+    assert result.failed == 1
+    assert result.test_outcomes[0].failure_kind == "test_error"
+
+
 @pytest.mark.parametrize(
     ("test_code", "failure_kind"),
     [

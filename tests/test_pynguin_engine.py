@@ -37,6 +37,7 @@ def test_pynguin_engine_returns_subprocess_output_and_zero_cost(
         "assert pathlib.Path('testpilot_target.py').is_file()\n"
         "args = sys.argv\n"
         "assert args[args.index('--only-cover') + 1] == 'add'\n"
+        "assert args[args.index('--seed') + 1] == '42'\n"
         "output_path = pathlib.Path(args[args.index('--output_path') + 1])\n"
         "output_path.mkdir(exist_ok=True)\n"
         "(output_path / 'test_testpilot_target.py').write_text("
@@ -113,3 +114,9 @@ def test_pynguin_runner_rejects_invalid_search_time(
 ) -> None:
     with pytest.raises(ValueError, match="Search time must be a positive integer"):
         PynguinSubprocessRunner(search_time_seconds=search_time_seconds)
+
+
+@pytest.mark.parametrize("seed", [True, 1.5, "42"])
+def test_pynguin_runner_rejects_invalid_seed(seed: int) -> None:
+    with pytest.raises(ValueError, match="Seed must be an integer"):
+        PynguinSubprocessRunner(seed=seed)
