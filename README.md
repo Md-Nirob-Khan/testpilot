@@ -30,8 +30,8 @@ Copy `.env.example` to `.env`. Ollama is the default provider and expects a loca
 server at `http://localhost:11434`; set `OLLAMA_MODEL` to an installed model.
 For Anthropic, set `TESTPILOT_LLM_PROVIDER=anthropic` and provide
 `ANTHROPIC_API_KEY`. The default Anthropic cost estimate uses the configured
-per-million-token rates in `.env`; update them when using a differently priced
-model. `.env` is ignored by git.
+per-million-token rates in `.env`, selecting the higher tier when the prompt
+exceeds 100,000 input tokens. `.env` is ignored by git.
 
 ## Generate tests
 
@@ -55,7 +55,9 @@ killed and surviving mutants. Both copy the target and generated tests into a
 temporary directory and execute them in subprocesses with timeouts. The wrong
 test detector runs tests against a canonical benchmark solution or user code;
 failures against user code are reported as needing human review, not as proof
-that either the test or implementation is wrong.
+that either the test or implementation is wrong. Mutation evaluation first
+checks that the tests pass on the original source and rejects failing suites
+instead of counting those failures as mutant kills.
 
 ```python
 from pathlib import Path

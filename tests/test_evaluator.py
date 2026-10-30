@@ -159,3 +159,17 @@ def test_mutation_known_answer_reports_surviving_mutants(tmp_path: Path) -> None
 def test_mutation_rejects_non_positive_timeout() -> None:
     with pytest.raises(ValueError, match="finite positive"):
         MutationEvaluator(float("nan"))
+
+
+def test_mutation_rejects_suite_that_fails_on_original_source(
+    tmp_path: Path,
+) -> None:
+    source_path = _source_file(tmp_path)
+    test_code = (
+        "from testpilot_target import classify\n\n"
+        "def test_wrong_expectation():\n"
+        "    assert classify(1) == 'negative'\n"
+    )
+
+    with pytest.raises(ValueError, match="must pass on the original source"):
+        MutationEvaluator().evaluate(test_code, source_path)

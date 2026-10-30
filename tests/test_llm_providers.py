@@ -35,7 +35,34 @@ def test_anthropic_provider_sends_request_and_calculates_cost() -> None:
     assert request_data["messages"] == [{"role": "user", "content": "user"}]
     assert response.content == "assert True\n"
     assert response.total_tokens == 1200
-    assert response.estimated_cost_usd == pytest.approx(0.006)
+    assert response.estimated_cost_usd == pytest.approx(0.0002)
+
+
+@pytest.mark.parametrize(
+    ("input_tokens", "expected_cost"),
+    [
+        (100_000, 0.0105),
+        (100_001, 0.0525005),
+    ],
+)
+def test_anthropic_provider_uses_prompt_size_pricing_tier(
+    input_tokens: int,
+    expected_cost: float,
+) -> None:
+    payload = {
+        "content": [{"type": "text", "text": "generated"}],
+        "usage": {"input_tokens": input_tokens, "output_tokens": 1000},
+    }
+    with patch("urllib.request.urlopen", return_value=_mock_response(payload)):
+        response = AnthropicProvider("secret").complete("system", "user")
+
+    assert response.estimated_cost_usd == pytest.approx(expected_cost)
+
+
+def test_anthropic_provider_defaults_to_requested_model() -> None:
+    provider = AnthropicProvider("secret")
+
+    assert provider.model == "claude-haiku-5-5"
 
 
 def test_ollama_provider_reports_zero_cost_and_usage() -> None:
@@ -77,11 +104,21 @@ def test_provider_rejects_malformed_response() -> None:
 def test_create_provider_reads_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("TESTPILOT_LLM_PROVIDER", "anthropic")
+    monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
+    monkeypatch.delenv("ANTHROPIC_INPUT_COST_PER_MILLION", raising=False)
+    monkeypatch.delenv("ANTHROPIC_OUTPUT_COST_PER_MILLION", raising=False)
+    monkeypatch.delenv("ANTHROPIC_INPUT_COST_OVER_100K_PER_MILLION", raising=False)
+    monkeypatch.delenv("ANTHROPIC_OUTPUT_COST_OVER_100K_PER_MILLION", raising=False)
 
     provider = create_provider()
 
     assert isinstance(provider, AnthropicProvider)
     assert provider.api_key == "test-key"
+    assert provider.model == "claude-haiku-5-5"
+    assert provider.input_cost_per_million == 0.10
+    assert provider.output_cost_per_million == 0.50
+    assert provider.input_cost_over_100k_per_million == 0.50
+    assert provider.output_cost_over_100k_per_million == 2.50
 
 
 def test_create_anthropic_provider_requires_api_key(monkeypatch: pytest.MonkeyPatch) -> None:

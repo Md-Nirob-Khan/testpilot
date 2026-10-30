@@ -11,6 +11,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from testpilot.sandbox import SandboxRunner
+
 
 @dataclass(frozen=True)
 class MutationResult:
@@ -41,6 +43,19 @@ class MutationEvaluator:
         path = Path(source_path)
         if not path.is_file():
             raise FileNotFoundError(f"Source file does not exist: {path}")
+
+        baseline = SandboxRunner(self.timeout_seconds).run(test_code, path)
+        if baseline.timed_out:
+            raise TimeoutError(
+                "Generated suite timed out on the original source before "
+                "mutation testing"
+            )
+        if baseline.returncode != 0:
+            output = baseline.stdout or baseline.stderr
+            raise ValueError(
+                "Generated suite must pass on the original source before "
+                f"mutation testing:\n{output}"
+            )
 
         with tempfile.TemporaryDirectory(prefix="testpilot-mutmut-") as directory:
             working_directory = Path(directory)

@@ -42,10 +42,12 @@ class AnthropicProvider:
     """Call the Anthropic Messages API."""
 
     api_key: str
-    model: str = "claude-3-5-sonnet-20241022"
+    model: str = "claude-haiku-5-5"
     timeout_seconds: float = 120.0
-    input_cost_per_million: float = 3.0
-    output_cost_per_million: float = 15.0
+    input_cost_per_million: float = 0.10
+    output_cost_per_million: float = 0.50
+    input_cost_over_100k_per_million: float = 0.50
+    output_cost_over_100k_per_million: float = 2.50
 
     def __post_init__(self) -> None:
         if not self.api_key:
@@ -53,6 +55,8 @@ class AnthropicProvider:
         _validate_timeout(self.timeout_seconds)
         _validate_rate(self.input_cost_per_million, "input")
         _validate_rate(self.output_cost_per_million, "output")
+        _validate_rate(self.input_cost_over_100k_per_million, "over-100K input")
+        _validate_rate(self.output_cost_over_100k_per_million, "over-100K output")
 
     def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         """Request one non-streaming message and estimate its API cost."""
@@ -91,9 +95,15 @@ class AnthropicProvider:
 
         input_tokens = _token_count(usage, "input_tokens", "Anthropic")
         output_tokens = _token_count(usage, "output_tokens", "Anthropic")
+        if input_tokens > 100_000:
+            input_rate = self.input_cost_over_100k_per_million
+            output_rate = self.output_cost_over_100k_per_million
+        else:
+            input_rate = self.input_cost_per_million
+            output_rate = self.output_cost_per_million
         cost = (
-            input_tokens * self.input_cost_per_million
-            + output_tokens * self.output_cost_per_million
+            input_tokens * input_rate
+            + output_tokens * output_rate
         ) / 1_000_000
         return LLMResponse(text, input_tokens, output_tokens, cost)
 
@@ -156,12 +166,18 @@ def create_provider(provider_name: str | None = None) -> LLMProvider:
             )
         return AnthropicProvider(
             api_key=api_key,
-            model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+            model=os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5"),
             input_cost_per_million=_environment_rate(
-                "ANTHROPIC_INPUT_COST_PER_MILLION", 3.0
+                "ANTHROPIC_INPUT_COST_PER_MILLION", 0.10
             ),
             output_cost_per_million=_environment_rate(
-                "ANTHROPIC_OUTPUT_COST_PER_MILLION", 15.0
+                "ANTHROPIC_OUTPUT_COST_PER_MILLION", 0.50
+            ),
+            input_cost_over_100k_per_million=_environment_rate(
+                "ANTHROPIC_INPUT_COST_OVER_100K_PER_MILLION", 0.50
+            ),
+            output_cost_over_100k_per_million=_environment_rate(
+                "ANTHROPIC_OUTPUT_COST_OVER_100K_PER_MILLION", 2.50
             ),
         )
     raise ValueError(f"Unsupported LLM provider: {name!r}")
