@@ -18,6 +18,7 @@ def test_run_history_round_trips_metrics_and_generated_code(tmp_path: Path) -> N
             line_percent=100.0,
             branch_percent=50.0,
             mutation_score=0.75,
+            no_scorable_tests=True,
             wrong_test_count=0,
             wrong_test_status="passed",
             wall_clock_seconds=2.5,
@@ -107,6 +108,7 @@ def test_run_history_migrates_existing_engine_runs_table(tmp_path: Path) -> None
     assert result.flaky_test_names == ()
     assert result.flaky_run_count == 3
     assert result.mutant_explanations == ()
+    assert result.no_scorable_tests is False
 
 
 def test_run_history_keeps_empty_runs_and_rejects_unknown_run(

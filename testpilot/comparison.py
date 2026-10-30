@@ -105,6 +105,7 @@ def compare_functions(
             mutation_score: float | None = None
             wrong_test_count: int | None = None
             wrong_test_status: str | None = None
+            no_scorable_tests = False
             surviving_mutant_names: tuple[str, ...] = ()
             mutant_explanations = ()
             flaky_test_names: tuple[str, ...] = ()
@@ -136,14 +137,20 @@ def compare_functions(
                     )
                     mutation_deselected = coverage_deselected
                     has_passing_tests = selection.passing_test_count > 0
+                    no_scorable_tests = not has_passing_tests
                 else:
                     coverage_deselected = ()
                     mutation_deselected = ()
                     has_passing_tests = False
+                    no_scorable_tests = True
             else:
                 coverage_deselected = ()
                 mutation_deselected = ()
                 has_passing_tests = False
+            if no_scorable_tests:
+                line_percent = 0.0
+                branch_percent = 0.0
+                mutation_score = 0.0
             if has_passing_tests:
                 try:
                     coverage = coverage_evaluator.evaluate(
@@ -154,20 +161,27 @@ def compare_functions(
                     line_percent = coverage.line_percent
                     branch_percent = coverage.branch_percent
                 except Exception as exc:
-                    error_messages.append(f"Coverage: {_format_error(exc)}")
-                try:
-                    mutation = mutation_evaluator.evaluate(
-                        suite.test_code,
-                        source_path,
-                        mutation_deselected,
-                    )
-                    mutation_score = mutation.mutation_score
-                    surviving_mutant_names = mutation.surviving_mutant_names
-                    mutant_explanations = explain_mutants(
-                        mutation.surviving_mutant_diffs
-                    )
-                except Exception as exc:
-                    error_messages.append(f"Mutation: {_format_error(exc)}")
+                    if "no data to report" in str(exc).lower():
+                        no_scorable_tests = True
+                        line_percent = 0.0
+                        branch_percent = 0.0
+                        mutation_score = 0.0
+                    else:
+                        error_messages.append(f"Coverage: {_format_error(exc)}")
+                if not no_scorable_tests:
+                    try:
+                        mutation = mutation_evaluator.evaluate(
+                            suite.test_code,
+                            source_path,
+                            mutation_deselected,
+                        )
+                        mutation_score = mutation.mutation_score
+                        surviving_mutant_names = mutation.surviving_mutant_names
+                        mutant_explanations = explain_mutants(
+                            mutation.surviving_mutant_diffs
+                        )
+                    except Exception as exc:
+                        error_messages.append(f"Mutation: {_format_error(exc)}")
 
             try:
                 flaky_result = flaky_test_checker.evaluate(
@@ -190,6 +204,7 @@ def compare_functions(
                     line_percent=line_percent,
                     branch_percent=branch_percent,
                     mutation_score=mutation_score,
+                    no_scorable_tests=no_scorable_tests,
                     wrong_test_count=wrong_test_count,
                     wrong_test_status=wrong_test_status,
                     wall_clock_seconds=suite.wall_clock_seconds,

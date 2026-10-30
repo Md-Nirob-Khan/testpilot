@@ -229,6 +229,9 @@ def _table_row(result: EngineRun) -> dict[str, str]:
             if result.mutation_score is not None
             else "Not scored"
         ),
+        "Scorable tests": (
+            "No scorable tests" if result.no_scorable_tests else "Available"
+        ),
         "Wrong tests / status": wrong_tests,
         "Flaky tests": (
             ", ".join(result.flaky_test_names)

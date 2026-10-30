@@ -15,6 +15,10 @@ class LLMProviderError(RuntimeError):
     """Raised when an LLM provider cannot return a valid completion."""
 
 
+OLLAMA_TEMPERATURE = 0.0
+OLLAMA_SEED = 42
+
+
 @dataclass(frozen=True)
 class LLMResponse:
     """Hold generated text and provider usage information."""
@@ -115,6 +119,8 @@ class OllamaProvider:
     model: str = "llama3.1"
     base_url: str = "http://localhost:11434"
     timeout_seconds: float = 120.0
+    temperature: float = OLLAMA_TEMPERATURE
+    seed: int = OLLAMA_SEED
 
     def __post_init__(self) -> None:
         if not self.model:
@@ -122,6 +128,10 @@ class OllamaProvider:
         if not self.base_url.startswith(("http://", "https://")):
             raise ValueError("Ollama base URL must use http:// or https://")
         _validate_timeout(self.timeout_seconds)
+        if not math.isfinite(self.temperature) or self.temperature < 0:
+            raise ValueError("Ollama temperature must be finite and non-negative")
+        if isinstance(self.seed, bool) or not isinstance(self.seed, int):
+            raise ValueError("Ollama seed must be an integer")
 
     def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         """Request one non-streaming chat completion from Ollama."""
@@ -135,6 +145,10 @@ class OllamaProvider:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
                     ],
+                    "options": {
+                        "temperature": self.temperature,
+                        "seed": self.seed,
+                    },
                 }
             ).encode("utf-8"),
             headers={"content-type": "application/json"},

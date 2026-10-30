@@ -175,7 +175,11 @@ def test_trial_writes_three_benchmark_engine_rows(
     monkeypatch.setattr(
         experiment,
         "create_provider",
-        lambda: SimpleNamespace(model="local-trial-model"),
+        lambda: SimpleNamespace(
+            model="local-trial-model",
+            temperature=0.0,
+            seed=42,
+        ),
     )
     monkeypatch.setattr(experiment, "SingleShotEngine", lambda provider: FakeEngine())
     monkeypatch.setattr(
@@ -206,9 +210,12 @@ def test_trial_writes_three_benchmark_engine_rows(
     ]
     assert all(row["status"] == "completed" for row in rows)
     assert all(row["model_name"] == "local-trial-model" for row in rows)
+    assert all(row["temperature"] == "0.0" for row in rows)
+    assert all(row["seed"] == "42" for row in rows)
     assert all(row["wrong_test_status"] == "passed" for row in rows)
     assert all(row["passing_test_count"] == "1" for row in rows)
     assert all(row["expected_failure_count"] == "0" for row in rows)
+    assert all(row["no_scorable_tests"] == "False" for row in rows)
     assert all(row["wrong_test_reasons_json"] == "[]" for row in rows)
     assert all(row["line_percent"] == "75.0" for row in rows)
     assert all(row["branch_percent"] == "50.0" for row in rows)
@@ -345,6 +352,100 @@ def test_experiment_scores_passing_cases_and_records_failure_reasons(
     )
 
 
+def test_experiment_flags_passing_tests_that_never_cover_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import testpilot.experiment as experiment
+
+    dataset_path = tmp_path / "HumanEval.jsonl"
+    dataset_path.write_text(json.dumps(_record()), encoding="utf-8")
+
+    class FakeEngine:
+        def generate(self, function_info, source_path):
+            return GeneratedSuite(
+                test_code="def test_unrelated():\n    assert True\n",
+                engine_name="fake",
+                wall_clock_seconds=0.1,
+                llm_tokens_used=0,
+                estimated_cost_usd=0.0,
+            )
+
+    class FakeWrongTestDetector:
+        def __init__(self, timeout_seconds):
+            pass
+
+        def evaluate(self, test_code, source_path, is_benchmark):
+            return SimpleNamespace(
+                status="passed",
+                failing_tests=0,
+                expected_failure_count=0,
+                sandbox_result=SandboxResult(
+                    tests_run=1,
+                    passed=1,
+                    failed=0,
+                    errors=0,
+                    skipped=0,
+                    returncode=0,
+                    timed_out=False,
+                    wall_clock_seconds=0.1,
+                    stdout="",
+                    stderr="",
+                    test_outcomes=(
+                        TestOutcome("test_generated::test_unrelated", "passed"),
+                    ),
+                ),
+            )
+
+    class NoTargetCoverageEvaluator:
+        def __init__(self, timeout_seconds):
+            pass
+
+        def evaluate(self, test_code, source_path, deselected_test_ids=()):
+            raise RuntimeError("Could not produce coverage JSON: No data to report.")
+
+    class UnexpectedMutationEvaluator:
+        def __init__(self, timeout_seconds):
+            pass
+
+        def evaluate(self, *args, **kwargs):
+            raise AssertionError("Mutation scoring must be skipped")
+
+    monkeypatch.setattr(
+        experiment,
+        "create_provider",
+        lambda: SimpleNamespace(model="test-model", temperature=0.0, seed=42),
+    )
+    monkeypatch.setattr(experiment, "SingleShotEngine", lambda provider: FakeEngine())
+    monkeypatch.setattr(
+        experiment,
+        "AgentEngine",
+        lambda provider, max_rounds, is_benchmark: FakeEngine(),
+    )
+    monkeypatch.setattr(experiment, "PynguinEngine", FakeEngine)
+    monkeypatch.setattr(experiment, "WrongTestDetector", FakeWrongTestDetector)
+    monkeypatch.setattr(experiment, "CoverageEvaluator", NoTargetCoverageEvaluator)
+    monkeypatch.setattr(
+        experiment,
+        "MutationEvaluator",
+        UnexpectedMutationEvaluator,
+    )
+
+    summary = run_humaneval_experiment(
+        dataset_path,
+        tmp_path / "no-scorable.csv",
+        task_ids=["HumanEval/0"],
+    )
+
+    assert len(summary.rows) == 3
+    assert all(row.status == "completed" for row in summary.rows)
+    assert all(row.passing_test_count == 1 for row in summary.rows)
+    assert all(row.no_scorable_tests for row in summary.rows)
+    assert all(row.line_percent == 0.0 for row in summary.rows)
+    assert all(row.branch_percent == 0.0 for row in summary.rows)
+    assert all(row.mutation_score == 0.0 for row in summary.rows)
+
+
 def test_experiment_excludes_xfails_for_every_engine(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -398,6 +499,9 @@ def test_experiment_excludes_xfails_for_every_engine(
     assert all(row.wrong_test_count == 0 for row in summary.rows)
     assert all(row.expected_failure_count == 1 for row in summary.rows)
     assert all(row.passing_test_count == 0 for row in summary.rows)
-    assert all(row.line_percent is None for row in summary.rows)
-    assert all(row.mutation_score is None for row in summary.rows)
+    assert all(row.no_scorable_tests for row in summary.rows)
+    assert all(row.line_percent == 0 for row in summary.rows)
+    assert all(row.branch_percent == 0 for row in summary.rows)
+    assert all(row.mutation_score == 0 for row in summary.rows)
     assert all(row["expected_failure_count"] == "1" for row in rows)
+    assert all(row["no_scorable_tests"] == "True" for row in rows)

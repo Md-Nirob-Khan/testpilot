@@ -176,9 +176,9 @@ python -m pytest
 
 ## HumanEval experiment
 
-Download the official MIT-licensed HumanEval JSONL dataset from
-[OpenAI's human-eval repository](https://github.com/openai/human-eval), then
-run a bounded trial before considering the full benchmark:
+The bundled `data/HumanEval.jsonl.gz` dataset is the MIT-licensed benchmark
+from [OpenAI's human-eval repository](https://github.com/openai/human-eval).
+Run a bounded trial before considering the full benchmark:
 
 ```sh
 python -m testpilot.experiment \
@@ -187,9 +187,14 @@ python -m testpilot.experiment \
   --limit 10
 ```
 
-Each CSV row records the run date, configured LLM model, engine settings,
-generation and evaluation time, line/branch coverage, mutation score, and
-wrong-test results. The three engines are single-shot LLM, Agent LLM
+Each CSV row records the run date, configured LLM model, Ollama temperature and
+seed, engine settings, generation and evaluation time, line/branch coverage,
+mutation score, and wrong-test results. Ollama uses temperature `0` and seed
+`42` by default. Rows with no passing, non-xfail tests, or whose passing tests
+never execute the target code, record zero coverage and mutation scores and set
+`no_scorable_tests`; these rows remain included in aggregates instead of
+disappearing as missing values. The three engines are
+single-shot LLM, Agent LLM
 (three-round maximum), and Pynguin (30-second search, 120-second subprocess
 timeout). Benchmark suites are checked against the canonical solutions.
 All scoring subprocesses use pytest's `--runxfail` so generated
@@ -198,7 +203,9 @@ mutmut's forced-failure check. Xfail-marked cases are counted separately in
 `expected_failure_count` and are neither classified as wrong tests nor included
 in coverage or mutation scoring. The raw suite remains unchanged; pytest
 deselection excludes wrong and xfail cases from scoring, while the CSV records
-each wrong test and its syntax/import/assertion category. If no passing test
+each wrong test and its syntax/import/assertion category. If passing tests exist
+but an evaluator fails, the row retains the evaluator error rather than
+substituting a zero. If no passing test
 executes mutated code, mutmut's early-exit diagnostic is reported as a zero
 mutation score with all generated mutants classified as surviving.
 An Ollama connection refusal is retried once; a second refusal is labeled as an

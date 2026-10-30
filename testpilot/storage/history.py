@@ -22,6 +22,7 @@ class EngineRun:
     line_percent: float | None = None
     branch_percent: float | None = None
     mutation_score: float | None = None
+    no_scorable_tests: bool = False
     wrong_test_count: int | None = None
     wrong_test_status: str | None = None
     wall_clock_seconds: float | None = None
@@ -91,6 +92,7 @@ class RunHistory:
                 INSERT INTO engine_runs (
                     run_id, function_name, engine_name, status, error,
                     line_percent, branch_percent, mutation_score,
+                    no_scorable_tests,
                     wrong_test_count, wrong_test_status, wall_clock_seconds,
                     estimated_cost_usd, test_code, flaky_test_names_json,
                     flaky_run_count,
@@ -99,7 +101,7 @@ class RunHistory:
                     merge_mutants_killed, merge_mutants_available,
                     flaky_inconclusive_runs_json
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -111,6 +113,7 @@ class RunHistory:
                         result.line_percent,
                         result.branch_percent,
                         result.mutation_score,
+                        result.no_scorable_tests,
                         result.wrong_test_count,
                         result.wrong_test_status,
                         result.wall_clock_seconds,
@@ -182,7 +185,7 @@ class RunHistory:
                 """
                 SELECT function_name, engine_name, status, error, line_percent,
                        branch_percent, mutation_score, wrong_test_count,
-                       wrong_test_status, wall_clock_seconds,
+                       no_scorable_tests, wrong_test_status, wall_clock_seconds,
                        estimated_cost_usd, test_code, flaky_test_names_json,
                        flaky_run_count, flaky_timed_out_runs_json,
                        surviving_mutant_names_json, mutant_explanations_json,
@@ -233,6 +236,7 @@ class RunHistory:
                     line_percent REAL,
                     branch_percent REAL,
                     mutation_score REAL,
+                    no_scorable_tests INTEGER NOT NULL DEFAULT 0,
                     wrong_test_count INTEGER,
                     wrong_test_status TEXT,
                     wall_clock_seconds REAL,
@@ -264,6 +268,7 @@ class RunHistory:
                 "merge_mutants_killed": "INTEGER",
                 "merge_mutants_available": "INTEGER",
                 "flaky_inconclusive_runs_json": "TEXT NOT NULL DEFAULT '[]'",
+                "no_scorable_tests": "INTEGER NOT NULL DEFAULT 0",
             }
             for name, column_type in added_columns.items():
                 if name not in existing_columns:
@@ -284,6 +289,7 @@ def _decode_engine_run(row: sqlite3.Row) -> EngineRun:
             "line_percent",
             "branch_percent",
             "mutation_score",
+            "no_scorable_tests",
             "wrong_test_count",
             "wrong_test_status",
             "wall_clock_seconds",
@@ -295,6 +301,7 @@ def _decode_engine_run(row: sqlite3.Row) -> EngineRun:
         )
     }
     data.update(
+        no_scorable_tests=bool(row["no_scorable_tests"]),
         flaky_test_names=tuple(json.loads(row["flaky_test_names_json"])),
         flaky_timed_out_runs=tuple(
             json.loads(row["flaky_timed_out_runs_json"])

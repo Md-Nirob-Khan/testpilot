@@ -189,8 +189,10 @@ def test_comparison_does_not_score_mutation_for_failing_suite(
     assert events == []
     assert result.wrong_test_count == 1
     assert result.wrong_test_status == "needs_human_review"
-    assert result.mutation_score is None
-    assert result.line_percent is None
+    assert result.no_scorable_tests
+    assert result.mutation_score == 0.0
+    assert result.line_percent == 0.0
+    assert result.branch_percent == 0.0
 
 
 def test_comparison_rejects_empty_or_unknown_selections(tmp_path: Path) -> None:

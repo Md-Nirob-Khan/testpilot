@@ -30,6 +30,8 @@ _CSV_FIELDS = (
     "function_name",
     "engine_name",
     "model_name",
+    "temperature",
+    "seed",
     "engine_settings",
     "status",
     "error",
@@ -47,6 +49,7 @@ _CSV_FIELDS = (
     "wrong_test_count",
     "passing_test_count",
     "expected_failure_count",
+    "no_scorable_tests",
     "wrong_test_status",
     "wrong_test_reasons_json",
 )
@@ -63,6 +66,8 @@ class ExperimentRow:
     function_name: str
     engine_name: str
     model_name: str
+    temperature: float | None
+    seed: int | None
     engine_settings: str
     status: str
     error: str
@@ -80,6 +85,7 @@ class ExperimentRow:
     wrong_test_count: int | None
     passing_test_count: int | None
     expected_failure_count: int | None
+    no_scorable_tests: bool
     wrong_test_status: str
     wrong_test_reasons_json: str
 
@@ -128,6 +134,7 @@ def run_humaneval_experiment(
         problems = tuple(available[task_id] for task_id in task_ids)
     provider = create_provider()
     model_name = _model_name(provider)
+    temperature, seed = _sampling_settings(provider)
     engine_specs = _engine_specs(provider)
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -155,6 +162,8 @@ def run_humaneval_experiment(
                         engine_settings=engine_settings,
                         engine=engine_factory(),
                         model_name=model_name,
+                        temperature=temperature,
+                        seed=seed,
                         run_date=run_date,
                         run_started_at=run_started_at,
                     )
@@ -204,6 +213,8 @@ def _run_one(
     model_name: str,
     run_date: str,
     run_started_at: str,
+    temperature: float | None = None,
+    seed: int | None = None,
 ) -> ExperimentRow:
     """Generate and evaluate one engine's tests against a canonical solution."""
     started = time.perf_counter()
@@ -218,6 +229,7 @@ def _run_one(
     wrong_test_count = None
     passing_test_count = None
     expected_failure_count = 0
+    no_scorable_tests = False
     wrong_test_status = ""
     wrong_test_reasons: list[dict[str, str]] = []
     infrastructure_error = False
@@ -272,10 +284,12 @@ def _run_one(
                 mutation_deselected = coverage_deselected
             else:
                 passing_test_count = 0
+                no_scorable_tests = True
                 coverage_deselected = ()
                 mutation_deselected = ()
         elif correctness is not None:
             passing_test_count = 0
+            no_scorable_tests = True
             coverage_deselected = ()
             mutation_deselected = ()
         else:
@@ -292,19 +306,30 @@ def _run_one(
                 line_percent = coverage.line_percent
                 branch_percent = coverage.branch_percent
             except Exception as exc:
-                errors.append(f"coverage: {_format_error(exc)}")
-            try:
-                mutation = MutationEvaluator(timeout_seconds=300.0).evaluate(
-                    suite.test_code,
-                    source_path,
-                    mutation_deselected,
-                )
-                mutation_score = mutation.mutation_score
-                total_mutants = mutation.total_mutants
-                killed_mutants = mutation.killed_mutants
-                survived_mutants = mutation.survived_mutants
-            except Exception as exc:
-                errors.append(f"mutation: {_format_error(exc)}")
+                if "no data to report" in str(exc).lower():
+                    no_scorable_tests = True
+                    line_percent = 0.0
+                    branch_percent = 0.0
+                    mutation_score = 0.0
+                else:
+                    errors.append(f"coverage: {_format_error(exc)}")
+            if not no_scorable_tests:
+                try:
+                    mutation = MutationEvaluator(timeout_seconds=300.0).evaluate(
+                        suite.test_code,
+                        source_path,
+                        mutation_deselected,
+                    )
+                    mutation_score = mutation.mutation_score
+                    total_mutants = mutation.total_mutants
+                    killed_mutants = mutation.killed_mutants
+                    survived_mutants = mutation.survived_mutants
+                except Exception as exc:
+                    errors.append(f"mutation: {_format_error(exc)}")
+        elif correctness is not None:
+            line_percent = 0.0
+            branch_percent = 0.0
+            mutation_score = 0.0
 
     return ExperimentRow(
         run_date=run_date,
@@ -314,6 +339,8 @@ def _run_one(
         function_name=problem.entry_point,
         engine_name=engine_name,
         model_name=model_name,
+        temperature=temperature,
+        seed=seed,
         engine_settings=engine_settings,
         status=(
             "infrastructure_error"
@@ -337,6 +364,7 @@ def _run_one(
         wrong_test_count=wrong_test_count,
         passing_test_count=passing_test_count,
         expected_failure_count=expected_failure_count,
+        no_scorable_tests=no_scorable_tests,
         wrong_test_status=wrong_test_status,
         wrong_test_reasons_json=json.dumps(wrong_test_reasons, sort_keys=True),
     )
@@ -362,6 +390,25 @@ def _model_name(provider: LLMProvider) -> str:
     if not isinstance(model, str) or not model:
         raise ValueError("The configured LLM provider has no model identifier")
     return model
+
+
+def _sampling_settings(
+    provider: LLMProvider,
+) -> tuple[float | None, int | None]:
+    """Return recorded sampling settings when the provider exposes them."""
+    temperature = getattr(provider, "temperature", None)
+    seed = getattr(provider, "seed", None)
+    if temperature is not None and (
+        isinstance(temperature, bool)
+        or not isinstance(temperature, (int, float))
+    ):
+        raise ValueError("The configured LLM provider has an invalid temperature")
+    if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int)):
+        raise ValueError("The configured LLM provider has an invalid seed")
+    return (
+        float(temperature) if temperature is not None else None,
+        seed,
+    )
 
 
 def _format_error(error: Exception) -> str:

@@ -81,8 +81,30 @@ def test_ollama_provider_reports_zero_cost_and_usage() -> None:
     request_data = json.loads(request.data)
     assert request.full_url == "http://localhost:11434/api/chat"
     assert request_data["stream"] is False
+    assert request_data["options"] == {"temperature": 0.0, "seed": 42}
     assert response.total_tokens == 11
     assert response.estimated_cost_usd == 0
+
+
+def test_ollama_provider_sends_configured_sampling_settings() -> None:
+    payload = {"message": {"content": "generated"}}
+    with patch("urllib.request.urlopen", return_value=_mock_response(payload)) as urlopen:
+        OllamaProvider(temperature=0.25, seed=7).complete("system", "user")
+
+    request_data = json.loads(urlopen.call_args.args[0].data)
+    assert request_data["options"] == {"temperature": 0.25, "seed": 7}
+
+
+@pytest.mark.parametrize(
+    ("temperature", "seed"),
+    [(-0.1, 42), (float("inf"), 42), (0.0, True)],
+)
+def test_ollama_provider_rejects_invalid_sampling_settings(
+    temperature: float,
+    seed: int,
+) -> None:
+    with pytest.raises(ValueError):
+        OllamaProvider(temperature=temperature, seed=seed)
 
 
 def test_provider_surfaces_connection_errors() -> None:

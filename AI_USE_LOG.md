@@ -47,3 +47,8 @@
 - Asked: Fix mutation diagnostics, score only passing tests, recover the agent from evaluator failures, retry Ollama connection refusals, and exclude xfail-marked tests from wrong-test and quality metrics; verify selected HumanEval cases.
 - Done: Added clearer mutmut diagnostics, zero-score handling when no tests cover mutants, failure categorization and passing-only scoring, evaluator-error feedback, one Ollama refusal retry, and separate xfail counting/exclusion for all engines; preserved interrupted v1 CSVs and reran the six requested functions.
 - Outcome: needed fixes
+
+## 2026-10-30 — Reproducible HumanEval scoring
+- Asked: Explain prior missing metrics, report zero scores with a no-scorable flag, make Ollama generation deterministic and record its settings, move the dataset into `data/`, rerun the six selected tasks, run all tests, then commit and push.
+- Done: Added explicit no-scorable metrics/flagging, fixed Ollama temperature and seed metadata, moved the dataset to `data/HumanEval.jsonl.gz`, and reran the six selected tasks.
+- Outcome: needed fixes
