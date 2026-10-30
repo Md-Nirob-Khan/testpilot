@@ -22,3 +22,8 @@
 - Asked: Add the raw-output scoring rule to CLAUDE.md, read it, implement Phase 3 only, run all tests, then commit and push.
 - Done: Added a bounded iterative engine with wrong-test-first scoring, coverage/mutation feedback, highest-score selection, and unit tests.
 - Outcome: needed fixes
+
+## 2026-10-30 — Phase 4 Pynguin baseline
+- Asked: Read CLAUDE.md, implement Phase 4 only with Pynguin in a separate Python 3.10 environment and a sandboxed subprocess, run all tests, then commit and push.
+- Done: Created `.venv-pynguin`, added the isolated Pynguin runner and engine, tests, and setup documentation.
+- Outcome: worked as is

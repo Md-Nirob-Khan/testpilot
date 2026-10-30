@@ -109,6 +109,33 @@ Set `is_benchmark=True` when constructing `AgentEngine` for a canonical
 benchmark implementation so failing tests are classified as wrong tests rather
 than cases needing human review.
 
+## Pynguin baseline
+
+Phase 4 runs Pynguin in its own Python 3.10 environment. Create it from the
+project's Python 3.10 interpreter and install the pinned Pynguin dependency:
+
+```sh
+./.venv/bin/python -m venv .venv-pynguin
+./.venv-pynguin/bin/python -m pip install -r requirements-pynguin.txt
+```
+
+On Windows, use `.venv-pynguin\Scripts\python.exe` for the environment's
+interpreter. `PynguinEngine` launches Pynguin only in a timeout-bounded
+subprocess, copies the source into a temporary directory, and returns the raw
+generated suite. The `PYNGUIN_DANGER_AWARE` opt-in is added only to that child
+process's environment.
+
+```python
+from pathlib import Path
+
+from testpilot.analyzer import analyze_file
+from testpilot.engines import PynguinEngine
+
+source = Path("examples/sample.py")
+suite = PynguinEngine().generate(analyze_file(source)[0], source)
+print(suite.test_code)
+```
+
 Run TestPilot's unit tests with:
 
 ```sh
