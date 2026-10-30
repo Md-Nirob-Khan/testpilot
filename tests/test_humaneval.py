@@ -36,6 +36,8 @@ def test_load_humaneval_reads_gzip_and_limits_records(tmp_path: Path) -> None:
     assert problems[0].source_code == (
         "def add(left, right):\n    return left + right\n"
     )
+    remaining = load_humaneval(dataset_path, limit=1, offset=1)
+    assert remaining[0].task_id == "HumanEval/1"
 
 
 @pytest.mark.parametrize("record", [{}, {"task_id": "HumanEval/0"}])

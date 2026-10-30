@@ -195,3 +195,13 @@ timeout). Benchmark suites are checked against the canonical solutions.
 Generated tests and Pynguin continue to run only in their timeout-bounded
 subprocesses. Running all 164 problems requires explicitly changing `--limit`;
 measure a trial first and estimate the full run from its observed elapsed time.
+After reviewing and approving the trial, the remaining records can be run
+without repeating the first 10:
+
+```sh
+python -m testpilot.experiment \
+  --dataset data/HumanEval.jsonl.gz \
+  --output results/humaneval_remaining_154.csv \
+  --limit 154 \
+  --offset 10
+```

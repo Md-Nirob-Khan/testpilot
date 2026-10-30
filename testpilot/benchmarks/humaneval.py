@@ -26,8 +26,9 @@ class HumanEvalProblem:
 def load_humaneval(
     dataset_path: Path,
     limit: int | None = None,
+    offset: int = 0,
 ) -> tuple[HumanEvalProblem, ...]:
-    """Load and validate HumanEval JSONL records, optionally taking a prefix."""
+    """Load a validated HumanEval slice, skipping offset records first."""
     path = Path(dataset_path)
     if not path.is_file():
         raise FileNotFoundError(f"HumanEval dataset does not exist: {path}")
@@ -35,6 +36,8 @@ def load_humaneval(
         isinstance(limit, bool) or not isinstance(limit, int) or limit < 1
     ):
         raise ValueError("limit must be a positive integer or None")
+    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
+        raise ValueError("offset must be a non-negative integer")
 
     records: list[HumanEvalProblem] = []
     seen_task_ids: set[str] = set()
@@ -56,6 +59,8 @@ def load_humaneval(
                 )
             seen_task_ids.add(problem.task_id)
             _validate_source(problem, line_number)
+            if len(seen_task_ids) <= offset:
+                continue
             records.append(problem)
             if limit is not None and len(records) >= limit:
                 break

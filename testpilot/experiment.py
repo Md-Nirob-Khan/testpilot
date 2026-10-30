@@ -91,13 +91,14 @@ def run_humaneval_experiment(
     dataset_path: Path,
     output_path: Path,
     limit: int = 10,
+    offset: int = 0,
 ) -> ExperimentSummary:
-    """Run all three engines on a HumanEval prefix and write a CSV report."""
+    """Run all three engines on a HumanEval slice and write a CSV report."""
     started = time.perf_counter()
     started_at = datetime.now().astimezone()
     run_date = started_at.date().isoformat()
     run_started_at = started_at.isoformat(timespec="seconds")
-    problems = load_humaneval(dataset_path, limit=limit)
+    problems = load_humaneval(dataset_path, limit=limit, offset=offset)
     provider = create_provider()
     model_name = _model_name(provider)
     engine_specs = _engine_specs(provider)
@@ -293,14 +294,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=10)
+    parser.add_argument("--offset", type=int, default=0)
     arguments = parser.parse_args(argv)
     if arguments.limit < 1:
         parser.error("--limit must be positive")
+    if arguments.offset < 0:
+        parser.error("--offset cannot be negative")
 
     summary = run_humaneval_experiment(
         arguments.dataset,
         arguments.output,
         limit=arguments.limit,
+        offset=arguments.offset,
     )
     completed = sum(row.status == "completed" for row in summary.rows)
     print(
