@@ -2,6 +2,7 @@
 
 import math
 import re
+from datetime import datetime, tzinfo
 from html import escape
 from typing import Any, Sequence
 
@@ -69,6 +70,11 @@ div[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 14px; }
 .tp-badge { display: inline-block; border-radius: 999px; padding: 0.15rem 0.7rem;
     font-size: 0.78rem; font-weight: 700; margin: 0 0.35rem 0.35rem 0;
     color: #0B1220; background: var(--badge); }
+.tp-why { background: rgba(239,68,68,.12); border: 1px solid #EF4444;
+    border-left: 6px solid #EF4444; border-radius: 12px; padding: .8rem 1.1rem; margin: .6rem 0; }
+.tp-why .title { font-weight: 700; color: #FCA5A5; }
+.tp-why ul { margin: .4rem 0 .2rem; padding-left: 1.2rem; color: #F1F5F9; }
+.tp-why .note { color: #A7B3C5; font-size: .82rem; }
 .tp-callout { background: linear-gradient(120deg, rgba(245,158,11,.22), rgba(239,68,68,.18));
     border: 2px solid #F59E0B; border-radius: 18px; padding: 1.5rem 2rem;
     margin: 1.2rem 0; }
@@ -256,3 +262,63 @@ def _label_for(engine_name: str) -> str:
         "pynguin": "Pynguin",
         "best-of-merge": "Best-of merge",
     }.get(engine_name, engine_name)
+
+
+def mutant_number(mutant_name: str) -> int:
+    """Return the mutmut number in a mutant name, or a large value if absent."""
+    match = re.search(r"__mutmut_(\d+)$", mutant_name)
+    return int(match.group(1)) if match else 10**9
+
+
+def sort_mutants(explanations: Sequence[Any]) -> list[Any]:
+    """Sort mutant explanations numerically (1, 2, ... 10, not 1, 10, 2)."""
+    return sorted(explanations, key=lambda item: mutant_number(item.mutant_name))
+
+
+def mutant_title(mutant_name: str, diff: str) -> str:
+    """Build a title like 'Line 2 of ticket_price(): age < 12 changed to age <= 12'.
+
+    The line number is relative to the function's first line, as in mutmut's diff.
+    """
+    number = mutant_number(mutant_name)
+    fallback = f"Mutant {number}" if number != 10**9 else mutant_name
+    function = re.search(r"\.x_(\w+?)__mutmut_\d+$", mutant_name)
+    function_label = f" of {function.group(1)}()" if function else ""
+    line_number: int | None = None
+    old_line = new_line = None
+    first_change = 0
+    for text in diff.splitlines():
+        header = re.match(r"^@@ -\d+(?:,\d+)? \+(\d+)", text)
+        if header:
+            line_number = int(header.group(1))
+        elif line_number is None or text.startswith(("---", "+++")):
+            continue
+        elif text.startswith("-"):
+            old_line = old_line or text[1:]
+            if new_line is None:
+                first_change = line_number
+        elif text.startswith("+"):
+            new_line = new_line or text[1:]
+            if old_line is None:
+                first_change = line_number
+            line_number += 1
+        else:
+            line_number += 1
+    if old_line is None or new_line is None:
+        return fallback
+    return (
+        f"Line {first_change}{function_label}: "
+        f"{_readable_code(old_line)} changed to {_readable_code(new_line)}"
+    )
+
+
+def _readable_code(line: str) -> str:
+    """Strip indentation, a leading if/elif/while and the trailing colon."""
+    text = re.sub(r"^(?:if|elif|while)\s+", "", line.strip())
+    return text.rstrip(":").strip()
+
+
+def format_local_timestamp(iso_timestamp: str, zone: tzinfo | None = None) -> str:
+    """Convert a stored UTC ISO timestamp to local time (or the given zone)."""
+    moment = datetime.fromisoformat(iso_timestamp)
+    return moment.astimezone(zone).strftime("%Y-%m-%d %H:%M:%S")

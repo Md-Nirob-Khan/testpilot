@@ -102,3 +102,8 @@
 - Asked: Fix the "uploadUpload" icon-font bug, make Best badges direction-aware with no badge on ties, show plain-English error causes with collapsed technical details, label zero cost as local, and fix engine order.
 - Done: Scoped Inter away from Material icon elements; added per-metric `best_flags`, `classify_failure` and `ordered_by_engine` in `testpilot/dashboard_ui.py` with tests; zero cost shows "$0.00 (local model)" (Pynguin shows "$0.00 (no LLM)" because it uses no model). All 160 tests pass. The icon fix and the look of every page were not checked in a browser (no browser tool here), so please confirm that no icon names still show as text.
 - Outcome: worked as is
+
+## 2026-10-31 — Demo improvements (wrong-test reasons, mutant titles, local time)
+- Asked: Show why each wrong test is wrong, give surviving-mutant cards plain-language titles sorted by number, and show Run history timestamps in local time.
+- Done: Added `testpilot/failure_reasons.py` (runs the suite in the sandbox after generation and parses pytest's failing assertion), a "Why this test is wrong" box, mutant titles and numeric sorting, and local-time formatting, with tests; 170 tests pass. The reasons are stored in a new additive `wrong_test_reasons_json` column of the SQLite history, so this goes slightly beyond UI code; older runs show no reasons. Mutmut's diff line numbers are relative to the function's first line, not the file, so titles read "Line 2 of ticket_price()", which I checked on a real mutmut run. The extra sandbox run happens only for suites that have wrong tests. Not checked in a browser.
+- Outcome: worked as is

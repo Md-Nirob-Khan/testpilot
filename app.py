@@ -1,6 +1,7 @@
 """Streamlit dashboard for comparing generated test suites."""
 
 import os
+from html import escape as html_escape
 import re
 import tempfile
 from dataclasses import replace
@@ -26,7 +27,11 @@ from testpilot.dashboard_ui import (
     best_flags,
     classify_failure,
     ordered_by_engine,
+    format_local_timestamp,
+    mutant_title,
+    sort_mutants,
 )
+from testpilot.failure_reasons import collect_wrong_test_reasons
 from testpilot.engines import AgentEngine
 from testpilot.engines.llm_engine import target_usage_issue
 from testpilot.llm import LLMProvider, create_provider
@@ -201,6 +206,15 @@ def _render_generation_page(history: RunHistory) -> None:
                 engine_factories=factories,
                 provider_factory=provider_factory,
             )
+            results = [
+                replace(
+                    result,
+                    wrong_test_reasons=_safe_wrong_test_reasons(result, source_path),
+                )
+                if result.wrong_test_count and result.test_code
+                else result
+                for result in results
+            ]
         run_id = history.save_run(source_name, selected_functions, results)
 
     st.session_state["current_run_id"] = run_id
@@ -418,6 +432,30 @@ def _render_engine_scorecards(results: list[EngineRun]) -> None:
                     )
 
 
+def _safe_wrong_test_reasons(result: EngineRun, source_path: Path) -> tuple[str, ...]:
+    """Explain wrong tests in the sandbox; a failure here must not hide results."""
+    try:
+        return collect_wrong_test_reasons(result.test_code or "", source_path)
+    except Exception:
+        return ()
+
+
+def _render_wrong_test_reasons(result: EngineRun) -> None:
+    """Show why each failing test is wrong, using pytest's failing assertion."""
+    if not result.wrong_test_reasons:
+        return
+    items = "".join(
+        f"<li>{html_escape(reason)}</li>" for reason in result.wrong_test_reasons
+    )
+    st.markdown(
+        "<div class='tp-why'><div class='title'>Why this test is wrong</div>"
+        f"<ul>{items}</ul>"
+        "<div class='note'>On your own code this is either a wrong test or a "
+        "real bug: it needs human review.</div></div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _render_error(result: EngineRun) -> None:
     """Show a plain-English cause with the raw error in a collapsed expander."""
     if not result.error:
@@ -468,6 +506,7 @@ def _render_suite_tab(result: EngineRun, index: int) -> None:
         unsafe_allow_html=True,
     )
     _render_error(result)
+    _render_wrong_test_reasons(result)
     if result.test_code is not None:
         st.code(
             result.test_code,
@@ -555,8 +594,8 @@ def _render_mutant_explanations(result: EngineRun) -> None:
     if not result.mutant_explanations:
         return
     st.markdown("**Surviving mutants**")
-    for explanation in result.mutant_explanations:
-        with st.expander(explanation.mutant_name):
+    for explanation in sort_mutants(result.mutant_explanations):
+        with st.expander(mutant_title(explanation.mutant_name, explanation.diff)):
             st.write(f"**What changed:** {explanation.description}")
             st.write(f"**Missing test case:** {explanation.missing_test_case}")
             if explanation.diff:
@@ -776,7 +815,7 @@ def _inject_styles() -> None:
 def _format_run_summary(summary: RunSummary) -> str:
     """Create a concise label for a saved run."""
     return (
-        f"#{summary.run_id} | {summary.created_at[:19].replace('T', ' ')} | "
+        f"#{summary.run_id} | {format_local_timestamp(summary.created_at)} | "
         f"{summary.source_name}"
     )
 

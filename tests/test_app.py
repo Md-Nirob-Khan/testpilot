@@ -105,3 +105,57 @@ def test_currency_labels_zero_cost() -> None:
     assert module._currency(0.0, "agent-llm") == "$0.00 (local model)"
     assert module._currency(0.0, "pynguin") == "$0.00 (no LLM)"
     assert module._currency(None) == "-"
+
+
+def test_wrong_test_reasons_round_trip_through_history(tmp_path: Path) -> None:
+    """Saved wrong-test explanations are restored from SQLite."""
+    history = RunHistory(tmp_path / "reasons.sqlite3")
+    run_id = history.save_run(
+        "s.py",
+        ["f"],
+        [
+            EngineRun(
+                function_name="f",
+                engine_name="pynguin",
+                status="completed",
+                wrong_test_count=1,
+                wrong_test_reasons=("test_a: f(1) returned 2, but the test expected 3",),
+            )
+        ],
+    )
+    stored = history.get_run(run_id).results[0]
+    assert stored.wrong_test_reasons == (
+        "test_a: f(1) returned 2, but the test expected 3",
+    )
+
+
+def test_history_page_shows_why_test_is_wrong(tmp_path: Path, monkeypatch) -> None:
+    """The failing assertion is shown in a dedicated box on the engine tab."""
+    database_path = tmp_path / "why.sqlite3"
+    monkeypatch.setenv("TESTPILOT_DB_PATH", str(database_path))
+    RunHistory(database_path).save_run(
+        "s.py",
+        ["ticket_price"],
+        [
+            EngineRun(
+                function_name="ticket_price",
+                engine_name="single-shot-llm",
+                status="completed",
+                test_code="def test_a():\n    assert False\n",
+                wrong_test_count=1,
+                wrong_test_reasons=(
+                    "test_a: ticket_price(64) returned 12, but the test expected 7",
+                ),
+            )
+        ],
+    )
+    app = AppTest.from_file(str(Path(__file__).parents[1] / "app.py")).run(timeout=10)
+    next(r for r in app.radio if r.label == "Workspace").set_value("Run history").run(
+        timeout=10
+    )
+    app = app.run(timeout=10)
+    assert not app.exception
+    assert any(
+        "Why this test is wrong" in m.value and "returned 12" in m.value
+        for m in app.markdown
+    )

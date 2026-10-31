@@ -37,6 +37,7 @@ class EngineRun:
     merge_selected_test_names: tuple[str, ...] = ()
     merge_mutants_killed: int | None = None
     merge_mutants_available: int | None = None
+    wrong_test_reasons: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -99,9 +100,9 @@ class RunHistory:
                     flaky_timed_out_runs_json, surviving_mutant_names_json,
                     mutant_explanations_json, merge_selected_test_names_json,
                     merge_mutants_killed, merge_mutants_available,
-                    flaky_inconclusive_runs_json
+                    flaky_inconclusive_runs_json, wrong_test_reasons_json
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -138,6 +139,7 @@ class RunHistory:
                         result.merge_mutants_killed,
                         result.merge_mutants_available,
                         json.dumps(list(result.flaky_inconclusive_runs)),
+                        json.dumps(list(result.wrong_test_reasons)),
                     )
                     for result in results
                 ],
@@ -190,7 +192,8 @@ class RunHistory:
                        flaky_run_count, flaky_timed_out_runs_json,
                        surviving_mutant_names_json, mutant_explanations_json,
                        merge_selected_test_names_json, merge_mutants_killed,
-                       merge_mutants_available, flaky_inconclusive_runs_json
+                       merge_mutants_available, flaky_inconclusive_runs_json,
+                       wrong_test_reasons_json
                 FROM engine_runs
                 WHERE run_id = ?
                 ORDER BY result_id
@@ -250,7 +253,8 @@ class RunHistory:
                     merge_selected_test_names_json TEXT NOT NULL DEFAULT '[]',
                     merge_mutants_killed INTEGER,
                     merge_mutants_available INTEGER,
-                    flaky_inconclusive_runs_json TEXT NOT NULL DEFAULT '[]'
+                    flaky_inconclusive_runs_json TEXT NOT NULL DEFAULT '[]',
+                    wrong_test_reasons_json TEXT NOT NULL DEFAULT '[]'
                 );
                 """
             )
@@ -269,6 +273,7 @@ class RunHistory:
                 "merge_mutants_available": "INTEGER",
                 "flaky_inconclusive_runs_json": "TEXT NOT NULL DEFAULT '[]'",
                 "no_scorable_tests": "INTEGER NOT NULL DEFAULT 0",
+                "wrong_test_reasons_json": "TEXT NOT NULL DEFAULT '[]'",
             }
             for name, column_type in added_columns.items():
                 if name not in existing_columns:
@@ -319,5 +324,6 @@ def _decode_engine_run(row: sqlite3.Row) -> EngineRun:
         merge_selected_test_names=tuple(
             json.loads(row["merge_selected_test_names_json"])
         ),
+        wrong_test_reasons=tuple(json.loads(row["wrong_test_reasons_json"])),
     )
     return EngineRun(**data)

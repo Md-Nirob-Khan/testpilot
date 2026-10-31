@@ -5,6 +5,10 @@ from testpilot.dashboard_ui import (
     STYLESHEET,
     best_flags,
     classify_failure,
+    format_local_timestamp,
+    mutant_number,
+    mutant_title,
+    sort_mutants,
     ordered_by_engine,
     badge_html,
     build_bar_figure,
@@ -134,3 +138,50 @@ def test_stylesheet_keeps_material_icon_font() -> None:
     """Icon elements keep their own font instead of Inter."""
     assert "Material Symbols Rounded" in STYLESHEET
     assert '[class*="st-"]' not in STYLESHEET
+
+
+_DIFF = (
+    "# testpilot_target.x_ticket_price__mutmut_{n}: survived\n"
+    "--- testpilot_target.py\n+++ testpilot_target.py\n"
+    "@@ -1,4 +1,4 @@\n def ticket_price(age: int) -> int:\n"
+    "-    if age < 12:\n+    if age <= 12:\n         return 7\n     return 12\n"
+)
+
+
+def test_mutant_title_names_line_and_change() -> None:
+    """The title shows the line and the change in plain language."""
+    title = mutant_title("testpilot_target.x_ticket_price__mutmut_1", _DIFF.format(n=1))
+    assert title == "Line 2 of ticket_price(): age < 12 changed to age <= 12"
+
+
+def test_mutant_title_uses_hunk_offset() -> None:
+    """Context lines before the change advance the reported line."""
+    diff = "@@ -4,4 +4,4 @@\n a\n b\n-    rate = 1\n+    rate = None\n c\n"
+    assert mutant_title("m.x_f__mutmut_7", diff) == (
+        "Line 6 of f(): rate = 1 changed to rate = None"
+    )
+
+
+def test_mutant_title_falls_back_without_diff() -> None:
+    """Without a parsable diff the title is still readable."""
+    assert mutant_title("m.x_f__mutmut_3", "") == "Mutant 3"
+    assert mutant_title("classify_mutant_1", "") == "classify_mutant_1"
+
+
+def test_sort_mutants_numerically() -> None:
+    """Mutant 2 comes before mutant 10."""
+    from types import SimpleNamespace
+
+    items = [SimpleNamespace(mutant_name=f"m.x_f__mutmut_{n}") for n in (10, 2, 1)]
+    assert [mutant_number(i.mutant_name) for i in sort_mutants(items)] == [1, 2, 10]
+
+
+def test_format_local_timestamp_converts_from_utc() -> None:
+    """Stored UTC timestamps are shown in the requested zone."""
+    from datetime import timedelta, timezone
+
+    zone = timezone(timedelta(hours=-5))
+    assert (
+        format_local_timestamp("2026-10-31T03:30:00+00:00", zone)
+        == "2026-10-30 22:30:00"
+    )
