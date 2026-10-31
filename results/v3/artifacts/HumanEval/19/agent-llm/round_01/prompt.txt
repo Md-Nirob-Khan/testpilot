@@ -1,0 +1,45 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sort_numbers`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sort_numbers` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sort_numbers
+Arguments: (ArgumentInfo(name='numbers', annotation='str', kind='positional'),)
+Return annotation: 'str'
+Docstring: Input is a space-delimited string of numberals from 'zero' to 'nine'.
+Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+Return the string with numbers sorted from smallest to largest
+>>> sort_numbers('three one five')
+'one three five'
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def sort_numbers(numbers: str) -> str:
+    """ Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """
+    value_map = {
+        'zero': 0,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9
+    }
+    return ' '.join(sorted([x for x in numbers.split(' ') if x], key=lambda x: value_map[x]))
+```

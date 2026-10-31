@@ -1,0 +1,105 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import total_match`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `total_match` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: total_match
+Arguments: (ArgumentInfo(name='lst1', annotation=None, kind='positional'), ArgumentInfo(name='lst2', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Write a function that accepts two lists of strings and returns the list that has 
+total number of chars in the all strings of the list less than the other list.
+
+if the two lists have the same number of chars, return the first list.
+
+Examples
+total_match([], []) ➞ []
+total_match(['hi', 'admin'], ['hI', 'Hi']) ➞ ['hI', 'Hi']
+total_match(['hi', 'admin'], ['hi', 'hi', 'admin', 'project']) ➞ ['hi', 'admin']
+total_match(['hi', 'admin'], ['hI', 'hi', 'hi']) ➞ ['hI', 'hi', 'hi']
+total_match(['4'], ['1', '2', '3', '4', '5']) ➞ ['4']
+Branches: (BranchInfo(line=17, kind='for', condition='for', alternatives=2), BranchInfo(line=21, kind='for', condition='for', alternatives=2), BranchInfo(line=24, kind='if', condition='l1 <= l2', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def total_match(lst1, lst2):
+    '''
+    Write a function that accepts two lists of strings and returns the list that has 
+    total number of chars in the all strings of the list less than the other list.
+
+    if the two lists have the same number of chars, return the first list.
+
+    Examples
+    total_match([], []) ➞ []
+    total_match(['hi', 'admin'], ['hI', 'Hi']) ➞ ['hI', 'Hi']
+    total_match(['hi', 'admin'], ['hi', 'hi', 'admin', 'project']) ➞ ['hi', 'admin']
+    total_match(['hi', 'admin'], ['hI', 'hi', 'hi']) ➞ ['hI', 'hi', 'hi']
+    total_match(['4'], ['1', '2', '3', '4', '5']) ➞ ['4']
+    '''
+    l1 = 0
+    for st in lst1:
+        l1 += len(st)
+    
+    l2 = 0
+    for st in lst2:
+        l2 += len(st)
+    
+    if l1 <= l2:
+        return lst1
+    else:
+        return lst2
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def total_match(lst1, lst2):
+    '''
+    Write a function that accepts two lists of strings and returns the list that has 
+    total number of chars in the all strings of the list less than the other list.
+
+    if the two lists have the same number of chars, return the first list.
+
+    Examples
+    total_match([], []) ➞ []
+    total_match(['hi', 'admin'], ['hI', 'Hi']) ➞ ['hI', 'Hi']
+    total_match(['hi', 'admin'], ['hi', 'hi', 'admin', 'project']) ➞ ['hi', 'admin']
+    total_match(['hi', 'admin'], ['hI', 'hi', 'hi']) ➞ ['hI', 'hi', 'hi']
+    total_match(['4'], ['1', '2', '3', '4', '5']) ➞ ['4']
+    '''
+    l1 = 0
+    for st in lst1:
+        l1 += len(st)
+    
+    l2 = 0
+    for st in lst2:
+        l2 += len(st)
+    
+    if l1 <= l2:
+        return lst1
+    else:
+        return lst2
+
+def test_total_match():
+    assert total_match([], []) == []
+    assert total_match(['hi', 'admin'], ['hI', 'Hi']) == ['hI', 'Hi']
+    assert total_match(['hi', 'admin'], ['hi', 'hi', 'admin', 'project']) == ['hi', 'admin']
+    assert total_match(['hi', 'admin'], ['hI', 'hi', 'hi']) == ['hI', 'hi', 'hi']
+    assert total_match(['4'], ['1', '2', '3', '4', '5']) == ['4']
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'total_match'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls total_match from testpilot_target. Do not define, copy, or shadow the target function.

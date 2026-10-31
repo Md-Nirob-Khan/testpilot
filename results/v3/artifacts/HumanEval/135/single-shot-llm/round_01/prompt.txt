@@ -1,0 +1,45 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import can_arrange`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `can_arrange` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: can_arrange
+Arguments: (ArgumentInfo(name='arr', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Create a function which returns the largest index of an element which
+is not greater than or equal to the element immediately preceding it. If
+no such element exists then return -1. The given array will not contain
+duplicate values.
+
+Examples:
+can_arrange([1,2,4,3,5]) = 3
+can_arrange([1,2,3]) = -1
+Branches: (BranchInfo(line=14, kind='while', condition='i<len(arr)', alternatives=2), BranchInfo(line=15, kind='if', condition='arr[i]<arr[i-1]', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def can_arrange(arr):
+    """Create a function which returns the largest index of an element which
+    is not greater than or equal to the element immediately preceding it. If
+    no such element exists then return -1. The given array will not contain
+    duplicate values.
+
+    Examples:
+    can_arrange([1,2,4,3,5]) = 3
+    can_arrange([1,2,3]) = -1
+    """
+    ind=-1
+    i=1
+    while i<len(arr):
+      if arr[i]<arr[i-1]:
+        ind=i
+      i+=1
+    return ind
+```

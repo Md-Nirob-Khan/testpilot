@@ -1,0 +1,174 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import even_odd_palindrome`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `even_odd_palindrome` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: even_odd_palindrome
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, return a tuple that has the number of even and odd
+integer palindromes that fall within the range(1, n), inclusive.
+
+Example 1:
+
+    Input: 3
+    Output: (1, 2)
+    Explanation:
+    Integer palindrome are 1, 2, 3. one of them is even, and two of them are odd.
+
+Example 2:
+
+    Input: 12
+    Output: (4, 6)
+    Explanation:
+    Integer palindrome are 1, 2, 3, 4, 5, 6, 7, 8, 9, 11. four of them are even, and 6 of them are odd.
+
+Note:
+    1. 1 <= n <= 10^3
+    2. returned tuple has the number of even and odd integer palindromes respectively.
+Branches: (BranchInfo(line=31, kind='for', condition='for', alternatives=2), BranchInfo(line=32, kind='and', condition='i%2 == 1 and is_palindrome(i)', alternatives=2), BranchInfo(line=32, kind='if', condition='i%2 == 1 and is_palindrome(i)', alternatives=2), BranchInfo(line=34, kind='and', condition='i%2 == 0 and is_palindrome(i)', alternatives=2), BranchInfo(line=34, kind='if', condition='i%2 == 0 and is_palindrome(i)', alternatives=2))
+Cyclomatic complexity: 6
+
+Source:
+```python
+def even_odd_palindrome(n):
+    """
+    Given a positive integer n, return a tuple that has the number of even and odd
+    integer palindromes that fall within the range(1, n), inclusive.
+
+    Example 1:
+
+        Input: 3
+        Output: (1, 2)
+        Explanation:
+        Integer palindrome are 1, 2, 3. one of them is even, and two of them are odd.
+
+    Example 2:
+
+        Input: 12
+        Output: (4, 6)
+        Explanation:
+        Integer palindrome are 1, 2, 3, 4, 5, 6, 7, 8, 9, 11. four of them are even, and 6 of them are odd.
+
+    Note:
+        1. 1 <= n <= 10^3
+        2. returned tuple has the number of even and odd integer palindromes respectively.
+    """
+    def is_palindrome(n):
+        return str(n) == str(n)[::-1]
+
+    even_palindrome_count = 0
+    odd_palindrome_count = 0
+
+    for i in range(1, n+1):
+        if i%2 == 1 and is_palindrome(i):
+                odd_palindrome_count += 1
+        elif i%2 == 0 and is_palindrome(i):
+            even_palindrome_count += 1
+    return (even_palindrome_count, odd_palindrome_count)
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import even_odd_palindrome
+
+@pytest.mark.parametrize("n, expected", [
+    (3, (1, 2)),
+    (12, (4, 6)),
+    (1, (1, 0)),
+    (10, (5, 5)),
+    (100, (25, 25))
+])
+def test_even_odd_palindrome(n, expected):
+    assert even_odd_palindrome(n) == expected
+```
+
+Evaluator feedback:
+Wrong-test status: wrong_test
+Failing tests: 3
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+..FFF                                                                    [100%]
+=================================== FAILURES ===================================
+____________________ test_even_odd_palindrome[1-expected2] _____________________
+
+n = 1, expected = (1, 0)
+
+    @pytest.mark.parametrize("n, expected", [
+        (3, (1, 2)),
+        (12, (4, 6)),
+        (1, (1, 0)),
+        (10, (5, 5)),
+        (100, (25, 25))
+    ])
+    def test_even_odd_palindrome(n, expected):
+>       assert even_odd_palindrome(n) == expected
+E       assert (0, 1) == (1, 0)
+E         
+E         At index 0 diff: 0 != 1
+E         Use -v to get more diff
+
+test_generated.py:12: AssertionError
+____________________ test_even_odd_palindrome[10-expected3] ____________________
+
+n = 10, expected = (5, 5)
+
+    @pytest.mark.parametrize("n, expected", [
+        (3, (1, 2)),
+        (12, (4, 6)),
+        (1, (1, 0)),
+        (10, (5, 5)),
+        (100, (25, 25))
+    ])
+    def test_even_odd_palindrome(n, expected):
+>       assert even_odd_palindrome(n) == expected
+E       assert (4, 5) == (5, 5)
+E         
+E         At index 0 diff: 4 != 5
+E         Use -v to get more diff
+
+test_generated.py:12: AssertionError
+___________________ test_even_odd_palindrome[100-expected4] ____________________
+
+n = 100, expected = (25, 25)
+
+    @pytest.mark.parametrize("n, expected", [
+        (3, (1, 2)),
+        (12, (4, 6)),
+        (1, (1, 0)),
+        (10, (5, 5)),
+        (100, (25, 25))
+    ])
+    def test_even_odd_palindrome(n, expected):
+>       assert even_odd_palindrome(n) == expected
+E       assert (8, 10) == (25, 25)
+E         
+E         At index 0 diff: 8 != 25
+E         Use -v to get more diff
+
+test_generated.py:12: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_even_odd_palindrome[1-expected2] - assert (0, ...
+FAILED test_generated.py::test_even_odd_palindrome[10-expected3] - assert (4,...
+FAILED test_generated.py::test_even_odd_palindrome[100-expected4] - assert (8...
+3 failed, 2 passed in 0.04s
+
+Line coverage: 100.0% (11/11)
+Uncovered source lines: none
+Branch coverage: 100.0% (6/6)
+Uncovered branches: none
+Mutation score: 100.0% (34/34 killed; 0 survived)
+Surviving mutants: none

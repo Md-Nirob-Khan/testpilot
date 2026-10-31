@@ -1,0 +1,75 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import check_if_last_char_is_a_letter`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `check_if_last_char_is_a_letter` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: check_if_last_char_is_a_letter
+Arguments: (ArgumentInfo(name='txt', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Create a function that returns True if the last character
+of a given string is an alphabetical character and is not
+a part of a word, and False otherwise.
+Note: "word" is a group of characters separated by space.
+
+Examples:
+check_if_last_char_is_a_letter("apple pie") ➞ False
+check_if_last_char_is_a_letter("apple pi e") ➞ True
+check_if_last_char_is_a_letter("apple pi e ") ➞ False
+check_if_last_char_is_a_letter("") ➞ False 
+Branches: (BranchInfo(line=17, kind='and', condition='len(check) == 1 and (97 <= ord(check.lower()) <= 122)', alternatives=2), BranchInfo(line=17, kind='conditional', condition='len(check) == 1 and (97 <= ord(check.lower()) <= 122)', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: "word" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter("apple pie") ➞ False
+    check_if_last_char_is_a_letter("apple pi e") ➞ True
+    check_if_last_char_is_a_letter("apple pi e ") ➞ False
+    check_if_last_char_is_a_letter("") ➞ False 
+    '''
+ 
+    check = txt.split(' ')[-1]
+    return True if len(check) == 1 and (97 <= ord(check.lower()) <= 122) else False
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import check_if_last_char_is_a_letter
+
+def test_check_if_last_char_is_a_letter():
+    assert check_if_last_char_is_a_letter("apple pie") == False
+    assert check_if_last_char_is_a_letter("apple pi e") == True
+    assert check_if_last_char_is_a_letter("apple pi e ") == False
+    assert check_if_last_char_is_a_letter("") == False
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (3/3)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 77.8% (14/18 killed; 4 survived)
+Surviving mutants: ('testpilot_target.x_check_if_last_char_is_a_letter__mutmut_12', 'testpilot_target.x_check_if_last_char_is_a_letter__mutmut_13', 'testpilot_target.x_check_if_last_char_is_a_letter__mutmut_16', 'testpilot_target.x_check_if_last_char_is_a_letter__mutmut_17')

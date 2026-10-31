@@ -1,0 +1,94 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import encode`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `encode` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: encode
+Arguments: (ArgumentInfo(name='message', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that takes a message, and encodes in such a 
+way that it swaps case of all letters, replaces all vowels in 
+the message with the letter that appears 2 places ahead of that 
+vowel in the english alphabet. 
+Assume only letters. 
+
+Examples:
+>>> encode('test')
+'TGST'
+>>> encode('This is a message')
+'tHKS KS C MGSSCGG'
+Branches: (BranchInfo(line=19, kind='conditional', condition='i in vowels', alternatives=2),)
+Cyclomatic complexity: 4
+
+Source:
+```python
+def encode(message):
+    """
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """
+    vowels = "aeiouAEIOU"
+    vowels_replace = dict([(i, chr(ord(i) + 2)) for i in vowels])
+    message = message.swapcase()
+    return ''.join([vowels_replace[i] if i in vowels else i for i in message])
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import encode
+
+def test_encode():
+    assert encode('test') == 'TGST'
+    assert encode('This is a message') == 'tHKS KS C MGSSCGG'
+    assert encode('Python') == 'pYtHn'
+    assert encode('123') == '123'
+    assert encode('') == ''
+```
+
+Evaluator feedback:
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________________________ test_encode __________________________________
+
+    def test_encode():
+        assert encode('test') == 'TGST'
+        assert encode('This is a message') == 'tHKS KS C MGSSCGG'
+>       assert encode('Python') == 'pYtHn'
+E       AssertionError: assert 'pYTHQN' == 'pYtHn'
+E         
+E         - pYtHn
+E         + pYTHQN
+
+test_generated.py:7: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_encode - AssertionError: assert 'pYTHQN' == 'p...
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

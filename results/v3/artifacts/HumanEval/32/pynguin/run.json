@@ -1,0 +1,10 @@
+{
+  "engine_name": "pynguin",
+  "generated_test_source": null,
+  "generation_error": "TimeoutError: Pynguin exceeded its 120-second timeout: [22:04:33] WARNING [Worker-95679] Experienced timeout from execution.py:554 test-case execution [22:04:38] WARNING [Worker-95679] Experienced timeout from execution.py:554 test-case execution [22:04:43] WARNING [Worker-95679] Experienced timeout from execution.py:554 test-case execution [22:04:48] WARNING [Worker-95679] Experienced timeout from execution.py:554 test-case execution [22:04:51] WARNING [Worker-95679] Experienced timeout from execution.py:...",
+  "round_details": [],
+  "rounds_recorded": 0,
+  "selected_round": null,
+  "suite_returned": false,
+  "task_id": "HumanEval/32"
+}

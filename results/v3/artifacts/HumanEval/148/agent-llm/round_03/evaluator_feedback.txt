@@ -1,0 +1,35 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+.F....                                                                   [100%]
+=================================== FAILURES ===================================
+_________________________ test_bf[Earth-Mercury-Venus] _________________________
+
+planet1 = 'Earth', planet2 = 'Mercury', expected = 'Venus'
+
+    @pytest.mark.parametrize("planet1, planet2, expected", [
+        ("Jupiter", "Neptune", ("Saturn", "Uranus")),
+        ("Earth", "Mercury", ("Venus")),
+        ("Mercury", "Uranus", ("Venus", "Earth", "Mars", "Jupiter", "Saturn")),
+        ("Pluto", "Mars", ()),
+        ("Earth", "Earth", ()),
+        ("Mercury", "Mercury", ()),
+    ])
+    def test_bf(planet1, planet2, expected):
+>       assert bf(planet1, planet2) == expected
+E       AssertionError: assert ('Venus',) == 'Venus'
+E        +  where ('Venus',) = bf('Earth', 'Mercury')
+
+test_generated.py:13: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_bf[Earth-Mercury-Venus] - AssertionError: asse...
+1 failed, 5 passed in 0.04s
+
+Line coverage: 88.9% (8/9)
+Uncovered source lines: (26,)
+Branch coverage: 75.0% (3/4)
+Uncovered branches: ((23, 26),)
+Mutation score: 90.2% (37/41 killed; 4 survived)
+Surviving mutants: ('testpilot_target.x_bf__mutmut_26', 'testpilot_target.x_bf__mutmut_37', 'testpilot_target.x_bf__mutmut_40', 'testpilot_target.x_bf__mutmut_41')

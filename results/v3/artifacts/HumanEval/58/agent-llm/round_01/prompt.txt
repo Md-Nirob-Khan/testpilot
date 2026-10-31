@@ -1,0 +1,39 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import common`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `common` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: common
+Arguments: (ArgumentInfo(name='l1', annotation='list', kind='positional'), ArgumentInfo(name='l2', annotation='list', kind='positional'))
+Return annotation: None
+Docstring: Return sorted unique common elements for two lists.
+>>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+[1, 5, 653]
+>>> common([5, 3, 2, 8], [3, 2])
+[2, 3]
+Branches: (BranchInfo(line=12, kind='for', condition='for', alternatives=2), BranchInfo(line=13, kind='for', condition='for', alternatives=2), BranchInfo(line=14, kind='if', condition='e1 == e2', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def common(l1: list, l2: list):
+    """Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """
+    ret = set()
+    for e1 in l1:
+        for e2 in l2:
+            if e1 == e2:
+                ret.add(e1)
+    return sorted(list(ret))
+```

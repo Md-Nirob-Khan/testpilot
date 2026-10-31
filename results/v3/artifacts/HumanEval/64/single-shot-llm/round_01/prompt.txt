@@ -1,0 +1,47 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import vowels_count`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `vowels_count` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: vowels_count
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function vowels_count which takes a string representing
+a word as input and returns the number of vowels in the string.
+Vowels in this case are 'a', 'e', 'i', 'o', 'u'. Here, 'y' is also a
+vowel, but only when it is at the end of the given word.
+
+Example:
+>>> vowels_count("abcde")
+2
+>>> vowels_count("ACEDY")
+3
+Branches: (BranchInfo(line=20, kind='if', condition="s[-1] == 'y' or s[-1] == 'Y'", alternatives=2), BranchInfo(line=20, kind='or', condition="s[-1] == 'y' or s[-1] == 'Y'", alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def vowels_count(s):
+    """Write a function vowels_count which takes a string representing
+    a word as input and returns the number of vowels in the string.
+    Vowels in this case are 'a', 'e', 'i', 'o', 'u'. Here, 'y' is also a
+    vowel, but only when it is at the end of the given word.
+
+    Example:
+    >>> vowels_count("abcde")
+    2
+    >>> vowels_count("ACEDY")
+    3
+    """
+    vowels = "aeiouAEIOU"
+    n_vowels = sum(c in vowels for c in s)
+    if s[-1] == 'y' or s[-1] == 'Y':
+        n_vowels += 1
+    return n_vowels
+```

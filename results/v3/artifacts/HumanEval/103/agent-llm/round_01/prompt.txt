@@ -1,0 +1,46 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import rounded_avg`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `rounded_avg` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: rounded_avg
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'), ArgumentInfo(name='m', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: You are given two positive integers n and m, and your task is to compute the
+average of the integers from n through m (including n and m). 
+Round the answer to the nearest integer and convert that to binary.
+If n is greater than m, return -1.
+Example:
+rounded_avg(1, 5) => "0b11"
+rounded_avg(7, 5) => -1
+rounded_avg(10, 20) => "0b1111"
+rounded_avg(20, 33) => "0b11010"
+Branches: (BranchInfo(line=13, kind='if', condition='m < n', alternatives=2), BranchInfo(line=16, kind='for', condition='for', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def rounded_avg(n, m):
+    """You are given two positive integers n and m, and your task is to compute the
+    average of the integers from n through m (including n and m). 
+    Round the answer to the nearest integer and convert that to binary.
+    If n is greater than m, return -1.
+    Example:
+    rounded_avg(1, 5) => "0b11"
+    rounded_avg(7, 5) => -1
+    rounded_avg(10, 20) => "0b1111"
+    rounded_avg(20, 33) => "0b11010"
+    """
+    if m < n:
+        return -1
+    summation = 0
+    for i in range(n, m+1):
+        summation += i
+    return bin(round(summation/(m - n + 1)))
+```

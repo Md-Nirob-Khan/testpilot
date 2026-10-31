@@ -1,0 +1,27 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________________________ test_get_odd_collatz _____________________________
+
+    def test_get_odd_collatz():
+        assert get_odd_collatz(5) == [1, 5]
+        assert get_odd_collatz(1) == [1]
+        assert get_odd_collatz(10) == [1, 5]
+>       assert get_odd_collatz(15) == [1, 5, 16]
+E       assert [1, 5, 15, 23, 35, 53] == [1, 5, 16]
+E         
+E         At index 2 diff: 15 != 16
+E         Left contains 3 more items, first extra item: 23
+E         Use -v to get more diff
+
+test_generated.py:8: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_get_odd_collatz - assert [1, 5, 15, 23, 35, 53...
+1 failed in 0.04s
+
+Coverage: unavailable
+Mutation score: unavailable

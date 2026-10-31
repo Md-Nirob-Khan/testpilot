@@ -1,0 +1,8 @@
+```python
+import pytest
+from testpilot_target import has_close_elements
+
+def test_has_close_elements():
+    assert not has_close_elements([1.0, 2.0, 3.0], 0.5)
+    assert has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+```

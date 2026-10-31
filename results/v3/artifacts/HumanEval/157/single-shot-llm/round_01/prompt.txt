@@ -1,0 +1,38 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import right_angle_triangle`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `right_angle_triangle` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: right_angle_triangle
+Arguments: (ArgumentInfo(name='a', annotation=None, kind='positional'), ArgumentInfo(name='b', annotation=None, kind='positional'), ArgumentInfo(name='c', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Given the lengths of the three sides of a triangle. Return True if the three
+sides form a right-angled triangle, False otherwise.
+A right-angled triangle is a triangle in which one angle is right angle or 
+90 degree.
+Example:
+right_angle_triangle(3, 4, 5) == True
+right_angle_triangle(1, 2, 3) == False
+Branches: (BranchInfo(line=12, kind='or', condition='a*a == b*b + c*c or b*b == a*a + c*c or c*c == a*a + b*b', alternatives=3),)
+Cyclomatic complexity: 3
+
+Source:
+```python
+def right_angle_triangle(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return True if the three
+    sides form a right-angled triangle, False otherwise.
+    A right-angled triangle is a triangle in which one angle is right angle or 
+    90 degree.
+    Example:
+    right_angle_triangle(3, 4, 5) == True
+    right_angle_triangle(1, 2, 3) == False
+    '''
+    return a*a == b*b + c*c or b*b == a*a + c*c or c*c == a*a + b*b
+```

@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import strlen`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `strlen` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: strlen
+Arguments: (ArgumentInfo(name='string', annotation='str', kind='positional'),)
+Return annotation: 'int'
+Docstring: Return length of given string
+>>> strlen('')
+0
+>>> strlen('abc')
+3
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def strlen(string: str) -> int:
+    """ Return length of given string
+    >>> strlen('')
+    0
+    >>> strlen('abc')
+    3
+    """
+    return len(string)
+```

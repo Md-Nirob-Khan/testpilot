@@ -1,0 +1,46 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import parse_music`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `parse_music` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: parse_music
+Arguments: (ArgumentInfo(name='music_string', annotation='str', kind='positional'),)
+Return annotation: 'List[int]'
+Docstring: Input to this function is a string representing musical notes in a special ASCII format.
+Your task is to parse this string and return list of integers corresponding to how many beats does each
+not last.
+
+Here is a legend:
+'o' - whole note, lasts four beats
+'o|' - half note, lasts two beats
+'.|' - quater note, lasts one beat
+
+>>> parse_music('o o| .| o| o| .| .| .| .| o o')
+[4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def parse_music(music_string: str) -> List[int]:
+    """ Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """
+    note_map = {'o': 4, 'o|': 2, '.|': 1}
+    return [note_map[x] for x in music_string.split(' ') if x]
+```

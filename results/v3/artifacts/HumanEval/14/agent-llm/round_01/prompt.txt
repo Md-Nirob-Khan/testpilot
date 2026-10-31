@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import all_prefixes`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `all_prefixes` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: all_prefixes
+Arguments: (ArgumentInfo(name='string', annotation='str', kind='positional'),)
+Return annotation: 'List[str]'
+Docstring: Return list of all prefixes from shortest to longest of the input string
+>>> all_prefixes('abc')
+['a', 'ab', 'abc']
+Branches: (BranchInfo(line=11, kind='for', condition='for', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def all_prefixes(string: str) -> List[str]:
+    """ Return list of all prefixes from shortest to longest of the input string
+    >>> all_prefixes('abc')
+    ['a', 'ab', 'abc']
+    """
+    result = []
+
+    for i in range(len(string)):
+        result.append(string[:i+1])
+    return result
+```

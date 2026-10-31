@@ -1,0 +1,64 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import below_threshold`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `below_threshold` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: below_threshold
+Arguments: (ArgumentInfo(name='l', annotation='list', kind='positional'), ArgumentInfo(name='t', annotation='int', kind='positional'))
+Return annotation: None
+Docstring: Return True if all numbers in the list l are below threshold t.
+>>> below_threshold([1, 2, 4, 10], 100)
+True
+>>> below_threshold([1, 20, 4, 10], 5)
+False
+Branches: (BranchInfo(line=10, kind='for', condition='for', alternatives=2), BranchInfo(line=11, kind='if', condition='e >= t', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def below_threshold(l: list, t: int):
+    """Return True if all numbers in the list l are below threshold t.
+    >>> below_threshold([1, 2, 4, 10], 100)
+    True
+    >>> below_threshold([1, 20, 4, 10], 5)
+    False
+    """
+    for e in l:
+        if e >= t:
+            return False
+    return True
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import below_threshold
+
+def test_below_threshold():
+    assert below_threshold([1, 2, 4, 10], 100) == True
+    assert below_threshold([1, 20, 4, 10], 5) == False
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (5/5)
+Uncovered source lines: none
+Branch coverage: 100.0% (4/4)
+Uncovered branches: none
+Mutation score: 66.7% (2/3 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_below_threshold__mutmut_1',)

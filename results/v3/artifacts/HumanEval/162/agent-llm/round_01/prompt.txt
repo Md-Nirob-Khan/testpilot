@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import string_to_md5`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `string_to_md5` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: string_to_md5
+Arguments: (ArgumentInfo(name='text', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a string 'text', return its md5 hash equivalent string.
+If 'text' is an empty string, return None.
+
+>>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+Branches: (BranchInfo(line=10, kind='conditional', condition='text', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def string_to_md5(text):
+    """
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """
+    import hashlib
+    return hashlib.md5(text.encode('ascii')).hexdigest() if text else None
+```

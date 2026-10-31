@@ -1,0 +1,37 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import solution`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `solution` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: solution
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a non-empty list of integers, return the sum of all of the odd elements that are in even positions.
+
+
+Examples
+solution([5, 8, 7, 1]) ==> 12
+solution([3, 3, 3, 3, 3]) ==> 9
+solution([30, 13, 24, 321]) ==>0
+Branches: (BranchInfo(line=11, kind='and', condition='idx%2==0 and x%2==1', alternatives=2),)
+Cyclomatic complexity: 4
+
+Source:
+```python
+def solution(lst):
+    """Given a non-empty list of integers, return the sum of all of the odd elements that are in even positions.
+    
+
+    Examples
+    solution([5, 8, 7, 1]) ==> 12
+    solution([3, 3, 3, 3, 3]) ==> 9
+    solution([30, 13, 24, 321]) ==>0
+    """
+    return sum([x for idx, x in enumerate(lst) if idx%2==0 and x%2==1])
+```

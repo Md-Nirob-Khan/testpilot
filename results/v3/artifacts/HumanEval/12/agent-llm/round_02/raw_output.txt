@@ -1,0 +1,104 @@
+```python
+import pytest
+from testpilot_target import longest
+
+def test_longest_empty_list():
+    assert longest([]) is None
+
+def test_longest_single_string():
+    assert longest(['a']) == 'a'
+
+def test_longest_multiple_strings():
+    assert longest(['a', 'bb', 'ccc']) == 'ccc'
+
+def test_longest_multiple_strings_same_length():
+    assert longest(['a', 'aa', 'aaa']) == 'aaa'
+
+def test_longest_one_string():
+    assert longest(['a']) == 'a'
+
+def test_longest_two_strings():
+    assert longest(['a', 'b']) == 'b'
+
+def test_longest_three_strings():
+    assert longest(['a', 'b', 'c']) == 'c'
+
+def test_longest_four_strings():
+    assert longest(['a', 'b', 'c', 'd']) == 'd'
+
+def test_longest_five_strings():
+    assert longest(['a', 'b', 'c', 'd', 'e']) == 'e'
+
+def test_longest_same_length_strings():
+    assert longest(['a', 'a', 'a']) == 'a'
+
+def test_longest_empty_list_no_assertion():
+    assert longest([]) is None
+
+def test_longest_single_string_no_assertion():
+    assert longest(['a']) == 'a'
+
+def test_longest_multiple_strings_no_assertion():
+    assert longest(['a', 'bb', 'ccc']) == 'ccc'
+
+def test_longest_multiple_strings_same_length_no_assertion():
+    assert longest(['a', 'aa', 'aaa']) == 'aaa'
+
+def test_longest_one_string_no_assertion():
+    assert longest(['a']) == 'a'
+
+def test_longest_two_strings_no_assertion():
+    assert longest(['a', 'b']) == 'b'
+
+def test_longest_three_strings_no_assertion():
+    assert longest(['a', 'b', 'c']) == 'c'
+
+def test_longest_four_strings_no_assertion():
+    assert longest(['a', 'b', 'c', 'd']) == 'd'
+
+def test_longest_five_strings_no_assertion():
+    assert longest(['a', 'b', 'c', 'd', 'e']) == 'e'
+
+def test_longest_same_length_strings_no_assertion():
+    assert longest(['a', 'a', 'a']) == 'a'
+
+def test_longest_empty_list_exception():
+    with pytest.raises(Exception):
+        longest([])
+
+def test_longest_single_string_exception():
+    with pytest.raises(Exception):
+        longest(['a'])
+
+def test_longest_multiple_strings_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'bb', 'ccc'])
+
+def test_longest_multiple_strings_same_length_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'aa', 'aaa'])
+
+def test_longest_one_string_exception():
+    with pytest.raises(Exception):
+        longest(['a'])
+
+def test_longest_two_strings_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'b'])
+
+def test_longest_three_strings_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'b', 'c'])
+
+def test_longest_four_strings_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'b', 'c', 'd'])
+
+def test_longest_five_strings_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'b', 'c', 'd', 'e'])
+
+def test_longest_same_length_strings_exception():
+    with pytest.raises(Exception):
+        longest(['a', 'a', 'a'])
+```

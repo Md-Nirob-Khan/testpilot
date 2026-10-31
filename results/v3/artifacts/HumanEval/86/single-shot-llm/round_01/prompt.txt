@@ -1,0 +1,44 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import anti_shuffle`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `anti_shuffle` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: anti_shuffle
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that takes a string and returns an ordered version of it.
+Ordered version of string, is a string where all words (separated by space)
+are replaced by a new word where all the characters arranged in
+ascending order based on ascii value.
+Note: You should keep the order of words and blank spaces in the sentence.
+
+For example:
+anti_shuffle('Hi') returns 'Hi'
+anti_shuffle('hello') returns 'ehllo'
+anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def anti_shuffle(s):
+    """
+    Write a function that takes a string and returns an ordered version of it.
+    Ordered version of string, is a string where all words (separated by space)
+    are replaced by a new word where all the characters arranged in
+    ascending order based on ascii value.
+    Note: You should keep the order of words and blank spaces in the sentence.
+
+    For example:
+    anti_shuffle('Hi') returns 'Hi'
+    anti_shuffle('hello') returns 'ehllo'
+    anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'
+    """
+    return ' '.join([''.join(sorted(list(i))) for i in s.split(' ')])
+```

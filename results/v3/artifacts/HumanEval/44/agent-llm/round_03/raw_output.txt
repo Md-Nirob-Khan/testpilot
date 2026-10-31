@@ -1,0 +1,17 @@
+```python
+import pytest
+from testpilot_target import change_base
+
+def test_change_base():
+    assert change_base(8, 3) == '22'
+    assert change_base(8, 2) == '1000'
+    assert change_base(7, 2) == '111'
+    assert change_base(15, 8) == '17'
+    assert change_base(17, 8) == '17'
+    assert change_base(100, 8) == '144'
+    assert change_base(144, 8) == '144'
+    assert change_base(0, 8) == '0'
+    assert change_base(1, 8) == '1'
+    assert change_base(255, 8) == '377'
+    assert change_base(377, 8) == '377'
+```

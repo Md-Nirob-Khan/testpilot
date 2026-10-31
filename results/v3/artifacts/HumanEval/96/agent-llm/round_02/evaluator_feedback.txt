@@ -1,0 +1,2 @@
+Target-usage validation failed: the generated module defines 'count_up_to'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls count_up_to from testpilot_target. Do not define, copy, or shadow the target function.

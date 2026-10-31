@@ -1,0 +1,8 @@
+import pytest
+from testpilot_target import get_closest_vowel
+
+def test_get_closest_vowel():
+    assert get_closest_vowel("yogurt") == "u"
+    assert get_closest_vowel("FULL") == "U"
+    assert get_closest_vowel("quick") == ""
+    assert get_closest_vowel("ab") == ""

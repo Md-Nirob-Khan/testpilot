@@ -1,0 +1,87 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import get_row`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `get_row` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: get_row
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'), ArgumentInfo(name='x', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: You are given a 2 dimensional data, as a nested lists,
+which is similar to matrix, however, unlike matrices,
+each row may contain a different number of columns.
+Given lst, and integer x, find integers x in the list,
+and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+each tuple is a coordinate - (row, columns), starting with 0.
+Sort coordinates initially by rows in ascending order.
+Also, sort coordinates of the row by columns in descending order.
+
+Examples:
+get_row([
+  [1,2,3,4,5,6],
+  [1,2,3,4,1,6],
+  [1,2,3,4,5,1]
+], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+get_row([], 1) == []
+get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+Branches: ()
+Cyclomatic complexity: 4
+
+Source:
+```python
+def get_row(lst, x):
+    """
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """
+    coords = [(i, j) for i in range(len(lst)) for j in range(len(lst[i])) if lst[i][j] == x]
+    return sorted(sorted(coords, key=lambda x: x[1], reverse=True), key=lambda x: x[0])
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import get_row
+
+def test_get_row():
+    assert get_row([[1,2,3,4,5,6], [1,2,3,4,1,6], [1,2,3,4,5,1]], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    assert get_row([], 1) == []
+    assert get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (3/3)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 89.5% (17/19 killed; 2 survived)
+Surviving mutants: ('testpilot_target.x_get_row__mutmut_10', 'testpilot_target.x_get_row__mutmut_13')

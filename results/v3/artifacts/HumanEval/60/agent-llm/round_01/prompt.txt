@@ -1,0 +1,45 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sum_to_n`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sum_to_n` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sum_to_n
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: sum_to_n is a function that sums numbers from 1 to n.
+>>> sum_to_n(30)
+465
+>>> sum_to_n(100)
+5050
+>>> sum_to_n(5)
+15
+>>> sum_to_n(10)
+55
+>>> sum_to_n(1)
+1
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def sum_to_n(n: int):
+    """sum_to_n is a function that sums numbers from 1 to n.
+    >>> sum_to_n(30)
+    465
+    >>> sum_to_n(100)
+    5050
+    >>> sum_to_n(5)
+    15
+    >>> sum_to_n(10)
+    55
+    >>> sum_to_n(1)
+    1
+    """
+    return sum(range(n + 1))
+```

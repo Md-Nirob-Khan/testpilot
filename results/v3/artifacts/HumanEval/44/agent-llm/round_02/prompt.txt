@@ -1,0 +1,64 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import change_base`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `change_base` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: change_base
+Arguments: (ArgumentInfo(name='x', annotation='int', kind='positional'), ArgumentInfo(name='base', annotation='int', kind='positional'))
+Return annotation: None
+Docstring: Change numerical base of input number x to base.
+return string representation after the conversion.
+base numbers are less than 10.
+>>> change_base(8, 3)
+'22'
+>>> change_base(8, 2)
+'1000'
+>>> change_base(7, 2)
+'111'
+Branches: (BranchInfo(line=15, kind='while', condition='x > 0', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def change_base(x: int, base: int):
+    """Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """
+    ret = ""
+    while x > 0:
+        ret = str(x % base) + ret
+        x //= base
+    return ret
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def test_change_base():
+    assert change_base(8, 3) == '22'
+    assert change_base(8, 2) == '1000'
+    assert change_base(7, 2) == '111'
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module does not import 'change_base' from testpilot_target
+Return a complete replacement pytest module that imports and calls change_base from testpilot_target. Do not define, copy, or shadow the target function.

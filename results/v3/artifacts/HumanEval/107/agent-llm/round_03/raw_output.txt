@@ -1,0 +1,14 @@
+```python
+import pytest
+from testpilot_target import even_odd_palindrome
+
+@pytest.mark.parametrize("n, expected", [
+    (3, (1, 2)),
+    (12, (4, 6)),
+    (1, (1, 0)),
+    (10, (5, 5)),
+    (100, (25, 25))
+])
+def test_even_odd_palindrome(n, expected):
+    assert even_odd_palindrome(n) == expected
+```

@@ -1,0 +1,48 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import special_factorial`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `special_factorial` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: special_factorial
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: The Brazilian factorial is defined as:
+brazilian_factorial(n) = n! * (n-1)! * (n-2)! * ... * 1!
+where n > 0
+
+For example:
+>>> special_factorial(4)
+288
+
+The function will receive an integer as input and should return the special
+factorial of this integer.
+Branches: (BranchInfo(line=16, kind='for', condition='for', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def special_factorial(n):
+    """The Brazilian factorial is defined as:
+    brazilian_factorial(n) = n! * (n-1)! * (n-2)! * ... * 1!
+    where n > 0
+
+    For example:
+    >>> special_factorial(4)
+    288
+
+    The function will receive an integer as input and should return the special
+    factorial of this integer.
+    """
+    fact_i = 1
+    special_fact = 1
+    for i in range(1, n+1):
+        fact_i *= i
+        special_fact *= fact_i
+    return special_fact
+```

@@ -1,0 +1,86 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import fib4`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `fib4` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: fib4
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+fib4(0) -> 0
+fib4(1) -> 0
+fib4(2) -> 2
+fib4(3) -> 0
+fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+>>> fib4(5)
+4
+>>> fib4(6)
+8
+>>> fib4(7)
+14
+Branches: (BranchInfo(line=19, kind='if', condition='n < 4', alternatives=2), BranchInfo(line=22, kind='for', condition='for', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def fib4(n: int):
+    """The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """
+    results = [0, 0, 2, 0]
+    if n < 4:
+        return results[n]
+
+    for _ in range(4, n + 1):
+        results.append(results[-1] + results[-2] + results[-3] + results[-4])
+        results.pop(0)
+
+    return results[-1]
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import fib4
+
+def test_fib4():
+    assert fib4(5) == 4
+    assert fib4(6) == 8
+    assert fib4(7) == 14
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 87.5% (7/8)
+Uncovered source lines: (20,)
+Branch coverage: 75.0% (3/4)
+Uncovered branches: ((19, 20),)
+Mutation score: 90.0% (27/30 killed; 3 survived)
+Surviving mutants: ('testpilot_target.x_fib4__mutmut_21', 'testpilot_target.x_fib4__mutmut_6', 'testpilot_target.x_fib4__mutmut_7')

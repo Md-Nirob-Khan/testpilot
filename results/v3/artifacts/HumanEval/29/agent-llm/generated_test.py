@@ -1,0 +1,6 @@
+import pytest
+from testpilot_target import filter_by_prefix
+
+def test_filter_by_prefix():
+    assert filter_by_prefix([], 'a') == []
+    assert filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a') == ['abc', 'array']

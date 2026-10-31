@@ -1,0 +1,72 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import prime_length`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `prime_length` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: prime_length
+Arguments: (ArgumentInfo(name='string', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that takes a string and returns True if the string
+length is a prime number or False otherwise
+Examples
+prime_length('Hello') == True
+prime_length('abcdcba') == True
+prime_length('kittens') == True
+prime_length('orange') == False
+Branches: (BranchInfo(line=12, kind='if', condition='l == 0 or l == 1', alternatives=2), BranchInfo(line=12, kind='or', condition='l == 0 or l == 1', alternatives=2), BranchInfo(line=14, kind='for', condition='for', alternatives=2), BranchInfo(line=15, kind='if', condition='l % i == 0', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def prime_length(string):
+    """Write a function that takes a string and returns True if the string
+    length is a prime number or False otherwise
+    Examples
+    prime_length('Hello') == True
+    prime_length('abcdcba') == True
+    prime_length('kittens') == True
+    prime_length('orange') == False
+    """
+    l = len(string)
+    if l == 0 or l == 1:
+        return False
+    for i in range(2, l):
+        if l % i == 0:
+            return False
+    return True
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import prime_length
+
+def test_prime_length():
+    assert prime_length('Hello') == True
+    assert prime_length('abcdcba') == True
+    assert prime_length('kittens') == True
+    assert prime_length('orange') == False
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 87.5% (7/8)
+Uncovered source lines: (13,)
+Branch coverage: 83.3% (5/6)
+Uncovered branches: ((12, 13),)
+Mutation score: 70.6% (12/17 killed; 5 survived)
+Surviving mutants: ('testpilot_target.x_prime_length__mutmut_12', 'testpilot_target.x_prime_length__mutmut_2', 'testpilot_target.x_prime_length__mutmut_4', 'testpilot_target.x_prime_length__mutmut_6', 'testpilot_target.x_prime_length__mutmut_7')

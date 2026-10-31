@@ -1,0 +1,15 @@
+import pytest
+
+from testpilot_target import sort_array
+
+def test_sort_array_empty():
+    assert sort_array([]) == []
+
+def test_sort_array_single():
+    assert sort_array([5]) == [5]
+
+def test_sort_array_even_sum():
+    assert sort_array([2, 4, 3, 0, 1, 5]) == [0, 1, 2, 3, 4, 5]
+
+def test_sort_array_odd_sum():
+    assert sort_array([2, 4, 3, 0, 1, 5, 6]) == [6, 5, 4, 3, 2, 1, 0]

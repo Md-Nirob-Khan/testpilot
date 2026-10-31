@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import remove_duplicates`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `remove_duplicates` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: remove_duplicates
+Arguments: (ArgumentInfo(name='numbers', annotation='List[int]', kind='positional'),)
+Return annotation: 'List[int]'
+Docstring: From a list of integers, remove all elements that occur more than once.
+Keep order of elements left the same as in the input.
+>>> remove_duplicates([1, 2, 3, 2, 4])
+[1, 3, 4]
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """ From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """
+    import collections
+    c = collections.Counter(numbers)
+    return [n for n in numbers if c[n] <= 1]
+```

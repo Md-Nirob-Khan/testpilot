@@ -1,0 +1,80 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import longest`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `longest` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: longest
+Arguments: (ArgumentInfo(name='strings', annotation='List[str]', kind='positional'),)
+Return annotation: 'Optional[str]'
+Docstring: Out of list of strings, return the longest one. Return the first one in case of multiple
+strings of the same length. Return None in case the input list is empty.
+>>> longest([])
+
+>>> longest(['a', 'b', 'c'])
+'a'
+>>> longest(['a', 'bb', 'ccc'])
+'ccc'
+Branches: (BranchInfo(line=14, kind='if', condition='not strings', alternatives=2), BranchInfo(line=18, kind='for', condition='for', alternatives=2), BranchInfo(line=19, kind='if', condition='len(s) == maxlen', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def longest(strings: List[str]) -> Optional[str]:
+    """ Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """
+    if not strings:
+        return None
+
+    maxlen = max(len(x) for x in strings)
+    for s in strings:
+        if len(s) == maxlen:
+            return s
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import longest
+
+def test_longest_empty_list():
+    assert longest([]) is None
+
+def test_longest_single_string():
+    assert longest(['a']) == 'a'
+
+def test_longest_multiple_strings():
+    assert longest(['a', 'bb', 'ccc']) == 'ccc'
+
+def test_longest_multiple_strings_same_length():
+    assert longest(['a', 'aa', 'aaa']) == 'aaa'
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (8/8)
+Uncovered source lines: none
+Branch coverage: 83.3% (5/6)
+Uncovered branches: ((18, -4),)
+Mutation score: 100.0% (4/4 killed; 0 survived)
+Surviving mutants: none

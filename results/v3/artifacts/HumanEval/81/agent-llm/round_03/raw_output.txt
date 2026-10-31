@@ -1,0 +1,112 @@
+ The test failures in the `test_numerical_letter_grade` function indicate that the function is not correctly converting numerical grades to letter grades according to the specified grading scale. Let's walk through the test cases and the expected outcomes to understand the problem.
+
+### Test Cases and Expected Outcomes
+
+1. **Expected: `['B-', 'B-', 'B-']`**
+    - **Input:** `[1.3, 1.3, 1.3]`
+    - **Expected Output:** `['C-', 'C-', 'C-']`
+
+2. **Expected: `['D+', 'D+', 'D+']`**
+    - **Input:** `[4.0, 3.0, 2.0, 1.0, 0.0]`
+    - **Expected Output:** `['A+', 'B', 'C-', 'C', 'E']`
+
+3. **Expected: `['A+', 'B', 'C-', 'C', 'E']`**
+    - **Input:** `[3.8, 2.9, 1.5, 0.0]`
+    - **Expected Output:** `['A-', 'B-', 'C-', 'E']`
+
+4. **Expected: `['B+', 'B+', 'B+']`**
+    - **Input:** `[4.0, 4.0, 4.0]`
+    - **Expected Output:** `['A+', 'A+', 'A+']`
+
+5. **Expected: `['C+', 'C+', 'C+']`**
+    - **Input:** `[0.0, 0.0, 0.0]`
+    - **Expected Output:** `['E', 'E', 'E']`
+
+6. **Expected: `['D-', 'D-', 'D-']`**
+    - **Input:** `[3.0, 3.0, 3.0]`
+    - **Expected Output:** `['B+', 'B+', 'B+']`
+
+7. **Expected: `['A+', 'B', 'C-', 'C', 'E']`**
+    - **Input:** `[1.0, 1.0, 1.0]`
+    - **Expected Output:** `['C+', 'C+', 'C+']`
+
+8. **Expected: `['C-', 'C-', 'C-']`**
+    - **Input:** `[2.0, 2.0, 2.0]`
+    - **Expected Output:** `['B', 'B', 'B']`
+
+9. **Expected: `['B', 'B', 'B']`**
+    - **Input:** `[3.7, 3.7, 3.7]`
+    - **Expected Output:** `['A', 'A', 'A']`
+
+10. **Expected: `['B', 'B', 'B']`**
+    - **Input:** `[2.7, 2.7, 2.7]`
+    - **Expected Output:** `['B', 'B', 'B']`
+
+11. **Expected: `['C-', 'C-', 'C-']`**
+    - **Input:** `[1.3, 1.3, 1.3]`
+    - **Expected Output:** `['C-', 'C-', 'C-']`
+
+12. **Expected: `['D-', 'D-', 'D-']`**
+    - **Input:** `[0.7, 0.7, 0.7]`
+    - **Expected Output:** `['D-', 'D-', 'D-']`
+
+### Analysis of the Code
+
+The function `numerical_letter_grade` appears to be correctly converting numerical grades to letter grades based on the given grading scale. However, the test cases are failing because the function is not returning the expected output for some input values.
+
+### Debugging Steps
+
+1. **Check the Function Logic:**
+   - Ensure that the function `numerical_letter_grade` is correctly calculating the letter grade based on the numerical value.
+   - Verify that the function handles edge cases, such as very high or very low numerical values.
+
+2. **Review the Test Cases:**
+   - Ensure that the test cases are correctly formatted and that the expected output is correctly specified.
+   - Check for any typos or errors in the test cases.
+
+3. **Run the Test Function:**
+   - Run the `test_numerical_letter_grade` function to see if it returns the expected output for the given input values.
+
+### Example of Debugging
+
+Here is an example of how you might debug the function:
+
+```python
+def numerical_letter_grade(grades):
+    letter_grades = []
+    for grade in grades:
+        if grade >= 4.0:
+            letter_grades.append('A+')
+        elif grade >= 3.5:
+            letter_grades.append('A-')
+        elif grade >= 3.0:
+            letter_grades.append('B+')
+        elif grade >= 2.5:
+            letter_grades.append('B-')
+        elif grade >= 2.0:
+            letter_grades.append('C+')
+        elif grade >= 1.5:
+            letter_grades.append('C-')
+        elif grade >= 1.0:
+            letter_grades.append('D+')
+        elif grade >= 0.5:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades
+
+# Test cases
+grades = [1.3, 1.3, 1.3]
+expected = ['C-', 'C-', 'C-']
+print(numerical_letter_grade(grades))  # Expected: ['C-', 'C-', 'C-']
+
+grades = [4.0, 3.0, 2.0, 1.0, 0.0]
+expected = ['A+', 'B', 'C-', 'C', 'E']
+print(numerical_letter_grade(grades))  # Expected: ['A+', 'B', 'C-', 'C', 'E']
+```
+
+If the function still returns the expected output, then the issue might be with the test cases or how the test function is being called. You can try running the test function with a debugger to step through the code and see where the output is being calculated differently.
+
+### Conclusion
+
+The test failures indicate that the `numerical_letter_grade` function is not correctly converting numerical grades to letter grades according to the specified grading scale. You should review the function logic, test cases, and debugging steps to identify and fix the issue.

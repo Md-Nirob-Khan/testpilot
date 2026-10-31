@@ -1,0 +1,10 @@
+```python
+import pytest
+from testpilot_target import next_smallest
+
+def test_next_smallest():
+    assert next_smallest([1, 2, 3, 4, 5]) == 2, "Expected 2 but got {}.".format(next_smallest([1, 2, 3, 4, 5]))
+    assert next_smallest([5, 1, 4, 3, 2]) == 2, "Expected 2 but got {}.".format(next_smallest([5, 1, 4, 3, 2]))
+    assert next_smallest([]) == None, "Expected None but got {}.".format(next_smallest([]))
+    assert next_smallest([1, 1]) == None, "Expected None but got {}.".format(next_smallest([1, 1]))
+```

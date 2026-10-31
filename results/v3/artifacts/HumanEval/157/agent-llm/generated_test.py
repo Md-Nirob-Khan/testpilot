@@ -1,0 +1,53 @@
+import pytest
+from testpilot_target import right_angle_triangle
+
+def test_right_angle_triangle():
+    assert right_angle_triangle(3, 4, 5) == True
+    assert right_angle_triangle(1, 2, 3) == False
+    assert right_angle_triangle(5, 12, 13) == True
+    assert right_angle_triangle(10, 6, 8) == False
+    assert right_angle_triangle(7, 24, 25) == True
+    assert right_angle_triangle(9, 40, 41) == True
+    assert right_angle_triangle(11, 60, 61) == True
+    assert right_angle_triangle(13, 84, 85) == True
+    assert right_angle_triangle(17, 144, 145) == True
+    assert right_angle_triangle(19, 160, 161) == True
+    assert right_angle_triangle(23, 200, 201) == True
+    assert right_angle_triangle(29, 216, 217) == True
+    assert right_angle_triangle(31, 224, 225) == True
+    assert right_angle_triangle(37, 240, 241) == True
+    assert right_angle_triangle(41, 256, 257) == True
+    assert right_angle_triangle(43, 264, 265) == True
+    assert right_angle_triangle(47, 272, 273) == True
+    assert right_angle_triangle(53, 288, 289) == True
+    assert right_angle_triangle(59, 304, 305) == True
+    assert right_angle_triangle(61, 312, 313) == True
+    assert right_angle_triangle(67, 320, 321) == True
+    assert right_angle_triangle(71, 328, 329) == True
+    assert right_angle_triangle(73, 336, 337) == True
+    assert right_angle_triangle(79, 344, 345) == True
+    assert right_angle_triangle(83, 352, 353) == True
+    assert right_angle_triangle(89, 360, 361) == True
+    assert right_angle_triangle(97, 368, 369) == True
+    assert right_angle_triangle(101, 376, 377) == True
+    assert right_angle_triangle(103, 384, 385) == True
+    assert right_angle_triangle(107, 392, 393) == True
+    assert right_angle_triangle(109, 400, 401) == True
+    assert right_angle_triangle(113, 408, 409) == True
+    assert right_angle_triangle(119, 416, 417) == True
+    assert right_angle_triangle(127, 424, 425) == True
+    assert right_angle_triangle(131, 432, 433) == True
+    assert right_angle_triangle(137, 440, 441) == True
+    assert right_angle_triangle(149, 448, 449) == True
+    assert right_angle_triangle(151, 456, 457) == True
+    assert right_angle_triangle(157, 464, 465) == True
+    assert right_angle_triangle(163, 472, 473) == True
+    assert right_angle_triangle(167, 480, 481) == True
+    assert right_angle_triangle(173, 488, 489) == True
+    assert right_angle_triangle(179, 496, 497) == True
+    assert right_angle_triangle(181, 504, 505) == True
+    assert right_angle_triangle(187, 512, 513) == True
+    assert right_angle_triangle(191, 520, 521) == True
+    assert right_angle_triangle(193, 528, 529) == True
+    assert right_angle_triangle(197, 536, 537) == True
+    assert right_angle_triangle(199, 544, 545) == True

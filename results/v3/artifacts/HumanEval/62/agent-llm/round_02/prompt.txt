@@ -1,0 +1,65 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import derivative`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `derivative` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: derivative
+Arguments: (ArgumentInfo(name='xs', annotation='list', kind='positional'),)
+Return annotation: None
+Docstring: xs represent coefficients of a polynomial.
+xs[0] + xs[1] * x + xs[2] * x^2 + ....
+ Return derivative of this polynomial in the same form.
+>>> derivative([3, 1, 2, 4, 5])
+[1, 4, 12, 20]
+>>> derivative([1, 2, 3])
+[2, 6]
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def derivative(xs: list):
+    """ xs represent coefficients of a polynomial.
+    xs[0] + xs[1] * x + xs[2] * x^2 + ....
+     Return derivative of this polynomial in the same form.
+    >>> derivative([3, 1, 2, 4, 5])
+    [1, 4, 12, 20]
+    >>> derivative([1, 2, 3])
+    [2, 6]
+    """
+    return [(i * x) for i, x in enumerate(xs)][1:]
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import derivative
+
+def test_derivative():
+    assert derivative([3, 1, 2, 4, 5]) == [1, 4, 12, 20]
+    assert derivative([1, 2, 3]) == [2, 6]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (3/3 killed; 0 survived)
+Surviving mutants: none

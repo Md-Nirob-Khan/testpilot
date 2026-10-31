@@ -1,0 +1,74 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import fizz_buzz`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `fizz_buzz` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: fizz_buzz
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: Return the number of times the digit 7 appears in integers less than n which are divisible by 11 or 13.
+>>> fizz_buzz(50)
+0
+>>> fizz_buzz(78)
+2
+>>> fizz_buzz(79)
+3
+Branches: (BranchInfo(line=13, kind='for', condition='for', alternatives=2), BranchInfo(line=14, kind='if', condition='i % 11 == 0 or i % 13 == 0', alternatives=2), BranchInfo(line=14, kind='or', condition='i % 11 == 0 or i % 13 == 0', alternatives=2), BranchInfo(line=18, kind='for', condition='for', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def fizz_buzz(n: int):
+    """Return the number of times the digit 7 appears in integers less than n which are divisible by 11 or 13.
+    >>> fizz_buzz(50)
+    0
+    >>> fizz_buzz(78)
+    2
+    >>> fizz_buzz(79)
+    3
+    """
+    ns = []
+    for i in range(n):
+        if i % 11 == 0 or i % 13 == 0:
+            ns.append(i)
+    s = ''.join(list(map(str, ns)))
+    ans = 0
+    for c in s:
+        ans += (c == '7')
+    return ans
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import fizz_buzz
+
+def test_fizz_buzz():
+    assert fizz_buzz(50) == 0
+    assert fizz_buzz(78) == 2
+    assert fizz_buzz(79) == 3
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (10/10)
+Uncovered source lines: none
+Branch coverage: 100.0% (6/6)
+Uncovered branches: none
+Mutation score: 96.2% (25/26 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_fizz_buzz__mutmut_15',)

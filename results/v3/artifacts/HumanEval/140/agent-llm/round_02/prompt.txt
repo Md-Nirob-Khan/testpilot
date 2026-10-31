@@ -1,0 +1,111 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import fix_spaces`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `fix_spaces` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: fix_spaces
+Arguments: (ArgumentInfo(name='text', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a string text, replace all spaces in it with underscores, 
+and if a string has more than 2 consecutive spaces, 
+then replace all consecutive spaces with - 
+
+fix_spaces("Example") == "Example"
+fix_spaces("Example 1") == "Example_1"
+fix_spaces(" Example 2") == "_Example_2"
+fix_spaces(" Example   3") == "_Example-3"
+Branches: (BranchInfo(line=16, kind='while', condition='i < len(text)', alternatives=2), BranchInfo(line=17, kind='if', condition='text[i] == " "', alternatives=2), BranchInfo(line=20, kind='if', condition='end - start > 2', alternatives=2), BranchInfo(line=22, kind='if', condition='end - start > 0', alternatives=2), BranchInfo(line=28, kind='if', condition='end - start > 2', alternatives=2), BranchInfo(line=30, kind='if', condition='end - start > 0', alternatives=2))
+Cyclomatic complexity: 7
+
+Source:
+```python
+def fix_spaces(text):
+    """
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces("Example") == "Example"
+    fix_spaces("Example 1") == "Example_1"
+    fix_spaces(" Example 2") == "_Example_2"
+    fix_spaces(" Example   3") == "_Example-3"
+    """
+    new_text = ""
+    i = 0
+    start, end = 0, 0
+    while i < len(text):
+        if text[i] == " ":
+            end += 1
+        else:
+            if end - start > 2:
+                new_text += "-"+text[i]
+            elif end - start > 0:
+                new_text += "_"*(end - start)+text[i]
+            else:
+                new_text += text[i]
+            start, end = i+1, i+1
+        i+=1
+    if end - start > 2:
+        new_text += "-"
+    elif end - start > 0:
+        new_text += "_"
+    return new_text
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def fix_spaces(text):
+    """
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces("Example") == "Example"
+    fix_spaces("Example 1") == "Example_1"
+    fix_spaces(" Example 2") == "_Example_2"
+    fix_spaces(" Example   3") == "_Example-3"
+    """
+    new_text = ""
+    i = 0
+    start, end = 0, 0
+    while i < len(text):
+        if text[i] == " ":
+            end += 1
+        else:
+            if end - start > 2:
+                new_text += "-"+text[i]
+            elif end - start > 0:
+                new_text += "_"*(end - start)+text[i]
+            else:
+                new_text += text[i]
+            start, end = i+1, i+1
+        i+=1
+    if end - start > 2:
+        new_text += "-"
+    elif end - start > 0:
+        new_text += "_"
+    return new_text
+
+def test_fix_spaces():
+    assert fix_spaces("Example") == "Example"
+    assert fix_spaces("Example 1") == "Example_1"
+    assert fix_spaces(" Example 2") == "_Example_2"
+    assert fix_spaces(" Example   3") == "_Example-3"
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'fix_spaces'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls fix_spaces from testpilot_target. Do not define, copy, or shadow the target function.

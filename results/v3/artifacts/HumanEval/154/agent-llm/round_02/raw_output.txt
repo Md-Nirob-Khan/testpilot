@@ -1,0 +1,15 @@
+```python
+import pytest
+from testpilot_target import cycpattern_check
+
+@pytest.mark.parametrize("a, b, expected", [
+    ("abcd", "abd", False),
+    ("hello", "ell", True),
+    ("whassup", "psus", False),
+    ("abab", "baa", True),
+    ("efef", "eeff", False),
+    ("himenss", "simen", True),
+])
+def test_cycpattern_check(a, b, expected):
+    assert cycpattern_check(a, b) == expected
+```

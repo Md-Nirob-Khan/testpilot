@@ -1,0 +1,12 @@
+```python
+import pytest
+
+from testpilot_target import add_elements
+
+def test_add_elements():
+    assert add_elements([111, 21, 3, 4000, 5, 6, 7, 8, 9], 4) == 24
+    assert add_elements([10, 20, 30, 40, 50], 5) == 150
+    assert add_elements([1, 2, 3, 4, 5], 1) == 15
+    assert add_elements([100, 200, 300, 400, 500], 2) == 600
+    assert add_elements([1, 2, 3, 4, 5], 6) == 15
+```

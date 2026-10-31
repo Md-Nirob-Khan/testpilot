@@ -1,0 +1,45 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import strange_sort_list`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `strange_sort_list` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: strange_sort_list
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given list of integers, return list in strange order.
+Strange sorting, is when you start with the minimum value,
+then maximum of the remaining integers, then minimum and so on.
+
+Examples:
+strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+strange_sort_list([]) == []
+Branches: (BranchInfo(line=14, kind='while', condition='lst', alternatives=2), BranchInfo(line=15, kind='conditional', condition='switch', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+    res, switch = [], True
+    while lst:
+        res.append(min(lst) if switch else max(lst))
+        lst.remove(res[-1])
+        switch = not switch
+    return res
+```

@@ -1,0 +1,26 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import decode_cyclic`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `decode_cyclic` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: decode_cyclic
+Arguments: (ArgumentInfo(name='s', annotation='str', kind='positional'),)
+Return annotation: None
+Docstring: takes as input string encoded with encode_cyclic function. Returns decoded string.
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def decode_cyclic(s: str):
+    """
+    takes as input string encoded with encode_cyclic function. Returns decoded string.
+    """
+    return encode_cyclic(encode_cyclic(s))
+```

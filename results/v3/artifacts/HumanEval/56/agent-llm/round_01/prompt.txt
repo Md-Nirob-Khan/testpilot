@@ -1,0 +1,53 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import correct_bracketing`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `correct_bracketing` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: correct_bracketing
+Arguments: (ArgumentInfo(name='brackets', annotation='str', kind='positional'),)
+Return annotation: None
+Docstring: brackets is a string of "<" and ">".
+return True if every opening bracket has a corresponding closing bracket.
+
+>>> correct_bracketing("<")
+False
+>>> correct_bracketing("<>")
+True
+>>> correct_bracketing("<<><>>")
+True
+>>> correct_bracketing("><<>")
+False
+Branches: (BranchInfo(line=17, kind='for', condition='for', alternatives=2), BranchInfo(line=18, kind='if', condition='b == "<"', alternatives=2), BranchInfo(line=22, kind='if', condition='depth < 0', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def correct_bracketing(brackets: str):
+    """ brackets is a string of "<" and ">".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing("<")
+    False
+    >>> correct_bracketing("<>")
+    True
+    >>> correct_bracketing("<<><>>")
+    True
+    >>> correct_bracketing("><<>")
+    False
+    """
+    depth = 0
+    for b in brackets:
+        if b == "<":
+            depth += 1
+        else:
+            depth -= 1
+        if depth < 0:
+            return False
+    return depth == 0
+```

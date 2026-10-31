@@ -1,0 +1,73 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import prod_signs`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `prod_signs` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: prod_signs
+Arguments: (ArgumentInfo(name='arr', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You are given an array arr of integers and you need to return
+sum of magnitudes of integers multiplied by product of all signs
+of each number in the array, represented by 1, -1 or 0.
+Note: return None for empty arr.
+
+Example:
+>>> prod_signs([1, 2, 2, -4]) == -9
+>>> prod_signs([0, 1]) == 0
+>>> prod_signs([]) == None
+Branches: (BranchInfo(line=14, kind='if', condition='not arr', alternatives=2), BranchInfo(line=15, kind='conditional', condition='0 in arr', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def prod_signs(arr):
+    """
+    You are given an array arr of integers and you need to return
+    sum of magnitudes of integers multiplied by product of all signs
+    of each number in the array, represented by 1, -1 or 0.
+    Note: return None for empty arr.
+
+    Example:
+    >>> prod_signs([1, 2, 2, -4]) == -9
+    >>> prod_signs([0, 1]) == 0
+    >>> prod_signs([]) == None
+    """
+    if not arr: return None
+    prod = 0 if 0 in arr else (-1) ** len(list(filter(lambda x: x < 0, arr)))
+    return prod * sum([abs(i) for i in arr])
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import prod_signs
+
+def test_prod_signs():
+    assert prod_signs([1, 2, 2, -4]) == -9
+    assert prod_signs([0, 1]) == 0
+    assert prod_signs([]) == None
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (4/4)
+Uncovered source lines: none
+Branch coverage: 100.0% (2/2)
+Uncovered branches: none
+Mutation score: 92.3% (12/13 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_prod_signs__mutmut_8',)

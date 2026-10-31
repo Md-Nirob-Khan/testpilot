@@ -1,0 +1,77 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import search`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `search` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: search
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+zero, and has a frequency greater than or equal to the value of the integer itself. 
+The frequency of an integer is the number of times it appears in the list.
+If no such a value exist, return -1.
+Examples:
+    search([4, 1, 2, 2, 3, 1]) == 2
+    search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+    search([5, 5, 4, 4, 4]) == -1
+Branches: (BranchInfo(line=14, kind='for', condition='for', alternatives=2), BranchInfo(line=18, kind='for', condition='for', alternatives=2), BranchInfo(line=19, kind='if', condition='frq[i] >= i', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+    frq = [0] * (max(lst) + 1)
+    for i in lst:
+        frq[i] += 1;
+
+    ans = -1
+    for i in range(1, len(frq)):
+        if frq[i] >= i:
+            ans = i
+    
+    return ans
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import search
+
+def test_search():
+    assert search([4, 1, 2, 2, 3, 1]) == 2
+    assert search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+    assert search([5, 5, 4, 4, 4]) == -1
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (9/9)
+Uncovered source lines: none
+Branch coverage: 100.0% (6/6)
+Uncovered branches: none
+Mutation score: 89.5% (17/19 killed; 2 survived)
+Surviving mutants: ('testpilot_target.x_search__mutmut_17', 'testpilot_target.x_search__mutmut_6')

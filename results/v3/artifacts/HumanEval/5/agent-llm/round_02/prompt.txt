@@ -1,0 +1,71 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import intersperse`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `intersperse` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: intersperse
+Arguments: (ArgumentInfo(name='numbers', annotation='List[int]', kind='positional'), ArgumentInfo(name='delimeter', annotation='int', kind='positional'))
+Return annotation: 'List[int]'
+Docstring: Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+>>> intersperse([], 4)
+[]
+>>> intersperse([1, 2, 3], 4)
+[1, 4, 2, 4, 3]
+Branches: (BranchInfo(line=11, kind='if', condition='not numbers', alternatives=2), BranchInfo(line=16, kind='for', condition='for', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """ Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """
+    if not numbers:
+        return []
+
+    result = []
+
+    for n in numbers[:-1]:
+        result.append(n)
+        result.append(delimeter)
+
+    result.append(numbers[-1])
+
+    return result
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import intersperse
+
+def test_intersperse():
+    assert intersperse([], 4) == []
+    assert intersperse([1, 2, 3], 4) == [1, 4, 2, 4, 3]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (10/10)
+Uncovered source lines: none
+Branch coverage: 100.0% (4/4)
+Uncovered branches: none
+Mutation score: 100.0% (9/9 killed; 0 survived)
+Surviving mutants: none

@@ -1,0 +1,50 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import count_up_to`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `count_up_to` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: count_up_to
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Implement a function that takes an non-negative integer and returns an array of the first n
+integers that are prime numbers and less than n.
+for example:
+count_up_to(5) => [2,3]
+count_up_to(11) => [2,3,5,7]
+count_up_to(0) => []
+count_up_to(20) => [2,3,5,7,11,13,17,19]
+count_up_to(1) => []
+count_up_to(18) => [2,3,5,7,11,13,17]
+Branches: (BranchInfo(line=14, kind='for', condition='for', alternatives=2), BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=17, kind='if', condition='i % j == 0', alternatives=2), BranchInfo(line=20, kind='if', condition='is_prime', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def count_up_to(n):
+    """Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """
+    primes = []
+    for i in range(2, n):
+        is_prime = True
+        for j in range(2, i):
+            if i % j == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(i)
+    return primes
+```

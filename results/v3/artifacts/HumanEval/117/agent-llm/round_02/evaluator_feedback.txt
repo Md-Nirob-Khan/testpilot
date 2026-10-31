@@ -1,0 +1,2 @@
+Target-usage validation failed: the generated module defines 'select_words'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls select_words from testpilot_target. Do not define, copy, or shadow the target function.

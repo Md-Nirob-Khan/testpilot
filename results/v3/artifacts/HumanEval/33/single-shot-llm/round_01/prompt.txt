@@ -1,0 +1,39 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sort_third`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sort_third` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sort_third
+Arguments: (ArgumentInfo(name='l', annotation='list', kind='positional'),)
+Return annotation: None
+Docstring: This function takes a list l and returns a list l' such that
+l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+to the values of the corresponding indicies of l, but sorted.
+>>> sort_third([1, 2, 3])
+[1, 2, 3]
+>>> sort_third([5, 6, 3, 4, 8, 9, 2])
+[2, 6, 3, 4, 8, 9, 5]
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def sort_third(l: list):
+    """This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """
+    l = list(l)
+    l[::3] = sorted(l[::3])
+    return l
+```

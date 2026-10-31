@@ -1,0 +1,44 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import minSubArraySum`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `minSubArraySum` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: minSubArraySum
+Arguments: (ArgumentInfo(name='nums', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given an array of integers nums, find the minimum sum of any non-empty sub-array
+of nums.
+Example
+minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+minSubArraySum([-1, -2, -3]) == -6
+Branches: (BranchInfo(line=12, kind='for', condition='for', alternatives=2), BranchInfo(line=14, kind='if', condition='s < 0', alternatives=2), BranchInfo(line=17, kind='if', condition='max_sum == 0', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def minSubArraySum(nums):
+    """
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """
+    max_sum = 0
+    s = 0
+    for num in nums:
+        s += -num
+        if (s < 0):
+            s = 0
+        max_sum = max(s, max_sum)
+    if max_sum == 0:
+        max_sum = max(-i for i in nums)
+    min_sum = -max_sum
+    return min_sum
+```

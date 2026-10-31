@@ -1,0 +1,45 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sort_even`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sort_even` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sort_even
+Arguments: (ArgumentInfo(name='l', annotation='list', kind='positional'),)
+Return annotation: None
+Docstring: This function takes a list l and returns a list l' such that
+l' is identical to l in the odd indicies, while its values at the even indicies are equal
+to the values of the even indicies of l, but sorted.
+>>> sort_even([1, 2, 3])
+[1, 2, 3]
+>>> sort_even([5, 6, 3, 4])
+[3, 6, 5, 4]
+Branches: (BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=18, kind='if', condition='len(evens) > len(odds)', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def sort_even(l: list):
+    """This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """
+    evens = l[::2]
+    odds = l[1::2]
+    evens.sort()
+    ans = []
+    for e, o in zip(evens, odds):
+        ans.extend([e, o])
+    if len(evens) > len(odds):
+        ans.append(evens[-1])
+    return ans
+```

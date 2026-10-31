@@ -1,0 +1,50 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import find_closest_elements`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `find_closest_elements` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: find_closest_elements
+Arguments: (ArgumentInfo(name='numbers', annotation='List[float]', kind='positional'),)
+Return annotation: 'Tuple[float, float]'
+Docstring: From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+other and return them in order (smaller number, larger number).
+>>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+(2.0, 2.2)
+>>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+(2.0, 2.0)
+Branches: (BranchInfo(line=15, kind='for', condition='for', alternatives=2), BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=17, kind='if', condition='idx != idx2', alternatives=2), BranchInfo(line=18, kind='if', condition='distance is None', alternatives=2), BranchInfo(line=23, kind='if', condition='new_distance < distance', alternatives=2))
+Cyclomatic complexity: 6
+
+Source:
+```python
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """ From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """
+    closest_pair = None
+    distance = None
+
+    for idx, elem in enumerate(numbers):
+        for idx2, elem2 in enumerate(numbers):
+            if idx != idx2:
+                if distance is None:
+                    distance = abs(elem - elem2)
+                    closest_pair = tuple(sorted([elem, elem2]))
+                else:
+                    new_distance = abs(elem - elem2)
+                    if new_distance < distance:
+                        distance = new_distance
+                        closest_pair = tuple(sorted([elem, elem2]))
+
+    return closest_pair
+```

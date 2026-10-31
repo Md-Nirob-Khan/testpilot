@@ -1,0 +1,61 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import tri`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `tri` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: tri
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+the last couple centuries. However, what people don't know is Tribonacci sequence.
+Tribonacci sequence is defined by the recurrence:
+tri(1) = 3
+tri(n) = 1 + n / 2, if n is even.
+tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+For example:
+tri(2) = 1 + (2 / 2) = 2
+tri(4) = 3
+tri(3) = tri(2) + tri(1) + tri(4)
+       = 2 + 3 + 3 = 8 
+You are given a non-negative integer number n, you have to a return a list of the 
+first n + 1 numbers of the Tribonacci sequence.
+Examples:
+tri(3) = [1, 3, 2, 8]
+Branches: (BranchInfo(line=19, kind='if', condition='n == 0', alternatives=2), BranchInfo(line=22, kind='for', condition='for', alternatives=2), BranchInfo(line=23, kind='if', condition='i % 2 == 0', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def tri(n):
+    """Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """
+    if n == 0:
+        return [1]
+    my_tri = [1, 3]
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            my_tri.append(i / 2 + 1)
+        else:
+            my_tri.append(my_tri[i - 1] + my_tri[i - 2] + (i + 3) / 2)
+    return my_tri
+```

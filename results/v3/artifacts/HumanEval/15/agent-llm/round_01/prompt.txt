@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import string_sequence`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `string_sequence` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: string_sequence
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: 'str'
+Docstring: Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+>>> string_sequence(0)
+'0'
+>>> string_sequence(5)
+'0 1 2 3 4 5'
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def string_sequence(n: int) -> str:
+    """ Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """
+    return ' '.join([str(x) for x in range(n + 1)])
+```

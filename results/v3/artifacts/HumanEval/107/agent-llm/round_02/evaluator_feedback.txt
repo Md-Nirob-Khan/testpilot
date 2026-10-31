@@ -1,0 +1,2 @@
+Target-usage validation failed: the generated module defines 'even_odd_palindrome'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls even_odd_palindrome from testpilot_target. Do not define, copy, or shadow the target function.

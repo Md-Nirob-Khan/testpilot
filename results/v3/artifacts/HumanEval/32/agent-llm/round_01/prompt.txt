@@ -1,0 +1,53 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import find_zero`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `find_zero` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: find_zero
+Arguments: (ArgumentInfo(name='xs', annotation='list', kind='positional'),)
+Return annotation: None
+Docstring: xs are coefficients of a polynomial.
+find_zero find x such that poly(x) = 0.
+find_zero returns only only zero point, even if there are many.
+Moreover, find_zero only takes list xs having even number of coefficients
+and largest non zero coefficient as it guarantees
+a solution.
+>>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+-0.5
+>>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+1.0
+Branches: (BranchInfo(line=25, kind='while', condition='poly(xs, begin) * poly(xs, end) > 0', alternatives=2), BranchInfo(line=28, kind='while', condition='end - begin > 1e-10', alternatives=2), BranchInfo(line=30, kind='if', condition='poly(xs, center) * poly(xs, begin) > 0', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def find_zero(xs: list):
+    """ xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """
+    begin, end = -1., 1.
+    while poly(xs, begin) * poly(xs, end) > 0:
+        begin *= 2.0
+        end *= 2.0
+    while end - begin > 1e-10:
+        center = (begin + end) / 2.0
+        if poly(xs, center) * poly(xs, begin) > 0:
+            begin = center
+        else:
+            end = center
+    return begin
+```

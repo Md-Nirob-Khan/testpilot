@@ -1,0 +1,48 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sort_array`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sort_array` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sort_array
+Arguments: (ArgumentInfo(name='array', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given an array of non-negative integers, return a copy of the given array after sorting,
+you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+or sort it in descending order if the sum( first index value, last index value) is even.
+
+Note:
+* don't change the given array.
+
+Examples:
+* sort_array([]) => []
+* sort_array([5]) => [5]
+* sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+* sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+Branches: (BranchInfo(line=17, kind='conditional', condition='len(array) == 0', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def sort_array(array):
+    """
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """
+    return [] if len(array) == 0 else sorted(array, reverse= (array[0]+array[-1]) % 2 == 0)
+```

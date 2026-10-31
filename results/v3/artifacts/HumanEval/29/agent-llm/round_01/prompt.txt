@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import filter_by_prefix`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `filter_by_prefix` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: filter_by_prefix
+Arguments: (ArgumentInfo(name='strings', annotation='List[str]', kind='positional'), ArgumentInfo(name='prefix', annotation='str', kind='positional'))
+Return annotation: 'List[str]'
+Docstring: Filter an input list of strings only for ones that start with a given prefix.
+>>> filter_by_prefix([], 'a')
+[]
+>>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
+['abc', 'array']
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
+    """ Filter an input list of strings only for ones that start with a given prefix.
+    >>> filter_by_prefix([], 'a')
+    []
+    >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
+    ['abc', 'array']
+    """
+    return [x for x in strings if x.startswith(prefix)]
+```

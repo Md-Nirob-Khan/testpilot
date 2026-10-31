@@ -1,0 +1,72 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import closest_integer`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `closest_integer` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: closest_integer
+Arguments: (ArgumentInfo(name='value', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Create a function that takes a value (string) representing a number
+and returns the closest integer to it. If the number is equidistant
+from two integers, round it away from zero.
+
+Examples
+>>> closest_integer("10")
+10
+>>> closest_integer("15.3")
+15
+
+Note:
+Rounding away from zero means that if the given number is equidistant
+from two integers, the one you should return is the one that is the
+farthest from zero. For example closest_integer("14.5") should
+return 15 and closest_integer("-14.5") should return -15.
+Branches: (BranchInfo(line=22, kind='if', condition="value.count('.') == 1", alternatives=2), BranchInfo(line=24, kind='while', condition="value[-1] == '0'", alternatives=2), BranchInfo(line=28, kind='if', condition="value[-2:] == '.5'", alternatives=2), BranchInfo(line=29, kind='if', condition='num > 0', alternatives=2), BranchInfo(line=33, kind='if', condition='len(value) > 0', alternatives=2))
+Cyclomatic complexity: 6
+
+Source:
+```python
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer("10")
+    10
+    >>> closest_integer("15.3")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer("14.5") should
+    return 15 and closest_integer("-14.5") should return -15.
+    '''
+    from math import floor, ceil
+
+    if value.count('.') == 1:
+        # remove trailing zeros
+        while (value[-1] == '0'):
+            value = value[:-1]
+
+    num = float(value)
+    if value[-2:] == '.5':
+        if num > 0:
+            res = ceil(num)
+        else:
+            res = floor(num)
+    elif len(value) > 0:
+        res = int(round(num))
+    else:
+        res = 0
+
+    return res
+```

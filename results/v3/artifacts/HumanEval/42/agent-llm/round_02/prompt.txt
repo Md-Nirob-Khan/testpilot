@@ -1,0 +1,61 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import incr_list`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `incr_list` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: incr_list
+Arguments: (ArgumentInfo(name='l', annotation='list', kind='positional'),)
+Return annotation: None
+Docstring: Return list with elements incremented by 1.
+>>> incr_list([1, 2, 3])
+[2, 3, 4]
+>>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+[6, 4, 6, 3, 4, 4, 10, 1, 124]
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def incr_list(l: list):
+    """Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """
+    return [(e + 1) for e in l]
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import incr_list
+
+def test_incr_list():
+    assert incr_list([1, 2, 3]) == [2, 3, 4]
+    assert incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [6, 4, 6, 3, 4, 4, 10, 1, 124]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (2/2 killed; 0 survived)
+Surviving mutants: none

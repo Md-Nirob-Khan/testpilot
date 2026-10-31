@@ -1,0 +1,41 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import circular_shift`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `circular_shift` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: circular_shift
+Arguments: (ArgumentInfo(name='x', annotation=None, kind='positional'), ArgumentInfo(name='shift', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Circular shift the digits of the integer x, shift the digits right by shift
+and return the result as a string.
+If shift > number of digits, return digits reversed.
+>>> circular_shift(12, 1)
+"21"
+>>> circular_shift(12, 2)
+"12"
+Branches: (BranchInfo(line=12, kind='if', condition='shift > len(s)', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def circular_shift(x, shift):
+    """Circular shift the digits of the integer x, shift the digits right by shift
+    and return the result as a string.
+    If shift > number of digits, return digits reversed.
+    >>> circular_shift(12, 1)
+    "21"
+    >>> circular_shift(12, 2)
+    "12"
+    """
+    s = str(x)
+    if shift > len(s):
+        return s[::-1]
+    else:
+        return s[len(s) - shift:] + s[:len(s) - shift]
+```

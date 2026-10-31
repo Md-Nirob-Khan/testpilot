@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import count_distinct_characters`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `count_distinct_characters` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: count_distinct_characters
+Arguments: (ArgumentInfo(name='string', annotation='str', kind='positional'),)
+Return annotation: 'int'
+Docstring: Given a string, find out how many distinct characters (regardless of case) does it consist of
+>>> count_distinct_characters('xyzXYZ')
+3
+>>> count_distinct_characters('Jerry')
+4
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def count_distinct_characters(string: str) -> int:
+    """ Given a string, find out how many distinct characters (regardless of case) does it consist of
+    >>> count_distinct_characters('xyzXYZ')
+    3
+    >>> count_distinct_characters('Jerry')
+    4
+    """
+    return len(set(string.lower()))
+```

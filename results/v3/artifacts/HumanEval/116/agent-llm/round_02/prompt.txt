@@ -1,0 +1,82 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sort_array`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sort_array` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sort_array
+Arguments: (ArgumentInfo(name='arr', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: In this Kata, you have to sort an array of non-negative integers according to
+number of ones in their binary representation in ascending order.
+For similar number of ones, sort based on decimal value.
+
+It must be implemented like this:
+>>> sort_array([1, 5, 2, 3, 4]) == [1, 2, 3, 4, 5]
+>>> sort_array([-2, -3, -4, -5, -6]) == [-6, -5, -4, -3, -2]
+>>> sort_array([1, 0, 2, 3, 4]) [0, 1, 2, 3, 4]
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def sort_array(arr):
+    """
+    In this Kata, you have to sort an array of non-negative integers according to
+    number of ones in their binary representation in ascending order.
+    For similar number of ones, sort based on decimal value.
+
+    It must be implemented like this:
+    >>> sort_array([1, 5, 2, 3, 4]) == [1, 2, 3, 4, 5]
+    >>> sort_array([-2, -3, -4, -5, -6]) == [-6, -5, -4, -3, -2]
+    >>> sort_array([1, 0, 2, 3, 4]) [0, 1, 2, 3, 4]
+    """
+    return sorted(sorted(arr), key=lambda x: bin(x)[2:].count('1'))
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import sort_array
+
+def test_sort_array():
+    assert sort_array([1, 5, 2, 3, 4]) == [1, 2, 3, 4, 5]
+    assert sort_array([-2, -3, -4, -5, -6]) == [-6, -5, -4, -3, -2]
+    assert sort_array([1, 0, 2, 3, 4]) == [0, 1, 2, 3, 4]
+```
+
+Evaluator feedback:
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________________ test_sort_array ________________________________
+
+    def test_sort_array():
+>       assert sort_array([1, 5, 2, 3, 4]) == [1, 2, 3, 4, 5]
+E       assert [1, 2, 4, 3, 5] == [1, 2, 3, 4, 5]
+E         
+E         At index 2 diff: 4 != 3
+E         Use -v to get more diff
+
+test_generated.py:6: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_sort_array - assert [1, 2, 4, 3, 5] == [1, 2, ...
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

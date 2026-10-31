@@ -1,0 +1,77 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import fruit_distribution`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `fruit_distribution` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: fruit_distribution
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'), ArgumentInfo(name='n', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: In this task, you will be given a string that represents a number of apples and oranges 
+that are distributed in a basket of fruit this basket contains 
+apples, oranges, and mango fruits. Given the string that represents the total number of 
+the oranges and apples and an integer that represent the total number of the fruits 
+in the basket return the number of the mango fruits in the basket.
+for examble:
+fruit_distribution("5 apples and 6 oranges", 19) ->19 - 5 - 6 = 8
+fruit_distribution("0 apples and 1 oranges",3) -> 3 - 0 - 1 = 2
+fruit_distribution("2 apples and 3 oranges", 100) -> 100 - 2 - 3 = 95
+fruit_distribution("100 apples and 1 oranges",120) -> 120 - 100 - 1 = 19
+Branches: (BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=17, kind='if', condition='i.isdigit()', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def fruit_distribution(s,n):
+    """
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution("5 apples and 6 oranges", 19) ->19 - 5 - 6 = 8
+    fruit_distribution("0 apples and 1 oranges",3) -> 3 - 0 - 1 = 2
+    fruit_distribution("2 apples and 3 oranges", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution("100 apples and 1 oranges",120) -> 120 - 100 - 1 = 19
+    """
+    lis = list()
+    for i in s.split(' '):
+        if i.isdigit():
+            lis.append(int(i))
+    return n - sum(lis)
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import fruit_distribution
+
+def test_fruit_distribution():
+    assert fruit_distribution("5 apples and 6 oranges", 19) == 8
+    assert fruit_distribution("0 apples and 1 oranges", 3) == 2
+    assert fruit_distribution("2 apples and 3 oranges", 100) == 95
+    assert fruit_distribution("100 apples and 1 oranges", 120) == 19
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (6/6)
+Uncovered source lines: none
+Branch coverage: 100.0% (4/4)
+Uncovered branches: none
+Mutation score: 85.7% (6/7 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_fruit_distribution__mutmut_2',)

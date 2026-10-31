@@ -1,0 +1,27 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________________________ test_digits __________________________________
+
+    def test_digits():
+        assert digits(1) == 1
+        assert digits(4) == 0
+        assert digits(235) == 15
+        assert digits(2468) == 0
+        assert digits(13579) == 945
+        assert digits(0) == 0
+>       assert digits(111) == 111
+E       assert 1 == 111
+E        +  where 1 = digits(111)
+
+test_generated.py:11: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_digits - assert 1 == 111
+1 failed in 0.04s
+
+Coverage: unavailable
+Mutation score: unavailable

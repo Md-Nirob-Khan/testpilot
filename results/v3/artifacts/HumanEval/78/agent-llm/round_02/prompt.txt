@@ -1,0 +1,109 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import hex_key`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `hex_key` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: hex_key
+Arguments: (ArgumentInfo(name='num', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You have been tasked to write a function that receives 
+a hexadecimal number as a string and counts the number of hexadecimal 
+digits that are primes (prime number, or a prime, is a natural number 
+greater than 1 that is not a product of two smaller natural numbers).
+Hexadecimal digits are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F.
+Prime numbers are 2, 3, 5, 7, 11, 13, 17,...
+So you have to determine a number of the following digits: 2, 3, 5, 7, 
+B (=decimal 11), D (=decimal 13).
+Note: you may assume the input is always correct or empty string, 
+and symbols A,B,C,D,E,F are always uppercase.
+Examples:
+For num = "AB" the output should be 1.
+For num = "1077E" the output should be 2.
+For num = "ABED1A33" the output should be 4.
+For num = "123456789ABCDEF0" the output should be 6.
+For num = "2020" the output should be 2.
+Branches: (BranchInfo(line=22, kind='for', condition='for', alternatives=2), BranchInfo(line=23, kind='if', condition='num[i] in primes', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def hex_key(num):
+    """You have been tasked to write a function that receives 
+    a hexadecimal number as a string and counts the number of hexadecimal 
+    digits that are primes (prime number, or a prime, is a natural number 
+    greater than 1 that is not a product of two smaller natural numbers).
+    Hexadecimal digits are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F.
+    Prime numbers are 2, 3, 5, 7, 11, 13, 17,...
+    So you have to determine a number of the following digits: 2, 3, 5, 7, 
+    B (=decimal 11), D (=decimal 13).
+    Note: you may assume the input is always correct or empty string, 
+    and symbols A,B,C,D,E,F are always uppercase.
+    Examples:
+    For num = "AB" the output should be 1.
+    For num = "1077E" the output should be 2.
+    For num = "ABED1A33" the output should be 4.
+    For num = "123456789ABCDEF0" the output should be 6.
+    For num = "2020" the output should be 2.
+    """
+    primes = ('2', '3', '5', '7', 'B', 'D')
+    total = 0
+    for i in range(0, len(num)):
+        if num[i] in primes:
+            total += 1
+    return total
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def hex_key(num):
+    """You have been tasked to write a function that receives 
+    a hexadecimal number as a string and counts the number of hexadecimal 
+    digits that are primes (prime number, or a prime, is a natural number 
+    greater than 1 that is not a product of two smaller natural numbers).
+    Hexadecimal digits are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F.
+    Prime numbers are 2, 3, 5, 7, 11, 13, 17,...
+    So you have to determine a number of the following digits: 2, 3, 5, 7, 
+    B (=decimal 11), D (=decimal 13).
+    Note: you may assume the input is always correct or empty string, 
+    and symbols A,B,C,D,E,F are always uppercase.
+    Examples:
+    For num = "AB" the output should be 1.
+    For num = "1077E" the output should be 2.
+    For num = "ABED1A33" the output should be 4.
+    For num = "123456789ABCDEF0" the output should be 6.
+    For num = "2020" the output should be 2.
+    """
+    primes = ('2', '3', '5', '7', 'B', 'D')
+    total = 0
+    for i in range(0, len(num)):
+        if num[i] in primes:
+            total += 1
+    return total
+
+@pytest.mark.parametrize("num, expected", [
+    ("AB", 1),
+    ("1077E", 2),
+    ("ABED1A33", 4),
+    ("123456789ABCDEF0", 6),
+    ("2020", 2),
+])
+def test_hex_key(num, expected):
+    assert hex_key(num) == expected
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'hex_key'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls hex_key from testpilot_target. Do not define, copy, or shadow the target function.

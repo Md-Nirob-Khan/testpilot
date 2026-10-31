@@ -1,0 +1,74 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import reverse_delete`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `reverse_delete` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: reverse_delete
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'), ArgumentInfo(name='c', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Task
+We are given two strings s and c, you have to deleted all the characters in s that are equal to any character in c
+then check if the result string is palindrome.
+A string is called palindrome if it reads the same backward as forward.
+You should return a tuple containing the result string and True/False for the check.
+Example
+For s = "abcde", c = "ae", the result should be ('bcd',False)
+For s = "abcdef", c = "b"  the result should be ('acdef',False)
+For s = "abcdedcba", c = "ab", the result should be ('cdedc',True)
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def reverse_delete(s,c):
+    """Task
+    We are given two strings s and c, you have to deleted all the characters in s that are equal to any character in c
+    then check if the result string is palindrome.
+    A string is called palindrome if it reads the same backward as forward.
+    You should return a tuple containing the result string and True/False for the check.
+    Example
+    For s = "abcde", c = "ae", the result should be ('bcd',False)
+    For s = "abcdef", c = "b"  the result should be ('acdef',False)
+    For s = "abcdedcba", c = "ab", the result should be ('cdedc',True)
+    """
+    s = ''.join([char for char in s if char not in c])
+    return (s,s[::-1] == s)
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import reverse_delete
+
+@pytest.mark.parametrize("s, c, expected", [
+    ("abcde", "ae", ('bcd', False)),
+    ("abcdef", "b", ('acdef', False)),
+    ("abcdedcba", "ab", ('cdedc', True)),
+])
+def test_reverse_delete(s, c, expected):
+    result = reverse_delete(s, c)
+    assert result == expected, f"Expected {expected}, but got {result} for s={s}, c={c}"
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (3/3)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (7/7 killed; 0 survived)
+Surviving mutants: none

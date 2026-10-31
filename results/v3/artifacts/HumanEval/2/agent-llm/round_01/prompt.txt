@@ -1,0 +1,37 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import truncate_number`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `truncate_number` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: truncate_number
+Arguments: (ArgumentInfo(name='number', annotation='float', kind='positional'),)
+Return annotation: 'float'
+Docstring: Given a positive floating point number, it can be decomposed into
+and integer part (largest integer smaller than given number) and decimals
+(leftover part always smaller than 1).
+
+Return the decimal part of the number.
+>>> truncate_number(3.5)
+0.5
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def truncate_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """
+    return number % 1.0
+```

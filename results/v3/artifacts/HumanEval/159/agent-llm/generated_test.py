@@ -1,0 +1,11 @@
+import pytest
+from testpilot_target import eat
+
+@pytest.mark.parametrize("number, need, remaining, expected", [
+    (5, 6, 10, [11, 4]),
+    (4, 8, 9, [12, 1]),
+    (1, 10, 10, [11, 0]),
+    (2, 11, 5, [7, 0])
+])
+def test_eat(number, need, remaining, expected):
+    assert eat(number, need, remaining) == expected

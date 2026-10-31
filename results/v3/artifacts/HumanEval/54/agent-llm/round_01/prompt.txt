@@ -1,0 +1,50 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import same_chars`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `same_chars` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: same_chars
+Arguments: (ArgumentInfo(name='s0', annotation='str', kind='positional'), ArgumentInfo(name='s1', annotation='str', kind='positional'))
+Return annotation: None
+Docstring: Check if two words have the same characters.
+>>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')
+True
+>>> same_chars('abcd', 'dddddddabc')
+True
+>>> same_chars('dddddddabc', 'abcd')
+True
+>>> same_chars('eabcd', 'dddddddabc')
+False
+>>> same_chars('abcd', 'dddddddabce')
+False
+>>> same_chars('eabcdzzzz', 'dddzzzzzzzddddabc')
+False
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def same_chars(s0: str, s1: str):
+    """
+    Check if two words have the same characters.
+    >>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')
+    True
+    >>> same_chars('abcd', 'dddddddabc')
+    True
+    >>> same_chars('dddddddabc', 'abcd')
+    True
+    >>> same_chars('eabcd', 'dddddddabc')
+    False
+    >>> same_chars('abcd', 'dddddddabce')
+    False
+    >>> same_chars('eabcdzzzz', 'dddzzzzzzzddddabc')
+    False
+    """
+    return set(s0) == set(s1)
+```

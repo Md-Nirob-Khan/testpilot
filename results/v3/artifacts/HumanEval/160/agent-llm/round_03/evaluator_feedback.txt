@@ -1,0 +1,25 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________________ test_do_algebra ________________________________
+
+    def test_do_algebra():
+        assert do_algebra(['+', '*', '-'], [2, 3, 4, 5]) == 9
+        assert do_algebra(['**', '//'], [2, 3]) == 8
+        assert do_algebra(['-', '+'], [10, 5, 3]) == 8
+        assert do_algebra(['*', '//'], [4, 2, 1]) == 8
+>       assert do_algebra(['**', '+'], [2, 3, 4]) == 28
+E       AssertionError: assert 12 == 28
+E        +  where 12 = do_algebra(['**', '+'], [2, 3, 4])
+
+test_generated.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_do_algebra - AssertionError: assert 12 == 28
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

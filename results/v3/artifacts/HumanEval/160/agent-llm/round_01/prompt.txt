@@ -1,0 +1,70 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import do_algebra`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `do_algebra` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: do_algebra
+Arguments: (ArgumentInfo(name='operator', annotation=None, kind='positional'), ArgumentInfo(name='operand', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Given two lists operator, and operand. The first list has basic algebra operations, and 
+the second list is a list of integers. Use the two given lists to build the algebric 
+expression and return the evaluation of this expression.
+
+The basic algebra operations:
+Addition ( + ) 
+Subtraction ( - ) 
+Multiplication ( * ) 
+Floor division ( // ) 
+Exponentiation ( ** ) 
+
+Example:
+operator['+', '*', '-']
+array = [2, 3, 4, 5]
+result = 2 + 3 * 4 - 5
+=> result = 9
+
+Note:
+    The length of operator list is equal to the length of operand list minus one.
+    Operand is a list of of non-negative integers.
+    Operator list has at least one operator, and operand list has at least two operands.
+Branches: (BranchInfo(line=28, kind='for', condition='for', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def do_algebra(operator, operand):
+    """
+    Given two lists operator, and operand. The first list has basic algebra operations, and 
+    the second list is a list of integers. Use the two given lists to build the algebric 
+    expression and return the evaluation of this expression.
+
+    The basic algebra operations:
+    Addition ( + ) 
+    Subtraction ( - ) 
+    Multiplication ( * ) 
+    Floor division ( // ) 
+    Exponentiation ( ** ) 
+
+    Example:
+    operator['+', '*', '-']
+    array = [2, 3, 4, 5]
+    result = 2 + 3 * 4 - 5
+    => result = 9
+
+    Note:
+        The length of operator list is equal to the length of operand list minus one.
+        Operand is a list of of non-negative integers.
+        Operator list has at least one operator, and operand list has at least two operands.
+
+    """
+    expression = str(operand[0])
+    for oprt, oprn in zip(operator, operand[1:]):
+        expression+= oprt + str(oprn)
+    return eval(expression)
+```

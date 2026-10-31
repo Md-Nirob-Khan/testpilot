@@ -1,0 +1,10 @@
+{
+  "engine_name": "pynguin",
+  "generated_test_source": null,
+  "generation_error": "TimeoutError: Pynguin exceeded its 120-second timeout: Command '['/Users/nirobkhan/Desktop/testpilot/.venv-pynguin/bin/python', '-m', 'pynguin', '--project_path', '/var/folders/nb/xz6_22hs52q95j4wb2l0zn2r0000gn/T/testpilot-pynguin-zviw81pc', '--module-name', 'testpilot_target', '--only-cover', 'starts_one_ends', '--output_path', '/var/folders/nb/xz6_22hs52q95j4wb2l0zn2r0000gn/T/testpilot-pynguin-zviw81pc/generated', '--maximum_search_time', '30', '--seed', '42']' timed out after 120.0 seconds",
+  "round_details": [],
+  "rounds_recorded": 0,
+  "selected_round": null,
+  "suite_returned": false,
+  "task_id": "HumanEval/83"
+}

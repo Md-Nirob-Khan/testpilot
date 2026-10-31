@@ -1,0 +1,5 @@
+import pytest
+from testpilot_target import parse_music
+
+def test_parse_music():
+    assert parse_music('o o| .| o| o| .| .| .| .| o o') == [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]

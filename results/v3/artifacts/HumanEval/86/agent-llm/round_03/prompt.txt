@@ -1,0 +1,72 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import anti_shuffle`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `anti_shuffle` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: anti_shuffle
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that takes a string and returns an ordered version of it.
+Ordered version of string, is a string where all words (separated by space)
+are replaced by a new word where all the characters arranged in
+ascending order based on ascii value.
+Note: You should keep the order of words and blank spaces in the sentence.
+
+For example:
+anti_shuffle('Hi') returns 'Hi'
+anti_shuffle('hello') returns 'ehllo'
+anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def anti_shuffle(s):
+    """
+    Write a function that takes a string and returns an ordered version of it.
+    Ordered version of string, is a string where all words (separated by space)
+    are replaced by a new word where all the characters arranged in
+    ascending order based on ascii value.
+    Note: You should keep the order of words and blank spaces in the sentence.
+
+    For example:
+    anti_shuffle('Hi') returns 'Hi'
+    anti_shuffle('hello') returns 'ehllo'
+    anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'
+    """
+    return ' '.join([''.join(sorted(list(i))) for i in s.split(' ')])
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import anti_shuffle
+
+def test_anti_shuffle():
+    assert anti_shuffle('Hi') == 'Hi'
+    assert anti_shuffle('hello') == 'ehllo'
+    assert anti_shuffle('Hello World!!!') == 'Hello !!!Wdlor'
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 87.5% (7/8 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_anti_shuffle__mutmut_7',)

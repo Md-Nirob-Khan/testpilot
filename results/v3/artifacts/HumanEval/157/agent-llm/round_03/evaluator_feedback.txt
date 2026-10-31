@@ -1,0 +1,24 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________________________ test_right_angle_triangle ___________________________
+
+    def test_right_angle_triangle():
+        assert right_angle_triangle(3, 4, 5) == True
+        assert right_angle_triangle(1, 2, 3) == False
+        assert right_angle_triangle(5, 12, 13) == True
+>       assert right_angle_triangle(10, 6, 8) == False
+E       assert True == False
+E        +  where True = right_angle_triangle(10, 6, 8)
+
+test_generated.py:8: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_right_angle_triangle - assert True == False
+1 failed in 0.05s
+
+Coverage: unavailable
+Mutation score: unavailable

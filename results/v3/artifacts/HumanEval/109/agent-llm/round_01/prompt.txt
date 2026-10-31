@@ -1,0 +1,84 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import move_one_ball`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `move_one_ball` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: move_one_ball
+Arguments: (ArgumentInfo(name='arr', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The
+numbers in the array will be randomly ordered. Your task is to determine if
+it is possible to get an array sorted in non-decreasing order by performing 
+the following operation on the given array:
+    You are allowed to perform right shift operation any number of times.
+
+One right shift operation means shifting all elements of the array by one
+position in the right direction. The last element of the array will be moved to
+the starting position in the array i.e. 0th index. 
+
+If it is possible to obtain the sorted array by performing the above operation
+then return True else return False.
+If the given array is empty then return True.
+
+Note: The given list is guaranteed to have unique elements.
+
+For Example:
+
+move_one_ball([3, 4, 5, 1, 2])==>True
+Explanation: By performin 2 right shift operations, non-decreasing order can
+             be achieved for the given array.
+move_one_ball([3, 5, 4, 1, 2])==>False
+Explanation:It is not possible to get non-decreasing order for the given
+            array by performing any number of right shift operations.
+            
+Branches: (BranchInfo(line=29, kind='if', condition='len(arr)==0', alternatives=2), BranchInfo(line=37, kind='for', condition='for', alternatives=2), BranchInfo(line=38, kind='if', condition='my_arr[i]!=sorted_array[i]', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def move_one_ball(arr):
+    """We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The
+    numbers in the array will be randomly ordered. Your task is to determine if
+    it is possible to get an array sorted in non-decreasing order by performing 
+    the following operation on the given array:
+        You are allowed to perform right shift operation any number of times.
+    
+    One right shift operation means shifting all elements of the array by one
+    position in the right direction. The last element of the array will be moved to
+    the starting position in the array i.e. 0th index. 
+
+    If it is possible to obtain the sorted array by performing the above operation
+    then return True else return False.
+    If the given array is empty then return True.
+
+    Note: The given list is guaranteed to have unique elements.
+
+    For Example:
+    
+    move_one_ball([3, 4, 5, 1, 2])==>True
+    Explanation: By performin 2 right shift operations, non-decreasing order can
+                 be achieved for the given array.
+    move_one_ball([3, 5, 4, 1, 2])==>False
+    Explanation:It is not possible to get non-decreasing order for the given
+                array by performing any number of right shift operations.
+                
+    """
+    if len(arr)==0:
+      return True
+    sorted_array=sorted(arr)
+    my_arr=[]
+    
+    min_value=min(arr)
+    min_index=arr.index(min_value)
+    my_arr=arr[min_index:]+arr[0:min_index]
+    for i in range(len(arr)):
+      if my_arr[i]!=sorted_array[i]:
+        return False
+    return True
+```

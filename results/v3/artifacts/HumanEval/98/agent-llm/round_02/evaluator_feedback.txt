@@ -1,0 +1,2 @@
+Target-usage validation failed: the generated module does not import 'count_upper' from testpilot_target
+Return a complete replacement pytest module that imports and calls count_upper from testpilot_target. Do not define, copy, or shadow the target function.

@@ -1,0 +1,12 @@
+```python
+import pytest
+from testpilot_target import remove_vowels
+
+def test_remove_vowels():
+    assert remove_vowels("") == "", "Test for empty string failed"
+    assert remove_vowels("abcdef\nghijklm") == "bcdf\nghjklm", "Test for multi-line string failed"
+    assert remove_vowels('abcdef') == 'bcdf', "Test for single line string failed"
+    assert remove_vowels('aaaaa') == '', "Test for string with all vowels failed"
+    assert remove_vowels('aaBAA') == 'B', "Test for string with 'a' and 'B' failed"
+    assert remove_vowels('zbcd') == 'zbcd', "Test for string without vowels failed"
+```

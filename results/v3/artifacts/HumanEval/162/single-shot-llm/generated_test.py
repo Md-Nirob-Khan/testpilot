@@ -1,0 +1,9 @@
+import pytest
+from testpilot_target import string_to_md5
+
+def test_string_to_md5():
+    assert string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    assert string_to_md5('') is None
+    assert string_to_md5('Python 3.8') == '3f5b9999999999999999999999999999'
+    assert string_to_md5('1234567890') == '313f6539393939393939393939393939'
+    assert string_to_md5('a') == '900150983809467267933448748178538416693951079292727995834046497029766433819253'

@@ -1,0 +1,12 @@
+import pytest
+
+from testpilot_target import triangle_area
+
+def test_triangle_area():
+    assert triangle_area(3, 4, 5) == 6.00
+    assert triangle_area(1, 2, 10) == -1
+    assert triangle_area(5, 5, 5) == 10.83
+    assert triangle_area(10, 10, 10) == 43.30
+    assert triangle_area(1, 1, 2) == -1
+    assert triangle_area(0, 0, 0) == -1
+    assert triangle_area(10, 20, 30) == 173.21

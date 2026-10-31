@@ -1,0 +1,12 @@
+```python
+import pytest
+
+from testpilot_target import flip_case
+
+def test_flip_case():
+    assert flip_case('Hello') == 'hELLO'
+    assert flip_case('Python') == 'pYTHON'
+    assert flip_case('123') == '123'
+    assert flip_case('') == ''
+    assert flip_case('aBcDeF') == 'AbCdEf'
+```

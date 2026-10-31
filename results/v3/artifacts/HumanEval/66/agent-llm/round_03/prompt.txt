@@ -1,0 +1,77 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import digitSum`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `digitSum` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: digitSum
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Task
+Write a function that takes a string as input and returns the sum of the upper characters only'
+ASCII codes.
+
+Examples:
+    digitSum("") => 0
+    digitSum("abAB") => 131
+    digitSum("abcCd") => 67
+    digitSum("helloE") => 69
+    digitSum("woArBld") => 131
+    digitSum("aAaaaXa") => 153
+Branches: (BranchInfo(line=15, kind='if', condition='s == ""', alternatives=2), BranchInfo(line=16, kind='conditional', condition='char.isupper()', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def digitSum(s):
+    """Task
+    Write a function that takes a string as input and returns the sum of the upper characters only'
+    ASCII codes.
+
+    Examples:
+        digitSum("") => 0
+        digitSum("abAB") => 131
+        digitSum("abcCd") => 67
+        digitSum("helloE") => 69
+        digitSum("woArBld") => 131
+        digitSum("aAaaaXa") => 153
+    """
+    if s == "": return 0
+    return sum(ord(char) if char.isupper() else 0 for char in s)
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import digitSum
+
+def test_digitSum():
+    assert digitSum("") == 0
+    assert digitSum("abAB") == 131
+    assert digitSum("abcCd") == 67
+    assert digitSum("helloE") == 69
+    assert digitSum("woArBld") == 131
+    assert digitSum("aAaaaXa") == 153
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (3/3)
+Uncovered source lines: none
+Branch coverage: 100.0% (2/2)
+Uncovered branches: none
+Mutation score: 87.5% (7/8 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_digitSum__mutmut_2',)

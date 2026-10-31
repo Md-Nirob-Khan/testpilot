@@ -1,0 +1,38 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import mean_absolute_deviation`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `mean_absolute_deviation` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: mean_absolute_deviation
+Arguments: (ArgumentInfo(name='numbers', annotation='List[float]', kind='positional'),)
+Return annotation: 'float'
+Docstring: For a given list of input numbers, calculate Mean Absolute Deviation
+around the mean of this dataset.
+Mean Absolute Deviation is the average absolute difference between each
+element and a centerpoint (mean in this case):
+MAD = average | x - x_mean |
+>>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+1.0
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """ For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """
+    mean = sum(numbers) / len(numbers)
+    return sum(abs(x - mean) for x in numbers) / len(numbers)
+```

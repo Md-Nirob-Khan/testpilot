@@ -1,0 +1,40 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import count_upper`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `count_upper` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: count_upper
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a string s, count the number of uppercase vowels in even indices.
+
+For example:
+count_upper('aBCdEf') returns 1
+count_upper('abcdefg') returns 0
+count_upper('dBBE') returns 0
+Branches: (BranchInfo(line=12, kind='for', condition='for', alternatives=2), BranchInfo(line=13, kind='if', condition='s[i] in "AEIOU"', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def count_upper(s):
+    """
+    Given a string s, count the number of uppercase vowels in even indices.
+    
+    For example:
+    count_upper('aBCdEf') returns 1
+    count_upper('abcdefg') returns 0
+    count_upper('dBBE') returns 0
+    """
+    count = 0
+    for i in range(0,len(s),2):
+        if s[i] in "AEIOU":
+            count += 1
+    return count
+```

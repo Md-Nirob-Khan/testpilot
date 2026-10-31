@@ -1,0 +1,92 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import is_simple_power`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `is_simple_power` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: is_simple_power
+Arguments: (ArgumentInfo(name='x', annotation=None, kind='positional'), ArgumentInfo(name='n', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Your task is to write a function that returns true if a number x is a simple
+power of n and false in other cases.
+x is a simple power of n if n**int=x
+For example:
+is_simple_power(1, 4) => true
+is_simple_power(2, 2) => true
+is_simple_power(8, 2) => true
+is_simple_power(3, 2) => false
+is_simple_power(3, 1) => false
+is_simple_power(5, 3) => false
+Branches: (BranchInfo(line=14, kind='if', condition='n == 1', alternatives=2), BranchInfo(line=17, kind='while', condition='power < x', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def is_simple_power(x, n):
+    """Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """
+    if (n == 1): 
+        return (x == 1) 
+    power = 1
+    while (power < x): 
+        power = power * n 
+    return (power == x)
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def is_simple_power(x, n):
+    """Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """
+    if (n == 1): 
+        return (x == 1) 
+    power = 1
+    while (power < x): 
+        power = power * n 
+    return (power == x)
+
+@pytest.mark.parametrize("x, n, expected", [
+    (1, 4, True),
+    (2, 2, True),
+    (8, 2, True),
+    (3, 2, False),
+    (3, 1, False),
+    (5, 3, False),
+])
+def test_is_simple_power(x, n, expected):
+    assert is_simple_power(x, n) == expected
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'is_simple_power'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls is_simple_power from testpilot_target. Do not define, copy, or shadow the target function.

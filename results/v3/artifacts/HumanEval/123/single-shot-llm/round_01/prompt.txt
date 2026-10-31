@@ -1,0 +1,65 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import get_odd_collatz`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `get_odd_collatz` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: get_odd_collatz
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, return a sorted list that has the odd numbers in collatz sequence.
+
+The Collatz conjecture is a conjecture in mathematics that concerns a sequence defined
+as follows: start with any positive integer n. Then each term is obtained from the 
+previous term as follows: if the previous term is even, the next term is one half of 
+the previous term. If the previous term is odd, the next term is 3 times the previous
+term plus 1. The conjecture is that no matter what value of n, the sequence will always reach 1.
+
+Note: 
+    1. Collatz(1) is [1].
+    2. returned list sorted in increasing order.
+
+For example:
+get_odd_collatz(5) returns [1, 5] # The collatz sequence for 5 is [5, 16, 8, 4, 2, 1], so the odd numbers are only 1, and 5.
+Branches: (BranchInfo(line=19, kind='if', condition='n%2==0', alternatives=2), BranchInfo(line=23, kind='while', condition='n > 1', alternatives=2), BranchInfo(line=24, kind='if', condition='n % 2 == 0', alternatives=2), BranchInfo(line=29, kind='if', condition='n%2 == 1', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def get_odd_collatz(n):
+    """
+    Given a positive integer n, return a sorted list that has the odd numbers in collatz sequence.
+
+    The Collatz conjecture is a conjecture in mathematics that concerns a sequence defined
+    as follows: start with any positive integer n. Then each term is obtained from the 
+    previous term as follows: if the previous term is even, the next term is one half of 
+    the previous term. If the previous term is odd, the next term is 3 times the previous
+    term plus 1. The conjecture is that no matter what value of n, the sequence will always reach 1.
+
+    Note: 
+        1. Collatz(1) is [1].
+        2. returned list sorted in increasing order.
+
+    For example:
+    get_odd_collatz(5) returns [1, 5] # The collatz sequence for 5 is [5, 16, 8, 4, 2, 1], so the odd numbers are only 1, and 5.
+    """
+    if n%2==0:
+        odd_collatz = [] 
+    else:
+        odd_collatz = [n]
+    while n > 1:
+        if n % 2 == 0:
+            n = n/2
+        else:
+            n = n*3 + 1
+            
+        if n%2 == 1:
+            odd_collatz.append(int(n))
+
+    return sorted(odd_collatz)
+```

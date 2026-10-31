@@ -1,0 +1,28 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+__________________________ test_get_max_triples[10-3] __________________________
+
+n = 10, expected = 3
+
+    @pytest.mark.parametrize("n, expected", [(5, 1), (10, 3)])
+    def test_get_max_triples(n, expected):
+>       assert get_max_triples(n) == expected
+E       assert 36 == 3
+E        +  where 36 = get_max_triples(10)
+
+test_generated.py:6: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_get_max_triples[10-3] - assert 36 == 3
+1 failed, 1 passed in 0.03s
+
+Line coverage: 100.0% (9/9)
+Uncovered source lines: none
+Branch coverage: 100.0% (8/8)
+Uncovered branches: none
+Mutation score: 82.4% (28/34 killed; 6 survived)
+Surviving mutants: ('testpilot_target.x_get_max_triples__mutmut_12', 'testpilot_target.x_get_max_triples__mutmut_2', 'testpilot_target.x_get_max_triples__mutmut_20', 'testpilot_target.x_get_max_triples__mutmut_3', 'testpilot_target.x_get_max_triples__mutmut_33', 'testpilot_target.x_get_max_triples__mutmut_5')

@@ -1,0 +1,9 @@
+import pytest
+
+from testpilot_target import correct_bracketing
+
+def test_correct_bracketing():
+    assert not correct_bracketing("<")
+    assert correct_bracketing("<>")
+    assert correct_bracketing("<<><>>")
+    assert not correct_bracketing("><<>")

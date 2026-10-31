@@ -1,0 +1,14 @@
+```python
+import pytest
+
+from testpilot_target import is_prime
+
+def test_is_prime():
+    assert is_prime(6) == False, "6 is not a prime number"
+    assert is_prime(101) == True, "101 is a prime number"
+    assert is_prime(11) == True, "11 is a prime number"
+    assert is_prime(13441) == True, "13441 is a prime number"
+    assert is_prime(61) == True, "61 is a prime number"
+    assert is_prime(4) == False, "4 is not a prime number"
+    assert is_prime(1) == False, "1 is not a prime number"
+```

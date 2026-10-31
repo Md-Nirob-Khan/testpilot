@@ -1,0 +1,10 @@
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (9/9)
+Uncovered source lines: none
+Branch coverage: 100.0% (8/8)
+Uncovered branches: none
+Mutation score: 61.4% (27/44 killed; 17 survived)
+Surviving mutants: ('testpilot_target.x_get_closest_vowel__mutmut_1', 'testpilot_target.x_get_closest_vowel__mutmut_11', 'testpilot_target.x_get_closest_vowel__mutmut_12', 'testpilot_target.x_get_closest_vowel__mutmut_15', 'testpilot_target.x_get_closest_vowel__mutmut_16', 'testpilot_target.x_get_closest_vowel__mutmut_17', 'testpilot_target.x_get_closest_vowel__mutmut_18', 'testpilot_target.x_get_closest_vowel__mutmut_19', 'testpilot_target.x_get_closest_vowel__mutmut_2', 'testpilot_target.x_get_closest_vowel__mutmut_20', 'testpilot_target.x_get_closest_vowel__mutmut_23', 'testpilot_target.x_get_closest_vowel__mutmut_24', 'testpilot_target.x_get_closest_vowel__mutmut_32', 'testpilot_target.x_get_closest_vowel__mutmut_5', 'testpilot_target.x_get_closest_vowel__mutmut_6', 'testpilot_target.x_get_closest_vowel__mutmut_7', 'testpilot_target.x_get_closest_vowel__mutmut_8')

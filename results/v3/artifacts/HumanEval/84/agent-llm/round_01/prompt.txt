@@ -1,0 +1,47 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import solve`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `solve` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: solve
+Arguments: (ArgumentInfo(name='N', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer N, return the total sum of its digits in binary.
+
+Example
+    For N = 1000, the sum of digits will be 1 the output should be "1".
+    For N = 150, the sum of digits will be 6 the output should be "110".
+    For N = 147, the sum of digits will be 12 the output should be "1100".
+
+Variables:
+    @N integer
+         Constraints: 0 ≤ N ≤ 10000.
+Output:
+     a string of binary number
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def solve(N):
+    """Given a positive integer N, return the total sum of its digits in binary.
+    
+    Example
+        For N = 1000, the sum of digits will be 1 the output should be "1".
+        For N = 150, the sum of digits will be 6 the output should be "110".
+        For N = 147, the sum of digits will be 12 the output should be "1100".
+    
+    Variables:
+        @N integer
+             Constraints: 0 ≤ N ≤ 10000.
+    Output:
+         a string of binary number
+    """
+    return bin(sum(int(i) for i in str(N)))[2:]
+```

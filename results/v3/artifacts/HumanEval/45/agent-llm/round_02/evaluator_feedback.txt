@@ -1,0 +1,24 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________________________ test_triangle_area ______________________________
+
+    def test_triangle_area():
+        assert triangle_area(5, 3) == 7.5
+        assert triangle_area(0, 0) == 0
+        assert triangle_area(10, 5) == 25
+>       assert triangle_area(7.5, 4.5) == 18.75
+E       assert 16.875 == 18.75
+E        +  where 16.875 = triangle_area(7.5, 4.5)
+
+test_generated.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_triangle_area - assert 16.875 == 18.75
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

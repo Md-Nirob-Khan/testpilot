@@ -1,0 +1,6 @@
+import pytest
+from testpilot_target import car_race_collision
+
+@pytest.mark.parametrize("n, expected", [(1, 1), (2, 4), (3, 9), (4, 16)])
+def test_car_race_collision(n, expected):
+    assert car_race_collision(n) == expected

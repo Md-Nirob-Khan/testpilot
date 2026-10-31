@@ -1,0 +1,133 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import intersection`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `intersection` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: intersection
+Arguments: (ArgumentInfo(name='interval1', annotation=None, kind='positional'), ArgumentInfo(name='interval2', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: You are given two intervals,
+where each interval is a pair of integers. For example, interval = (start, end) = (1, 2).
+The given intervals are closed which means that the interval (start, end)
+includes both start and end.
+For each given interval, it is assumed that its start is less or equal its end.
+Your task is to determine whether the length of intersection of these two 
+intervals is a prime number.
+Example, the intersection of the intervals (1, 3), (2, 4) is (2, 3)
+which its length is 1, which not a prime number.
+If the length of the intersection is a prime number, return "YES",
+otherwise, return "NO".
+If the two intervals don't intersect, return "NO".
+
+
+[input/output] samples:
+intersection((1, 2), (2, 3)) ==> "NO"
+intersection((-1, 1), (0, 4)) ==> "NO"
+intersection((-3, -1), (-5, 5)) ==> "YES"
+Branches: (BranchInfo(line=35, kind='and', condition='length > 0 and is_prime(length)', alternatives=2), BranchInfo(line=35, kind='if', condition='length > 0 and is_prime(length)', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def intersection(interval1, interval2):
+    """You are given two intervals,
+    where each interval is a pair of integers. For example, interval = (start, end) = (1, 2).
+    The given intervals are closed which means that the interval (start, end)
+    includes both start and end.
+    For each given interval, it is assumed that its start is less or equal its end.
+    Your task is to determine whether the length of intersection of these two 
+    intervals is a prime number.
+    Example, the intersection of the intervals (1, 3), (2, 4) is (2, 3)
+    which its length is 1, which not a prime number.
+    If the length of the intersection is a prime number, return "YES",
+    otherwise, return "NO".
+    If the two intervals don't intersect, return "NO".
+
+
+    [input/output] samples:
+    intersection((1, 2), (2, 3)) ==> "NO"
+    intersection((-1, 1), (0, 4)) ==> "NO"
+    intersection((-3, -1), (-5, 5)) ==> "YES"
+    """
+    def is_prime(num):
+        if num == 1 or num == 0:
+            return False
+        if num == 2:
+            return True
+        for i in range(2, num):
+            if num%i == 0:
+                return False
+        return True
+
+    l = max(interval1[0], interval2[0])
+    r = min(interval1[1], interval2[1])
+    length = r - l
+    if length > 0 and is_prime(length):
+        return "YES"
+    return "NO"
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def intersection(interval1, interval2):
+    """You are given two intervals,
+    where each interval is a pair of integers. For example, interval = (start, end) = (1, 2).
+    The given intervals are closed which means that the interval (start, end)
+    includes both start and end.
+    For each given interval, it is assumed that its start is less or equal its end.
+    Your task is to determine whether the length of intersection of these two 
+    intervals is a prime number.
+    Example, the intersection of the intervals (1, 3), (2, 4) is (2, 3)
+    which its length is 1, which not a prime number.
+    If the length of the intersection is a prime number, return "YES",
+    otherwise, return "NO".
+    If the two intervals don't intersect, return "NO".
+
+
+    [input/output] samples:
+    intersection((1, 2), (2, 3)) ==> "NO"
+    intersection((-1, 1), (0, 4)) ==> "NO"
+    intersection((-3, -1), (-5, 5)) ==> "YES"
+    """
+    def is_prime(num):
+        if num == 1 or num == 0:
+            return False
+        if num == 2:
+            return True
+        for i in range(2, num):
+            if num%i == 0:
+                return False
+        return True
+
+    l = max(interval1[0], interval2[0])
+    r = min(interval1[1], interval2[1])
+    length = r - l
+    if length > 0 and is_prime(length):
+        return "YES"
+    return "NO"
+
+@pytest.mark.parametrize("interval1, interval2, expected", [
+    ((1, 2), (2, 3), "NO"),
+    ((-1, 1), (0, 4), "NO"),
+    ((-3, -1), (-5, 5), "YES"),
+])
+def test_intersection(interval1, interval2, expected):
+    assert intersection(interval1, interval2) == expected
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'intersection'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls intersection from testpilot_target. Do not define, copy, or shadow the target function.

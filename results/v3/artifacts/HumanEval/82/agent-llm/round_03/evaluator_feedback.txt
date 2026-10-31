@@ -1,0 +1,10 @@
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 87.5% (7/8)
+Uncovered source lines: (13,)
+Branch coverage: 83.3% (5/6)
+Uncovered branches: ((12, 13),)
+Mutation score: 70.6% (12/17 killed; 5 survived)
+Surviving mutants: ('testpilot_target.x_prime_length__mutmut_12', 'testpilot_target.x_prime_length__mutmut_2', 'testpilot_target.x_prime_length__mutmut_4', 'testpilot_target.x_prime_length__mutmut_6', 'testpilot_target.x_prime_length__mutmut_7')

@@ -1,0 +1,88 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import encrypt`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `encrypt` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: encrypt
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Create a function encrypt that takes a string as an argument and
+returns a string encrypted with the alphabet being rotated. 
+The alphabet should be rotated in a manner such that the letters 
+shift down by two multiplied to two places.
+For example:
+encrypt('hi') returns 'lm'
+encrypt('asdfghjkl') returns 'ewhjklnop'
+encrypt('gf') returns 'kj'
+encrypt('et') returns 'ix'
+Branches: (BranchInfo(line=15, kind='for', condition='for', alternatives=2), BranchInfo(line=16, kind='if', condition='c in d', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def encrypt(s):
+    """Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """
+    d = 'abcdefghijklmnopqrstuvwxyz'
+    out = ''
+    for c in s:
+        if c in d:
+            out += d[(d.index(c)+2*2) % 26]
+        else:
+            out += c
+    return out
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def encrypt(s):
+    """Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """
+    d = 'abcdefghijklmnopqrstuvwxyz'
+    out = ''
+    for c in s:
+        if c in d:
+            out += d[(d.index(c)+2*2) % 26]
+        else:
+            out += c
+    return out
+
+def test_encrypt():
+    assert encrypt('hi') == 'lm'
+    assert encrypt('asdfghjkl') == 'ewhjklnop'
+    assert encrypt('gf') == 'kj'
+    assert encrypt('et') == 'ix'
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'encrypt'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls encrypt from testpilot_target. Do not define, copy, or shadow the target function.

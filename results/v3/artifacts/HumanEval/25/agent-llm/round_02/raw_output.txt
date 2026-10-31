@@ -1,0 +1,9 @@
+```python
+import pytest
+from testpilot_target import factorize
+
+def test_factorize():
+    assert factorize(8) == [2, 2, 2], "Test case 8 failed"
+    assert factorize(25) == [5, 5], "Test case 25 failed"
+    assert factorize(70) == [2, 5, 7], "Test case 70 failed"
+```

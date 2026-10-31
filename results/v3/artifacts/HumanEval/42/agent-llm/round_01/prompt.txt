@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import incr_list`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `incr_list` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: incr_list
+Arguments: (ArgumentInfo(name='l', annotation='list', kind='positional'),)
+Return annotation: None
+Docstring: Return list with elements incremented by 1.
+>>> incr_list([1, 2, 3])
+[2, 3, 4]
+>>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+[6, 4, 6, 3, 4, 4, 10, 1, 124]
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def incr_list(l: list):
+    """Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """
+    return [(e + 1) for e in l]
+```

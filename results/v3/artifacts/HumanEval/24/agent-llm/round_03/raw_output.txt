@@ -1,0 +1,14 @@
+```python
+import pytest
+from testpilot_target import largest_divisor
+
+def test_largest_divisor():
+    assert largest_divisor(15) == 5
+    assert largest_divisor(28) == 14
+    assert largest_divisor(1) == 1
+    assert largest_divisor(100) == 50
+    assert largest_divisor(10) == 5
+    assert largest_divisor(1) == 1
+    assert largest_divisor(0) == 0
+    assert largest_divisor(1000) == 500
+```

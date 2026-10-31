@@ -1,0 +1,53 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import fibfib`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `fibfib` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: fibfib
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: The FibFib number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+fibfib(0) == 0
+fibfib(1) == 0
+fibfib(2) == 1
+fibfib(n) == fibfib(n-1) + fibfib(n-2) + fibfib(n-3).
+Please write a function to efficiently compute the n-th element of the fibfib number sequence.
+>>> fibfib(1)
+0
+>>> fibfib(5)
+4
+>>> fibfib(8)
+24
+Branches: (BranchInfo(line=17, kind='if', condition='n == 0', alternatives=2), BranchInfo(line=19, kind='if', condition='n == 1', alternatives=2), BranchInfo(line=21, kind='if', condition='n == 2', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def fibfib(n: int):
+    """The FibFib number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fibfib(0) == 0
+    fibfib(1) == 0
+    fibfib(2) == 1
+    fibfib(n) == fibfib(n-1) + fibfib(n-2) + fibfib(n-3).
+    Please write a function to efficiently compute the n-th element of the fibfib number sequence.
+    >>> fibfib(1)
+    0
+    >>> fibfib(5)
+    4
+    >>> fibfib(8)
+    24
+    """
+    if n == 0:
+        return 0
+    if n == 1:
+        return 0
+    if n == 2:
+        return 1
+    return fibfib(n - 1) + fibfib(n - 2) + fibfib(n - 3)
+```

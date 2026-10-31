@@ -1,0 +1,14 @@
+import pytest
+from testpilot_target import longest
+
+def test_longest_empty_list():
+    assert longest([]) is None
+
+def test_longest_single_string():
+    assert longest(['a']) == 'a'
+
+def test_longest_multiple_strings():
+    assert longest(['a', 'bb', 'ccc']) == 'ccc'
+
+def test_longest_multiple_strings_same_length():
+    assert longest(['a', 'aa', 'aaa']) == 'aaa'

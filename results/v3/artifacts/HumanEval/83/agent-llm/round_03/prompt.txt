@@ -1,0 +1,59 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import starts_one_ends`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `starts_one_ends` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: starts_one_ends
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, return the count of the numbers of n-digit
+positive integers that start or end with 1.
+Branches: (BranchInfo(line=7, kind='if', condition='n == 1', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def starts_one_ends(n):
+    """
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """
+    if n == 1: return 1
+    return 18 * (10 ** (n - 2))
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import starts_one_ends
+
+def test_starts_one_ends():
+    assert starts_one_ends(1) == 1
+    assert starts_one_ends(2) == 18
+    assert starts_one_ends(3) == 180
+    assert starts_one_ends(4) == 1800
+    assert starts_one_ends(5) == 18000
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (3/3)
+Uncovered source lines: none
+Branch coverage: 100.0% (2/2)
+Uncovered branches: none
+Mutation score: 100.0% (9/9 killed; 0 survived)
+Surviving mutants: none

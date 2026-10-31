@@ -1,0 +1,80 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import prime_length`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `prime_length` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: prime_length
+Arguments: (ArgumentInfo(name='string', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that takes a string and returns True if the string
+length is a prime number or False otherwise
+Examples
+prime_length('Hello') == True
+prime_length('abcdcba') == True
+prime_length('kittens') == True
+prime_length('orange') == False
+Branches: (BranchInfo(line=12, kind='if', condition='l == 0 or l == 1', alternatives=2), BranchInfo(line=12, kind='or', condition='l == 0 or l == 1', alternatives=2), BranchInfo(line=14, kind='for', condition='for', alternatives=2), BranchInfo(line=15, kind='if', condition='l % i == 0', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def prime_length(string):
+    """Write a function that takes a string and returns True if the string
+    length is a prime number or False otherwise
+    Examples
+    prime_length('Hello') == True
+    prime_length('abcdcba') == True
+    prime_length('kittens') == True
+    prime_length('orange') == False
+    """
+    l = len(string)
+    if l == 0 or l == 1:
+        return False
+    for i in range(2, l):
+        if l % i == 0:
+            return False
+    return True
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def prime_length(string):
+    """Write a function that takes a string and returns True if the string
+    length is a prime number or False otherwise
+    Examples
+    prime_length('Hello') == True
+    prime_length('abcdcba') == True
+    prime_length('kittens') == True
+    prime_length('orange') == False
+    """
+    l = len(string)
+    if l == 0 or l == 1:
+        return False
+    for i in range(2, l):
+        if l % i == 0:
+            return False
+    return True
+
+def test_prime_length():
+    assert prime_length('Hello') == True
+    assert prime_length('abcdcba') == True
+    assert prime_length('kittens') == True
+    assert prime_length('orange') == False
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'prime_length'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls prime_length from testpilot_target. Do not define, copy, or shadow the target function.

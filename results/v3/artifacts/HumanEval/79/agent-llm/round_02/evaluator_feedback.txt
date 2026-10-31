@@ -1,0 +1,2 @@
+Target-usage validation failed: the generated module does not import 'decimal_to_binary' from testpilot_target
+Return a complete replacement pytest module that imports and calls decimal_to_binary from testpilot_target. Do not define, copy, or shadow the target function.

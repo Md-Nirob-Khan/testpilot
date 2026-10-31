@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import concatenate`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `concatenate` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: concatenate
+Arguments: (ArgumentInfo(name='strings', annotation='List[str]', kind='positional'),)
+Return annotation: 'str'
+Docstring: Concatenate list of strings into a single string
+>>> concatenate([])
+''
+>>> concatenate(['a', 'b', 'c'])
+'abc'
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def concatenate(strings: List[str]) -> str:
+    """ Concatenate list of strings into a single string
+    >>> concatenate([])
+    ''
+    >>> concatenate(['a', 'b', 'c'])
+    'abc'
+    """
+    return ''.join(strings)
+```

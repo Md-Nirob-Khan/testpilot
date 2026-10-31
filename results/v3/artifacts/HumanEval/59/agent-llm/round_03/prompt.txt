@@ -1,0 +1,71 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import largest_prime_factor`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `largest_prime_factor` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: largest_prime_factor
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: Return the largest prime factor of n. Assume n > 1 and is not a prime.
+>>> largest_prime_factor(13195)
+29
+>>> largest_prime_factor(2048)
+2
+Branches: (BranchInfo(line=18, kind='for', condition='for', alternatives=2), BranchInfo(line=19, kind='and', condition='n % j == 0 and is_prime(j)', alternatives=2), BranchInfo(line=19, kind='if', condition='n % j == 0 and is_prime(j)', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def largest_prime_factor(n: int):
+    """Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """
+    def is_prime(k):
+        if k < 2:
+            return False
+        for i in range(2, k - 1):
+            if k % i == 0:
+                return False
+        return True
+    largest = 1
+    for j in range(2, n + 1):
+        if n % j == 0 and is_prime(j):
+            largest = max(largest, j)
+    return largest
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import largest_prime_factor
+
+def test_largest_prime_factor():
+    assert largest_prime_factor(13195) == 29
+    assert largest_prime_factor(2048) == 2
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 92.3% (12/13)
+Uncovered source lines: (12,)
+Branch coverage: 90.0% (9/10)
+Uncovered branches: ((11, 12),)
+Mutation score: 88.2% (30/34 killed; 4 survived)
+Surviving mutants: ('testpilot_target.x_largest_prime_factor__mutmut_17', 'testpilot_target.x_largest_prime_factor__mutmut_23', 'testpilot_target.x_largest_prime_factor__mutmut_24', 'testpilot_target.x_largest_prime_factor__mutmut_3')

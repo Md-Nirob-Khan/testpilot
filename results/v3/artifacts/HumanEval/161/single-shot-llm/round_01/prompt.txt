@@ -1,0 +1,54 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import solve`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `solve` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: solve
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You are given a string s.
+if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+otherwise keep it as it is.
+If the string contains no letters, reverse the string.
+The function should return the resulted string.
+Examples
+solve("1234") = "4321"
+solve("ab") = "AB"
+solve("#a@C") = "#A@c"
+Branches: (BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=17, kind='if', condition='i.isalpha()', alternatives=2), BranchInfo(line=22, kind='for', condition='for', alternatives=2), BranchInfo(line=24, kind='if', condition='flg == 0', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def solve(s):
+    """You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve("1234") = "4321"
+    solve("ab") = "AB"
+    solve("#a@C") = "#A@c"
+    """
+    flg = 0
+    idx = 0
+    new_str = list(s)
+    for i in s:
+        if i.isalpha():
+            new_str[idx] = i.swapcase()
+            flg = 1
+        idx += 1
+    s = ""
+    for i in new_str:
+        s += i
+    if flg == 0:
+        return s[len(s)::-1]
+    return s
+```

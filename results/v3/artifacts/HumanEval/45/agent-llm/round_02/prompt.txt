@@ -1,0 +1,73 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import triangle_area`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `triangle_area` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: triangle_area
+Arguments: (ArgumentInfo(name='a', annotation=None, kind='positional'), ArgumentInfo(name='h', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Given length of a side and high return area for a triangle.
+>>> triangle_area(5, 3)
+7.5
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def triangle_area(a, h):
+    """Given length of a side and high return area for a triangle.
+    >>> triangle_area(5, 3)
+    7.5
+    """
+    return a * h / 2.0
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import triangle_area
+
+def test_triangle_area():
+    assert triangle_area(5, 3) == 7.5
+    assert triangle_area(0, 0) == 0
+    assert triangle_area(10, 5) == 25
+    assert triangle_area(7.5, 4.5) == 18.75
+```
+
+Evaluator feedback:
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________________________ test_triangle_area ______________________________
+
+    def test_triangle_area():
+        assert triangle_area(5, 3) == 7.5
+        assert triangle_area(0, 0) == 0
+        assert triangle_area(10, 5) == 25
+>       assert triangle_area(7.5, 4.5) == 18.75
+E       assert 16.875 == 18.75
+E        +  where 16.875 = triangle_area(7.5, 4.5)
+
+test_generated.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_triangle_area - assert 16.875 == 18.75
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

@@ -1,0 +1,60 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import flip_case`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `flip_case` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: flip_case
+Arguments: (ArgumentInfo(name='string', annotation='str', kind='positional'),)
+Return annotation: 'str'
+Docstring: For a given string, flip lowercase characters to uppercase and uppercase to lowercase.
+>>> flip_case('Hello')
+'hELLO'
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def flip_case(string: str) -> str:
+    """ For a given string, flip lowercase characters to uppercase and uppercase to lowercase.
+    >>> flip_case('Hello')
+    'hELLO'
+    """
+    return string.swapcase()
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import flip_case
+
+def test_flip_case():
+    assert flip_case('Hello') == 'hELLO'
+    assert flip_case('Python') == 'pYTHON'
+    assert flip_case('123') == '123'
+    assert flip_case('') == ''
+    assert flip_case('aBcDeF') == 'AbCdEf'
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: unavailable
+Mutation evaluation failed: RuntimeError: mutmut found no tests for any mutant, but no mutant metadata was available to score

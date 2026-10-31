@@ -1,0 +1,96 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import digits`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `digits` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: digits
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, return the product of the odd digits.
+Return 0 if all digits are even.
+For example:
+digits(1)  == 1
+digits(4)  == 0
+digits(235) == 15
+Branches: (BranchInfo(line=12, kind='for', condition='for', alternatives=2), BranchInfo(line=14, kind='if', condition='int_digit%2 == 1', alternatives=2), BranchInfo(line=17, kind='if', condition='odd_count ==0', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def digits(n):
+    """Given a positive integer n, return the product of the odd digits.
+    Return 0 if all digits are even.
+    For example:
+    digits(1)  == 1
+    digits(4)  == 0
+    digits(235) == 15
+    """
+    product = 1
+    odd_count = 0
+    for digit in str(n):
+        int_digit = int(digit)
+        if int_digit%2 == 1:
+            product= product*int_digit
+            odd_count+=1
+    if odd_count ==0:
+        return 0
+    else:
+        return product
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def digits(n):
+    """Given a positive integer n, return the product of the odd digits.
+    Return 0 if all digits are even.
+    For example:
+    digits(1)  == 1
+    digits(4)  == 0
+    digits(235) == 15
+    """
+    product = 1
+    odd_count = 0
+    for digit in str(n):
+        int_digit = int(digit)
+        if int_digit%2 == 1:
+            product= product*int_digit
+            odd_count+=1
+    if odd_count ==0:
+        return 0
+    else:
+        return product
+
+def test_digits():
+    assert digits(1) == 1
+    assert digits(4) == 0
+    assert digits(235) == 15
+    assert digits(2468) == 0
+    assert digits(13579) == 945
+    assert digits(0) == 0
+    assert digits(111) == 111
+    assert digits(222) == 0
+    assert digits(333) == 27
+    assert digits(444) == 0
+    assert digits(555) == 15
+    assert digits(666) == 0
+    assert digits(777) == 243
+    assert digits(888) == 0
+    assert digits(999) == 729
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'digits'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls digits from testpilot_target. Do not define, copy, or shadow the target function.

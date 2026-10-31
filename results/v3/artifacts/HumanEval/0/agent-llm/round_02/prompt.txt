@@ -1,0 +1,69 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import has_close_elements`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `has_close_elements` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: has_close_elements
+Arguments: (ArgumentInfo(name='numbers', annotation='List[float]', kind='positional'), ArgumentInfo(name='threshold', annotation='float', kind='positional'))
+Return annotation: 'bool'
+Docstring: Check if in given list of numbers, are any two numbers closer to each other than
+given threshold.
+>>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+False
+>>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+True
+Branches: (BranchInfo(line=12, kind='for', condition='for', alternatives=2), BranchInfo(line=13, kind='for', condition='for', alternatives=2), BranchInfo(line=14, kind='if', condition='idx != idx2', alternatives=2), BranchInfo(line=16, kind='if', condition='distance < threshold', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+    for idx, elem in enumerate(numbers):
+        for idx2, elem2 in enumerate(numbers):
+            if idx != idx2:
+                distance = abs(elem - elem2)
+                if distance < threshold:
+                    return True
+
+    return False
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import has_close_elements
+
+def test_has_close_elements():
+    assert not has_close_elements([1.0, 2.0, 3.0], 0.5)
+    assert has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (9/9)
+Uncovered source lines: none
+Branch coverage: 100.0% (8/8)
+Uncovered branches: none
+Mutation score: 88.9% (8/9 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_has_close_elements__mutmut_7',)

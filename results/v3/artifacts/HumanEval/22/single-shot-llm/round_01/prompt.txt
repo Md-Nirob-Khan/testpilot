@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import filter_integers`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `filter_integers` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: filter_integers
+Arguments: (ArgumentInfo(name='values', annotation='List[Any]', kind='positional'),)
+Return annotation: 'List[int]'
+Docstring: Filter given list of any python values only for integers
+>>> filter_integers(['a', 3.14, 5])
+[5]
+>>> filter_integers([1, 2, 3, 'abc', {}, []])
+[1, 2, 3]
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def filter_integers(values: List[Any]) -> List[int]:
+    """ Filter given list of any python values only for integers
+    >>> filter_integers(['a', 3.14, 5])
+    [5]
+    >>> filter_integers([1, 2, 3, 'abc', {}, []])
+    [1, 2, 3]
+    """
+    return [x for x in values if isinstance(x, int)]
+```

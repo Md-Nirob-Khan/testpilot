@@ -1,0 +1,46 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import compare_one`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `compare_one` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: compare_one
+Arguments: (ArgumentInfo(name='a', annotation=None, kind='positional'), ArgumentInfo(name='b', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Create a function that takes integers, floats, or strings representing
+real numbers, and returns the larger variable in its given variable type.
+Return None if the values are equal.
+Note: If a real number is represented as a string, the floating point might be . or ,
+
+compare_one(1, 2.5) ➞ 2.5
+compare_one(1, "2,3") ➞ "2,3"
+compare_one("5,1", "6") ➞ "6"
+compare_one("1", 1) ➞ None
+Branches: (BranchInfo(line=15, kind='if', condition='isinstance(temp_a, str)', alternatives=2), BranchInfo(line=16, kind='if', condition='isinstance(temp_b, str)', alternatives=2), BranchInfo(line=17, kind='if', condition='float(temp_a) == float(temp_b)', alternatives=2), BranchInfo(line=18, kind='conditional', condition='float(temp_a) > float(temp_b)', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def compare_one(a, b):
+    """
+    Create a function that takes integers, floats, or strings representing
+    real numbers, and returns the larger variable in its given variable type.
+    Return None if the values are equal.
+    Note: If a real number is represented as a string, the floating point might be . or ,
+
+    compare_one(1, 2.5) ➞ 2.5
+    compare_one(1, "2,3") ➞ "2,3"
+    compare_one("5,1", "6") ➞ "6"
+    compare_one("1", 1) ➞ None
+    """
+    temp_a, temp_b = a, b
+    if isinstance(temp_a, str): temp_a = temp_a.replace(',','.')
+    if isinstance(temp_b, str): temp_b = temp_b.replace(',','.')
+    if float(temp_a) == float(temp_b): return None
+    return a if float(temp_a) > float(temp_b) else b
+```

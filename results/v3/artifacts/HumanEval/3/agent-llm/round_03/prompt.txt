@@ -1,0 +1,87 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import below_zero`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `below_zero` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: below_zero
+Arguments: (ArgumentInfo(name='operations', annotation='List[int]', kind='positional'),)
+Return annotation: 'bool'
+Docstring: You're given a list of deposit and withdrawal operations on a bank account that starts with
+zero balance. Your task is to detect if at any point the balance of account fallls below zero, and
+at that point function should return True. Otherwise it should return False.
+>>> below_zero([1, 2, 3])
+False
+>>> below_zero([1, 2, -4, 5])
+True
+Branches: (BranchInfo(line=15, kind='for', condition='for', alternatives=2), BranchInfo(line=17, kind='if', condition='balance < 0', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def below_zero(operations: List[int]) -> bool:
+    """ You're given a list of deposit and withdrawal operations on a bank account that starts with
+    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and
+    at that point function should return True. Otherwise it should return False.
+    >>> below_zero([1, 2, 3])
+    False
+    >>> below_zero([1, 2, -4, 5])
+    True
+    """
+    balance = 0
+
+    for op in operations:
+        balance += op
+        if balance < 0:
+            return True
+
+    return False
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import below_zero
+
+def test_below_zero():
+    assert below_zero([1, 2, 3]) == False
+    assert below_zero([1, 2, -4, 5]) == True
+    assert below_zero([1, 2, -3, 1]) == True
+    assert below_zero([1, 2, -4, 5, -6]) == True
+    assert below_zero([1, 2, -3, 1, 2, -4, 5]) == True
+```
+
+Evaluator feedback:
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________________ test_below_zero ________________________________
+
+    def test_below_zero():
+        assert below_zero([1, 2, 3]) == False
+        assert below_zero([1, 2, -4, 5]) == True
+>       assert below_zero([1, 2, -3, 1]) == True
+E       assert False == True
+E        +  where False = below_zero([1, 2, -3, 1])
+
+test_generated.py:7: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_below_zero - assert False == True
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

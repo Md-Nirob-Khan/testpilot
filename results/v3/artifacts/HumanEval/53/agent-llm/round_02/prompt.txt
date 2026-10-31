@@ -1,0 +1,61 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import add`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `add` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: add
+Arguments: (ArgumentInfo(name='x', annotation='int', kind='positional'), ArgumentInfo(name='y', annotation='int', kind='positional'))
+Return annotation: None
+Docstring: Add two numbers x and y
+>>> add(2, 3)
+5
+>>> add(5, 7)
+12
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def add(x: int, y: int):
+    """Add two numbers x and y
+    >>> add(2, 3)
+    5
+    >>> add(5, 7)
+    12
+    """
+    return x + y
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import add
+
+def test_add():
+    assert add(2, 3) == 5
+    assert add(5, 7) == 12
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (1/1 killed; 0 survived)
+Surviving mutants: none

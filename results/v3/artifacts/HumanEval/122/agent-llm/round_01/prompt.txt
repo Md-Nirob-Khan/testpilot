@@ -1,0 +1,46 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import add_elements`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `add_elements` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: add_elements
+Arguments: (ArgumentInfo(name='arr', annotation=None, kind='positional'), ArgumentInfo(name='k', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Given a non-empty array of integers arr and an integer k, return
+the sum of the elements with at most two digits from the first k elements of arr.
+
+Example:
+
+    Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4
+    Output: 24 # sum of 21 + 3
+
+Constraints:
+    1. 1 <= len(arr) <= 100
+    2. 1 <= k <= len(arr)
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def add_elements(arr, k):
+    """
+    Given a non-empty array of integers arr and an integer k, return
+    the sum of the elements with at most two digits from the first k elements of arr.
+
+    Example:
+
+        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4
+        Output: 24 # sum of 21 + 3
+
+    Constraints:
+        1. 1 <= len(arr) <= 100
+        2. 1 <= k <= len(arr)
+    """
+    return sum(elem for elem in arr[:k] if len(str(elem)) <= 2)
+```

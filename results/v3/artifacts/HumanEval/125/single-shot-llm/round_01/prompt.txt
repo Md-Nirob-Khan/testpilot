@@ -1,0 +1,43 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import split_words`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `split_words` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: split_words
+Arguments: (ArgumentInfo(name='txt', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a string of words, return a list of words split on whitespace, if no whitespaces exists in the text you
+should split on commas ',' if no commas exists you should return the number of lower-case letters with odd order in the
+alphabet, ord('a') = 0, ord('b') = 1, ... ord('z') = 25
+Examples
+split_words("Hello world!") ➞ ["Hello", "world!"]
+split_words("Hello,world!") ➞ ["Hello", "world!"]
+split_words("abcdef") == 3 
+Branches: (BranchInfo(line=12, kind='if', condition='" " in txt', alternatives=2), BranchInfo(line=14, kind='if', condition='"," in txt', alternatives=2), BranchInfo(line=17, kind='and', condition='i.islower() and ord(i)%2 == 0', alternatives=2))
+Cyclomatic complexity: 6
+
+Source:
+```python
+def split_words(txt):
+    '''
+    Given a string of words, return a list of words split on whitespace, if no whitespaces exists in the text you
+    should split on commas ',' if no commas exists you should return the number of lower-case letters with odd order in the
+    alphabet, ord('a') = 0, ord('b') = 1, ... ord('z') = 25
+    Examples
+    split_words("Hello world!") ➞ ["Hello", "world!"]
+    split_words("Hello,world!") ➞ ["Hello", "world!"]
+    split_words("abcdef") == 3 
+    '''
+    if " " in txt:
+        return txt.split()
+    elif "," in txt:
+        return txt.replace(',',' ').split()
+    else:
+        return len([i for i in txt if i.islower() and ord(i)%2 == 0])
+```

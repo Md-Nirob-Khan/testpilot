@@ -1,0 +1,27 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________________ test_largest_smallest_integers ________________________
+
+    def test_largest_smallest_integers():
+        assert largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+        assert largest_smallest_integers([]) == (None, None)
+        assert largest_smallest_integers([0]) == (None, None)
+        assert largest_smallest_integers([-1, -2, -3]) == (-1, None)
+>       assert largest_smallest_integers([1, 2, 3]) == (3, 1)
+E       assert (None, 1) == (3, 1)
+E         
+E         At index 0 diff: None != 3
+E         Use -v to get more diff
+
+test_generated.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_largest_smallest_integers - assert (None, 1) =...
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

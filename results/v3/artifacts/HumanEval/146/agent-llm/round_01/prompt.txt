@@ -1,0 +1,44 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import specialFilter`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `specialFilter` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: specialFilter
+Arguments: (ArgumentInfo(name='nums', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that takes an array of numbers as input and returns 
+the number of elements in the array that are greater than 10 and both 
+first and last digits of a number are odd (1, 3, 5, 7, 9).
+For example:
+specialFilter([15, -73, 14, -15]) => 1 
+specialFilter([33, -2, -3, 45, 21, 109]) => 2
+Branches: (BranchInfo(line=12, kind='for', condition='for', alternatives=2), BranchInfo(line=13, kind='if', condition='num > 10', alternatives=2), BranchInfo(line=16, kind='and', condition='int(number_as_string[0]) in odd_digits and int(number_as_string[-1]) in odd_digits', alternatives=2), BranchInfo(line=16, kind='if', condition='int(number_as_string[0]) in odd_digits and int(number_as_string[-1]) in odd_digits', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def specialFilter(nums):
+    """Write a function that takes an array of numbers as input and returns 
+    the number of elements in the array that are greater than 10 and both 
+    first and last digits of a number are odd (1, 3, 5, 7, 9).
+    For example:
+    specialFilter([15, -73, 14, -15]) => 1 
+    specialFilter([33, -2, -3, 45, 21, 109]) => 2
+    """
+    
+    count = 0
+    for num in nums:
+        if num > 10:
+            odd_digits = (1, 3, 5, 7, 9)
+            number_as_string = str(num)
+            if int(number_as_string[0]) in odd_digits and int(number_as_string[-1]) in odd_digits:
+                count += 1
+        
+    return count
+```

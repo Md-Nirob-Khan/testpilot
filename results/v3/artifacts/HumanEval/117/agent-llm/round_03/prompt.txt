@@ -1,0 +1,83 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import select_words`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `select_words` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: select_words
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'), ArgumentInfo(name='n', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Given a string s and a natural number n, you have been tasked to implement 
+a function that returns a list of all words from string s that contain exactly 
+n consonants, in order these words appear in the string s.
+If the string s is empty then the function should return an empty list.
+Note: you may assume the input string contains only letters and spaces.
+Examples:
+select_words("Mary had a little lamb", 4) ==> ["little"]
+select_words("Mary had a little lamb", 3) ==> ["Mary", "lamb"]
+select_words("simple white space", 2) ==> []
+select_words("Hello world", 4) ==> ["world"]
+select_words("Uncle sam", 3) ==> ["Uncle"]
+Branches: (BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=18, kind='for', condition='for', alternatives=2), BranchInfo(line=19, kind='if', condition='word[i].lower() not in ["a","e","i","o","u"]', alternatives=2), BranchInfo(line=21, kind='if', condition='n_consonants == n', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def select_words(s, n):
+    """Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words("Mary had a little lamb", 4) ==> ["little"]
+    select_words("Mary had a little lamb", 3) ==> ["Mary", "lamb"]
+    select_words("simple white space", 2) ==> []
+    select_words("Hello world", 4) ==> ["world"]
+    select_words("Uncle sam", 3) ==> ["Uncle"]
+    """
+    result = []
+    for word in s.split():
+        n_consonants = 0
+        for i in range(0, len(word)):
+            if word[i].lower() not in ["a","e","i","o","u"]:
+                n_consonants += 1 
+        if n_consonants == n:
+            result.append(word)
+    return result
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import select_words
+
+def test_select_words():
+    assert select_words("Mary had a little lamb", 4) == ["little"]
+    assert select_words("Mary had a little lamb", 3) == ["Mary", "lamb"]
+    assert select_words("simple white space", 2) == []
+    assert select_words("Hello world", 4) == ["world"]
+    assert select_words("Uncle sam", 3) == ["Uncle"]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (10/10)
+Uncovered source lines: none
+Branch coverage: 100.0% (8/8)
+Uncovered branches: none
+Mutation score: 96.0% (24/25 killed; 1 survived)
+Surviving mutants: ('testpilot_target.x_select_words__mutmut_6',)

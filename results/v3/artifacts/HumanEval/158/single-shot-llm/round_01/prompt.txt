@@ -1,0 +1,39 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import find_max`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `find_max` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: find_max
+Arguments: (ArgumentInfo(name='words', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Write a function that accepts a list of strings.
+The list contains different words. Return the word with maximum number
+of unique characters. If multiple strings have maximum number of unique
+characters, return the one which comes first in lexicographical order.
+
+find_max(["name", "of", "string"]) == "string"
+find_max(["name", "enam", "game"]) == "enam"
+find_max(["aaaaaaa", "bb" ,"cc"]) == ""aaaaaaa"
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def find_max(words):
+    """Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max(["name", "of", "string"]) == "string"
+    find_max(["name", "enam", "game"]) == "enam"
+    find_max(["aaaaaaa", "bb" ,"cc"]) == ""aaaaaaa"
+    """
+    return sorted(words, key = lambda x: (-len(set(x)), x))[0]
+```

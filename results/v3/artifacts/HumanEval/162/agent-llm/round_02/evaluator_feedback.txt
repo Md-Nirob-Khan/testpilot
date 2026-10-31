@@ -1,0 +1,25 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________________________ test_string_to_md5 ______________________________
+
+    def test_string_to_md5():
+        assert string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+        assert string_to_md5('') is None
+>       assert string_to_md5('Python 3.8') == '3f5b9999999999999999999999999999'
+E       AssertionError: assert '0fed476d5e1e...6e1eb91d4f7e7' == '3f5b99999999...9999999999999'
+E         
+E         - 3f5b9999999999999999999999999999
+E         + 0fed476d5e1e7b57c436e1eb91d4f7e7
+
+test_generated.py:7: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_string_to_md5 - AssertionError: assert '0fed47...
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

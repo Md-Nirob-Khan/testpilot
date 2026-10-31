@@ -1,0 +1,69 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import car_race_collision`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `car_race_collision` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: car_race_collision
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: Imagine a road that's a perfectly straight infinitely long line.
+n cars are driving left to right;  simultaneously, a different set of n cars
+are driving right to left.   The two sets of cars start out being very far from
+each other.  All cars move in the same speed.  Two cars are said to collide
+when a car that's moving left to right hits a car that's moving right to left.
+However, the cars are infinitely sturdy and strong; as a result, they continue moving
+in their trajectory as if they did not collide.
+
+This function outputs the number of such collisions.
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def car_race_collision(n: int):
+    """
+    Imagine a road that's a perfectly straight infinitely long line.
+    n cars are driving left to right;  simultaneously, a different set of n cars
+    are driving right to left.   The two sets of cars start out being very far from
+    each other.  All cars move in the same speed.  Two cars are said to collide
+    when a car that's moving left to right hits a car that's moving right to left.
+    However, the cars are infinitely sturdy and strong; as a result, they continue moving
+    in their trajectory as if they did not collide.
+
+    This function outputs the number of such collisions.
+    """
+    return n**2
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import car_race_collision
+
+@pytest.mark.parametrize("n, expected", [(1, 1), (2, 4), (3, 9), (4, 16)])
+def test_car_race_collision(n, expected):
+    assert car_race_collision(n) == expected
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (2/2 killed; 0 survived)
+Surviving mutants: none

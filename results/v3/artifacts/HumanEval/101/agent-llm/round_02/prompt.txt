@@ -1,0 +1,79 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import words_string`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `words_string` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: words_string
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You will be given a string of words separated by commas or spaces. Your task is
+to split the string into words and return an array of the words.
+
+For example:
+words_string("Hi, my name is John") == ["Hi", "my", "name", "is", "John"]
+words_string("One, two, three, four, five, six") == ["One", "two", "three", "four", "five", "six"]
+Branches: (BranchInfo(line=11, kind='if', condition='not s', alternatives=2), BranchInfo(line=16, kind='for', condition='for', alternatives=2), BranchInfo(line=17, kind='if', condition="letter == ','", alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def words_string(s):
+    """
+    You will be given a string of words separated by commas or spaces. Your task is
+    to split the string into words and return an array of the words.
+    
+    For example:
+    words_string("Hi, my name is John") == ["Hi", "my", "name", "is", "John"]
+    words_string("One, two, three, four, five, six") == ["One", "two", "three", "four", "five", "six"]
+    """
+    if not s:
+        return []
+
+    s_list = []
+
+    for letter in s:
+        if letter == ',':
+            s_list.append(' ')
+        else:
+            s_list.append(letter)
+
+    s_list = "".join(s_list)
+    return s_list.split()
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import words_string
+
+def test_words_string():
+    assert words_string("Hi, my name is John") == ["Hi", "my", "name", "is", "John"]
+    assert words_string("One, two, three, four, five, six") == ["One", "two", "three", "four", "five", "six"]
+    assert words_string("") == []
+    assert words_string("No, commas or spaces") == ["No", "commas", "or", "spaces"]
+    assert words_string("Single word") == ["Single", "word"]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (10/10)
+Uncovered source lines: none
+Branch coverage: 100.0% (6/6)
+Uncovered branches: none
+Mutation score: 100.0% (10/10 killed; 0 survived)
+Surviving mutants: none

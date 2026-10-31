@@ -1,0 +1,13 @@
+```python
+import pytest
+from testpilot_target import pluck
+
+@pytest.mark.parametrize("arr, expected", [
+    ([4,2,3], [2, 1]),
+    ([1,2,3], [2, 1]),
+    ([], []),
+    ([5, 0, 3, 0, 4, 2], [0, 1])
+])
+def test_pluck(arr, expected):
+    assert pluck(arr) == expected
+```

@@ -1,0 +1,50 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import is_happy`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `is_happy` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: is_happy
+Arguments: (ArgumentInfo(name='s', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You are given a string s.
+Your task is to check if the string is happy or not.
+A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+For example:
+is_happy(a) => False
+is_happy(aa) => False
+is_happy(abcd) => True
+is_happy(aabb) => False
+is_happy(adb) => True
+is_happy(xyy) => False
+Branches: (BranchInfo(line=14, kind='if', condition='len(s) < 3', alternatives=2), BranchInfo(line=17, kind='for', condition='for', alternatives=2), BranchInfo(line=19, kind='if', condition='s[i] == s[i+1] or s[i+1] == s[i+2] or s[i] == s[i+2]', alternatives=2), BranchInfo(line=19, kind='or', condition='s[i] == s[i+1] or s[i+1] == s[i+2] or s[i] == s[i+2]', alternatives=3))
+Cyclomatic complexity: 6
+
+Source:
+```python
+def is_happy(s):
+    """You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """
+    if len(s) < 3:
+      return False
+
+    for i in range(len(s) - 2):
+      
+      if s[i] == s[i+1] or s[i+1] == s[i+2] or s[i] == s[i+2]:
+        return False
+    return True
+```

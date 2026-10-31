@@ -1,0 +1,82 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import largest_prime_factor`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `largest_prime_factor` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: largest_prime_factor
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: Return the largest prime factor of n. Assume n > 1 and is not a prime.
+>>> largest_prime_factor(13195)
+29
+>>> largest_prime_factor(2048)
+2
+Branches: (BranchInfo(line=18, kind='for', condition='for', alternatives=2), BranchInfo(line=19, kind='and', condition='n % j == 0 and is_prime(j)', alternatives=2), BranchInfo(line=19, kind='if', condition='n % j == 0 and is_prime(j)', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def largest_prime_factor(n: int):
+    """Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """
+    def is_prime(k):
+        if k < 2:
+            return False
+        for i in range(2, k - 1):
+            if k % i == 0:
+                return False
+        return True
+    largest = 1
+    for j in range(2, n + 1):
+        if n % j == 0 and is_prime(j):
+            largest = max(largest, j)
+    return largest
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def largest_prime_factor(n: int):
+    """Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """
+    def is_prime(k):
+        if k < 2:
+            return False
+        for i in range(2, k - 1):
+            if k % i == 0:
+                return False
+        return True
+    largest = 1
+    for j in range(2, n + 1):
+        if n % j == 0 and is_prime(j):
+            largest = max(largest, j)
+    return largest
+
+def test_largest_prime_factor():
+    assert largest_prime_factor(13195) == 29
+    assert largest_prime_factor(2048) == 2
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'largest_prime_factor'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls largest_prime_factor from testpilot_target. Do not define, copy, or shadow the target function.

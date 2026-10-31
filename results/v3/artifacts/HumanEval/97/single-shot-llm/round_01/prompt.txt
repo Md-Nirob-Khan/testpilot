@@ -1,0 +1,39 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import multiply`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `multiply` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: multiply
+Arguments: (ArgumentInfo(name='a', annotation=None, kind='positional'), ArgumentInfo(name='b', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Complete the function that takes two integers and returns 
+the product of their unit digits.
+Assume the input is always valid.
+Examples:
+multiply(148, 412) should return 16.
+multiply(19, 28) should return 72.
+multiply(2020, 1851) should return 0.
+multiply(14,-15) should return 20.
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def multiply(a, b):
+    """Complete the function that takes two integers and returns 
+    the product of their unit digits.
+    Assume the input is always valid.
+    Examples:
+    multiply(148, 412) should return 16.
+    multiply(19, 28) should return 72.
+    multiply(2020, 1851) should return 0.
+    multiply(14,-15) should return 20.
+    """
+    return abs(a % 10) * abs(b % 10)
+```

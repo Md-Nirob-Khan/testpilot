@@ -1,0 +1,61 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import prime_fib`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `prime_fib` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: prime_fib
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: None
+Docstring: prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+>>> prime_fib(1)
+2
+>>> prime_fib(2)
+3
+>>> prime_fib(3)
+5
+>>> prime_fib(4)
+13
+>>> prime_fib(5)
+89
+Branches: (BranchInfo(line=27, kind='while', condition='True', alternatives=2), BranchInfo(line=29, kind='if', condition='is_prime(f[-1])', alternatives=2), BranchInfo(line=31, kind='if', condition='n == 0', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def prime_fib(n: int):
+    """
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """
+    import math
+
+    def is_prime(p):
+        if p < 2:
+            return False
+        for k in range(2, min(int(math.sqrt(p)) + 1, p - 1)):
+            if p % k == 0:
+                return False
+        return True
+    f = [0, 1]
+    while True:
+        f.append(f[-1] + f[-2])
+        if is_prime(f[-1]):
+            n -= 1
+        if n == 0:
+            return f[-1]
+```

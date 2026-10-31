@@ -1,0 +1,41 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import next_smallest`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `next_smallest` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: next_smallest
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You are given a list of integers.
+Write a function next_smallest() that returns the 2nd smallest element of the list.
+Return None if there is no such element.
+
+next_smallest([1, 2, 3, 4, 5]) == 2
+next_smallest([5, 1, 4, 3, 2]) == 2
+next_smallest([]) == None
+next_smallest([1, 1]) == None
+Branches: (BranchInfo(line=14, kind='conditional', condition='len(lst) < 2', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def next_smallest(lst):
+    """
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """
+    lst = sorted(set(lst))
+    return None if len(lst) < 2 else lst[1]
+```

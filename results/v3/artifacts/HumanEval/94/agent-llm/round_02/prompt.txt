@@ -1,0 +1,105 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import skjkasdkd`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `skjkasdkd` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: skjkasdkd
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: You are given a list of integers.
+You need to find the largest prime value and return the sum of its digits.
+
+Examples:
+For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+For lst = [0,81,12,3,1,21] the output should be 3
+For lst = [0,8,1,2,1,7] the output should be 7
+Branches: (BranchInfo(line=23, kind='while', condition='i < len(lst)', alternatives=2), BranchInfo(line=24, kind='and', condition='lst[i] > maxx and isPrime(lst[i])', alternatives=2), BranchInfo(line=24, kind='if', condition='lst[i] > maxx and isPrime(lst[i])', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def skjkasdkd(lst):
+    """You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """
+    def isPrime(n):
+        for i in range(2,int(n**0.5)+1):
+            if n%i==0:
+                return False
+
+        return True
+    maxx = 0
+    i = 0
+    while i < len(lst):
+        if(lst[i] > maxx and isPrime(lst[i])):
+            maxx = lst[i]
+        i+=1
+    result = sum(int(digit) for digit in str(maxx))
+    return result
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def skjkasdkd(lst):
+    """You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """
+    def isPrime(n):
+        for i in range(2,int(n**0.5)+1):
+            if n%i==0:
+                return False
+
+        return True
+    maxx = 0
+    i = 0
+    while i < len(lst):
+        if(lst[i] > maxx and isPrime(lst[i])):
+            maxx = lst[i]
+        i+=1
+    result = sum(int(digit) for digit in str(maxx))
+    return result
+
+def test_skjkasdkd():
+    assert skjkasdkd([0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3]) == 10
+    assert skjkasdkd([1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1]) == 25
+    assert skjkasdkd([1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3]) == 13
+    assert skjkasdkd([0,724,32,71,99,32,6,0,5,91,83,0,5,6]) == 11
+    assert skjkasdkd([0,81,12,3,1,21]) == 3
+    assert skjkasdkd([0,8,1,2,1,7]) == 7
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'skjkasdkd'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls skjkasdkd from testpilot_target. Do not define, copy, or shadow the target function.

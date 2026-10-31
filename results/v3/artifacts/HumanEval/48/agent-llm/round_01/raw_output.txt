@@ -1,0 +1,11 @@
+```python
+import pytest
+
+from testpilot_target import is_palindrome
+
+def test_is_palindrome():
+    assert is_palindrome('')
+    assert is_palindrome('aba')
+    assert is_palindrome('aaaaa')
+    assert not is_palindrome('zbcd')
+```

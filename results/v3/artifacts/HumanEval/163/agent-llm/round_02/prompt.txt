@@ -1,0 +1,70 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import generate_integers`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `generate_integers` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: generate_integers
+Arguments: (ArgumentInfo(name='a', annotation=None, kind='positional'), ArgumentInfo(name='b', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Given two positive integers a and b, return the even digits between a
+and b, in ascending order.
+
+For example:
+generate_integers(2, 8) => [2, 4, 6, 8]
+generate_integers(8, 2) => [2, 4, 6, 8]
+generate_integers(10, 14) => []
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def generate_integers(a, b):
+    """
+    Given two positive integers a and b, return the even digits between a
+    and b, in ascending order.
+
+    For example:
+    generate_integers(2, 8) => [2, 4, 6, 8]
+    generate_integers(8, 2) => [2, 4, 6, 8]
+    generate_integers(10, 14) => []
+    """
+    lower = max(2, min(a, b))
+    upper = min(8, max(a, b))
+
+    return [i for i in range(lower, upper+1) if i % 2 == 0]
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+from testpilot_target import generate_integers
+
+def test_generate_integers():
+    assert generate_integers(2, 8) == [2, 4, 6, 8]
+    assert generate_integers(8, 2) == [2, 4, 6, 8]
+    assert generate_integers(10, 14) == []
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (4/4)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 93.3% (28/30 killed; 2 survived)
+Surviving mutants: ('testpilot_target.x_generate_integers__mutmut_16', 'testpilot_target.x_generate_integers__mutmut_26')

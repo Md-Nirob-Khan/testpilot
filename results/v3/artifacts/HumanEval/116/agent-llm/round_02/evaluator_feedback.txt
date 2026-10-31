@@ -1,0 +1,23 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________________ test_sort_array ________________________________
+
+    def test_sort_array():
+>       assert sort_array([1, 5, 2, 3, 4]) == [1, 2, 3, 4, 5]
+E       assert [1, 2, 4, 3, 5] == [1, 2, 3, 4, 5]
+E         
+E         At index 2 diff: 4 != 3
+E         Use -v to get more diff
+
+test_generated.py:6: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_sort_array - assert [1, 2, 4, 3, 5] == [1, 2, ...
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

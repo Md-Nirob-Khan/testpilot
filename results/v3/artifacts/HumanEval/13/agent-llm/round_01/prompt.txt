@@ -1,0 +1,35 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import greatest_common_divisor`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `greatest_common_divisor` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: greatest_common_divisor
+Arguments: (ArgumentInfo(name='a', annotation='int', kind='positional'), ArgumentInfo(name='b', annotation='int', kind='positional'))
+Return annotation: 'int'
+Docstring: Return a greatest common divisor of two integers a and b
+>>> greatest_common_divisor(3, 5)
+1
+>>> greatest_common_divisor(25, 15)
+5
+Branches: (BranchInfo(line=10, kind='while', condition='b', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def greatest_common_divisor(a: int, b: int) -> int:
+    """ Return a greatest common divisor of two integers a and b
+    >>> greatest_common_divisor(3, 5)
+    1
+    >>> greatest_common_divisor(25, 15)
+    5
+    """
+    while b:
+        a, b = b, a % b
+    return a
+```

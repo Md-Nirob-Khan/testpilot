@@ -1,0 +1,40 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import even_odd_count`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `even_odd_count` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: even_odd_count
+Arguments: (ArgumentInfo(name='num', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+Example:
+   even_odd_count(-12) ==> (1, 1)
+   even_odd_count(123) ==> (1, 2)
+Branches: (BranchInfo(line=11, kind='for', condition='for', alternatives=2), BranchInfo(line=12, kind='if', condition='int(i)%2==0', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def even_odd_count(num):
+    """Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """
+    even_count = 0
+    odd_count = 0
+    for i in str(abs(num)):
+        if int(i)%2==0:
+            even_count +=1
+        else:
+            odd_count +=1
+    return (even_count, odd_count)
+```

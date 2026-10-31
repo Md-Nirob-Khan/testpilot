@@ -1,0 +1,10 @@
+{
+  "engine_name": "pynguin",
+  "generated_test_source": null,
+  "generation_error": "TimeoutError: Pynguin exceeded its 120-second timeout: Exception ignored in thread started by: <bound method Thread._bootstrap of <Thread(Thread-31 (_execute_test_case), started daemon 6197669888)>> Traceback (most recent call last): File \"/Users/nirobkhan/Desktop/testpilot/.venv/lib/python3.10/threading.py\", line 973, in _bootstrap self._bootstrap_inner() File \"/Users/nirobkhan/Desktop/testpilot/.venv/lib/python3.10/threading.py\", line 1018, in _bootstrap_inner self._invoke_excepthook(self) File \"/Users/n...",
+  "round_details": [],
+  "rounds_recorded": 0,
+  "selected_round": null,
+  "suite_returned": false,
+  "task_id": "HumanEval/39"
+}

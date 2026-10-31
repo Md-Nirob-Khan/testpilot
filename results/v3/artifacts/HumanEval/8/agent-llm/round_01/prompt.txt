@@ -1,0 +1,41 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import sum_product`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `sum_product` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: sum_product
+Arguments: (ArgumentInfo(name='numbers', annotation='List[int]', kind='positional'),)
+Return annotation: 'Tuple[int, int]'
+Docstring: For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+Empty sum should be equal to 0 and empty product should be equal to 1.
+>>> sum_product([])
+(0, 1)
+>>> sum_product([1, 2, 3, 4])
+(10, 24)
+Branches: (BranchInfo(line=15, kind='for', condition='for', alternatives=2),)
+Cyclomatic complexity: 2
+
+Source:
+```python
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """ For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """
+    sum_value = 0
+    prod_value = 1
+
+    for n in numbers:
+        sum_value += n
+        prod_value *= n
+    return sum_value, prod_value
+```

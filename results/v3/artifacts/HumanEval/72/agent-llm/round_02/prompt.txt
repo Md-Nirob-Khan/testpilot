@@ -1,0 +1,112 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import will_it_fly`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `will_it_fly` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: will_it_fly
+Arguments: (ArgumentInfo(name='q', annotation=None, kind='positional'), ArgumentInfo(name='w', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Write a function that returns True if the object q will fly, and False otherwise.
+The object q will fly if it's balanced (it is a palindromic list) and the sum of its elements is less than or equal the maximum possible weight w.
+
+Example:
+will_it_fly([1, 2], 5) ➞ False 
+# 1+2 is less than the maximum possible weight, but it's unbalanced.
+
+will_it_fly([3, 2, 3], 1) ➞ False
+# it's balanced, but 3+2+3 is more than the maximum possible weight.
+
+will_it_fly([3, 2, 3], 9) ➞ True
+# 3+2+3 is less than the maximum possible weight, and it's balanced.
+
+will_it_fly([3], 5) ➞ True
+# 3 is less than the maximum possible weight, and it's balanced.
+Branches: (BranchInfo(line=20, kind='if', condition='sum(q) > w', alternatives=2), BranchInfo(line=24, kind='while', condition='i<j', alternatives=2), BranchInfo(line=25, kind='if', condition='q[i] != q[j]', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def will_it_fly(q,w):
+    '''
+    Write a function that returns True if the object q will fly, and False otherwise.
+    The object q will fly if it's balanced (it is a palindromic list) and the sum of its elements is less than or equal the maximum possible weight w.
+
+    Example:
+    will_it_fly([1, 2], 5) ➞ False 
+    # 1+2 is less than the maximum possible weight, but it's unbalanced.
+
+    will_it_fly([3, 2, 3], 1) ➞ False
+    # it's balanced, but 3+2+3 is more than the maximum possible weight.
+
+    will_it_fly([3, 2, 3], 9) ➞ True
+    # 3+2+3 is less than the maximum possible weight, and it's balanced.
+
+    will_it_fly([3], 5) ➞ True
+    # 3 is less than the maximum possible weight, and it's balanced.
+    '''
+    if sum(q) > w:
+        return False
+
+    i, j = 0, len(q)-1
+    while i<j:
+        if q[i] != q[j]:
+            return False
+        i+=1
+        j-=1
+    return True
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def will_it_fly(q, w):
+    '''
+    Write a function that returns True if the object q will fly, and False otherwise.
+    The object q will fly if it's balanced (it is a palindromic list) and the sum of its elements is less than or equal the maximum possible weight w.
+
+    Example:
+    will_it_fly([1, 2], 5) ➞ False 
+    # 1+2 is less than the maximum possible weight, but it's unbalanced.
+
+    will_it_fly([3, 2, 3], 1) ➞ False
+    # it's balanced, but 3+2+3 is more than the maximum possible weight.
+
+    will_it_fly([3, 2, 3], 9) ➞ True
+    # 3+2+3 is less than the maximum possible weight, and it's balanced.
+
+    will_it_fly([3], 5) ➞ True
+    # 3 is less than the maximum possible weight, and it's balanced.
+    '''
+    if sum(q) > w:
+        return False
+
+    i, j = 0, len(q)-1
+    while i<j:
+        if q[i] != q[j]:
+            return False
+        i+=1
+        j-=1
+    return True
+
+def test_will_it_fly():
+    assert will_it_fly([1, 2], 5) == False
+    assert will_it_fly([3, 2, 3], 1) == False
+    assert will_it_fly([3, 2, 3], 9) == True
+    assert will_it_fly([3], 5) == True
+```
+
+Evaluator feedback:
+Target-usage validation failed: the generated module defines 'will_it_fly'; import the target instead of redefining it
+Return a complete replacement pytest module that imports and calls will_it_fly from testpilot_target. Do not define, copy, or shadow the target function.

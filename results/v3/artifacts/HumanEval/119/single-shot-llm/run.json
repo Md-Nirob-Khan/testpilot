@@ -1,0 +1,20 @@
+{
+  "engine_name": "single-shot-llm",
+  "generated_test_source": "engine_returned_suite",
+  "generation_error": "",
+  "round_details": [
+    {
+      "mutation_error": "",
+      "mutation_score": null,
+      "provider_error": "",
+      "returned": true,
+      "round": 1,
+      "seed": 42,
+      "temperature": 0.0
+    }
+  ],
+  "rounds_recorded": 1,
+  "selected_round": 1,
+  "suite_returned": true,
+  "task_id": "HumanEval/119"
+}

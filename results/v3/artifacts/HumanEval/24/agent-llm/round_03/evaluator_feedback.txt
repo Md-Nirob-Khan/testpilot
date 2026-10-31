@@ -1,0 +1,35 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________________________ test_largest_divisor _____________________________
+
+    def test_largest_divisor():
+        assert largest_divisor(15) == 5
+        assert largest_divisor(28) == 14
+>       assert largest_divisor(1) == 1
+
+test_generated.py:7: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+n = 1
+
+    def largest_divisor(n: int) -> int:
+        """ For a given number n, find the largest number that divides n evenly, smaller than n
+        >>> largest_divisor(15)
+        5
+        """
+        for i in reversed(range(n)):
+>           if n % i == 0:
+E           ZeroDivisionError: integer division or modulo by zero
+
+testpilot_target.py:9: ZeroDivisionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_largest_divisor - ZeroDivisionError: integer d...
+1 failed in 0.03s
+
+Coverage: unavailable
+Mutation score: unavailable

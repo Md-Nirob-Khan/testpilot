@@ -1,0 +1,81 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import factorize`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `factorize` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: factorize
+Arguments: (ArgumentInfo(name='n', annotation='int', kind='positional'),)
+Return annotation: 'List[int]'
+Docstring: Return list of prime factors of given integer in the order from smallest to largest.
+Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+Input number should be equal to the product of all factors
+>>> factorize(8)
+[2, 2, 2]
+>>> factorize(25)
+[5, 5]
+>>> factorize(70)
+[2, 5, 7]
+Branches: (BranchInfo(line=18, kind='while', condition='i <= int(math.sqrt(n) + 1)', alternatives=2), BranchInfo(line=19, kind='if', condition='n % i == 0', alternatives=2), BranchInfo(line=25, kind='if', condition='n > 1', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def factorize(n: int) -> List[int]:
+    """ Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """
+    import math
+    fact = []
+    i = 2
+    while i <= int(math.sqrt(n) + 1):
+        if n % i == 0:
+            fact.append(i)
+            n //= i
+        else:
+            i += 1
+
+    if n > 1:
+        fact.append(n)
+    return fact
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import factorize
+
+def test_factorize():
+    assert factorize(8) == [2, 2, 2]
+    assert factorize(25) == [5, 5]
+    assert factorize(70) == [2, 5, 7]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (13/13)
+Uncovered source lines: none
+Branch coverage: 100.0% (6/6)
+Uncovered branches: none
+Mutation score: 76.5% (13/20 killed; 4 survived)
+Surviving mutants: ('testpilot_target.x_factorize__mutmut_14', 'testpilot_target.x_factorize__mutmut_19', 'testpilot_target.x_factorize__mutmut_4', 'testpilot_target.x_factorize__mutmut_8')

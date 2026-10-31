@@ -1,0 +1,13 @@
+import pytest
+from testpilot_target import is_happy
+
+@pytest.mark.parametrize("s, expected", [
+    ("a", False),
+    ("aa", False),
+    ("abcd", True),
+    ("aabb", False),
+    ("adb", True),
+    ("xyy", False),
+])
+def test_is_happy(s, expected):
+    assert is_happy(s) == expected

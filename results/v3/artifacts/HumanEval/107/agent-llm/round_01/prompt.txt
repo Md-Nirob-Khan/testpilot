@@ -1,0 +1,75 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import even_odd_palindrome`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `even_odd_palindrome` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: even_odd_palindrome
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, return a tuple that has the number of even and odd
+integer palindromes that fall within the range(1, n), inclusive.
+
+Example 1:
+
+    Input: 3
+    Output: (1, 2)
+    Explanation:
+    Integer palindrome are 1, 2, 3. one of them is even, and two of them are odd.
+
+Example 2:
+
+    Input: 12
+    Output: (4, 6)
+    Explanation:
+    Integer palindrome are 1, 2, 3, 4, 5, 6, 7, 8, 9, 11. four of them are even, and 6 of them are odd.
+
+Note:
+    1. 1 <= n <= 10^3
+    2. returned tuple has the number of even and odd integer palindromes respectively.
+Branches: (BranchInfo(line=31, kind='for', condition='for', alternatives=2), BranchInfo(line=32, kind='and', condition='i%2 == 1 and is_palindrome(i)', alternatives=2), BranchInfo(line=32, kind='if', condition='i%2 == 1 and is_palindrome(i)', alternatives=2), BranchInfo(line=34, kind='and', condition='i%2 == 0 and is_palindrome(i)', alternatives=2), BranchInfo(line=34, kind='if', condition='i%2 == 0 and is_palindrome(i)', alternatives=2))
+Cyclomatic complexity: 6
+
+Source:
+```python
+def even_odd_palindrome(n):
+    """
+    Given a positive integer n, return a tuple that has the number of even and odd
+    integer palindromes that fall within the range(1, n), inclusive.
+
+    Example 1:
+
+        Input: 3
+        Output: (1, 2)
+        Explanation:
+        Integer palindrome are 1, 2, 3. one of them is even, and two of them are odd.
+
+    Example 2:
+
+        Input: 12
+        Output: (4, 6)
+        Explanation:
+        Integer palindrome are 1, 2, 3, 4, 5, 6, 7, 8, 9, 11. four of them are even, and 6 of them are odd.
+
+    Note:
+        1. 1 <= n <= 10^3
+        2. returned tuple has the number of even and odd integer palindromes respectively.
+    """
+    def is_palindrome(n):
+        return str(n) == str(n)[::-1]
+
+    even_palindrome_count = 0
+    odd_palindrome_count = 0
+
+    for i in range(1, n+1):
+        if i%2 == 1 and is_palindrome(i):
+                odd_palindrome_count += 1
+        elif i%2 == 0 and is_palindrome(i):
+            even_palindrome_count += 1
+    return (even_palindrome_count, odd_palindrome_count)
+```

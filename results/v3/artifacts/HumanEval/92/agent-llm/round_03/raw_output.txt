@@ -1,0 +1,10 @@
+```python
+import pytest
+from testpilot_target import any_int
+
+def test_any_int():
+    assert any_int(5, 2, 7) == True, "5 + 2 should equal 7"
+    assert any_int(3, 2, 2) == False, "3 + 2 should not equal 2"
+    assert any_int(3, -2, 1) == True, "3 + (-2) should equal 1"
+    assert any_int(3.6, -2.2, 2) == False, "3.6 + (-2.2) should not equal 2"
+```

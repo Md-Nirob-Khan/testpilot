@@ -1,0 +1,7 @@
+import pytest
+
+from testpilot_target import greatest_common_divisor
+
+def test_greatest_common_divisor():
+    assert greatest_common_divisor(3, 5) == 1
+    assert greatest_common_divisor(25, 15) == 5

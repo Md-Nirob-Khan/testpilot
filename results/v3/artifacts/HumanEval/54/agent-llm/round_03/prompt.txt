@@ -1,0 +1,81 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import same_chars`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `same_chars` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: same_chars
+Arguments: (ArgumentInfo(name='s0', annotation='str', kind='positional'), ArgumentInfo(name='s1', annotation='str', kind='positional'))
+Return annotation: None
+Docstring: Check if two words have the same characters.
+>>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')
+True
+>>> same_chars('abcd', 'dddddddabc')
+True
+>>> same_chars('dddddddabc', 'abcd')
+True
+>>> same_chars('eabcd', 'dddddddabc')
+False
+>>> same_chars('abcd', 'dddddddabce')
+False
+>>> same_chars('eabcdzzzz', 'dddzzzzzzzddddabc')
+False
+Branches: ()
+Cyclomatic complexity: 1
+
+Source:
+```python
+def same_chars(s0: str, s1: str):
+    """
+    Check if two words have the same characters.
+    >>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')
+    True
+    >>> same_chars('abcd', 'dddddddabc')
+    True
+    >>> same_chars('dddddddabc', 'abcd')
+    True
+    >>> same_chars('eabcd', 'dddddddabc')
+    False
+    >>> same_chars('abcd', 'dddddddabce')
+    False
+    >>> same_chars('eabcdzzzz', 'dddzzzzzzzddddabc')
+    False
+    """
+    return set(s0) == set(s1)
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import same_chars
+
+def test_same_chars():
+    assert same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc') == True
+    assert same_chars('abcd', 'dddddddabc') == True
+    assert same_chars('dddddddabc', 'abcd') == True
+    assert same_chars('eabcd', 'dddddddabc') == False
+    assert same_chars('abcd', 'dddddddabce') == False
+    assert same_chars('eabcdzzzz', 'dddzzzzzzzddddabc') == False
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (3/3 killed; 0 survived)
+Surviving mutants: none

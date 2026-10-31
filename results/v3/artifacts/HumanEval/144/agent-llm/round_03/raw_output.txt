@@ -1,0 +1,22 @@
+```python
+import pytest
+from testpilot_target import simplify
+
+def test_simplify():
+    assert simplify("1/5", "5/1") == True
+    assert simplify("1/6", "2/1") == False
+    assert simplify("7/10", "10/2") == False
+
+def test_simplify_float():
+    assert simplify("1.0/5", "5.0/1") == True
+    assert simplify("1.0/6", "2.0/1") == False
+    assert simplify("7.0/10", "10.0/2") == False
+
+def test_simplify_zero_denominator():
+    with pytest.raises(ValueError):
+        simplify("1/0", "5/1")
+    with pytest.raises(ValueError):
+        simplify("1/5", "0/1")
+    with pytest.raises(ValueError):
+        simplify("1/5", "0/0")
+```

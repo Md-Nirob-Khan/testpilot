@@ -1,0 +1,46 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import make_a_pile`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `make_a_pile` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: make_a_pile
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, you have to make a pile of n levels of stones.
+The first level has n stones.
+The number of stones in the next level is:
+    - the next odd number if n is odd.
+    - the next even number if n is even.
+Return the number of stones in each level in a list, where element at index
+i represents the number of stones in the level (i+1).
+
+Examples:
+>>> make_a_pile(3)
+[3, 5, 7]
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def make_a_pile(n):
+    """
+    Given a positive integer n, you have to make a pile of n levels of stones.
+    The first level has n stones.
+    The number of stones in the next level is:
+        - the next odd number if n is odd.
+        - the next even number if n is even.
+    Return the number of stones in each level in a list, where element at index
+    i represents the number of stones in the level (i+1).
+
+    Examples:
+    >>> make_a_pile(3)
+    [3, 5, 7]
+    """
+    return [n + 2*i for i in range(n)]
+```

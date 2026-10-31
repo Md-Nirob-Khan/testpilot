@@ -1,0 +1,76 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import make_a_pile`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `make_a_pile` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: make_a_pile
+Arguments: (ArgumentInfo(name='n', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a positive integer n, you have to make a pile of n levels of stones.
+The first level has n stones.
+The number of stones in the next level is:
+    - the next odd number if n is odd.
+    - the next even number if n is even.
+Return the number of stones in each level in a list, where element at index
+i represents the number of stones in the level (i+1).
+
+Examples:
+>>> make_a_pile(3)
+[3, 5, 7]
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def make_a_pile(n):
+    """
+    Given a positive integer n, you have to make a pile of n levels of stones.
+    The first level has n stones.
+    The number of stones in the next level is:
+        - the next odd number if n is odd.
+        - the next even number if n is even.
+    Return the number of stones in each level in a list, where element at index
+    i represents the number of stones in the level (i+1).
+
+    Examples:
+    >>> make_a_pile(3)
+    [3, 5, 7]
+    """
+    return [n + 2*i for i in range(n)]
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import make_a_pile
+
+def test_make_a_pile():
+    assert make_a_pile(3) == [3, 5, 7]
+    assert make_a_pile(1) == [1]
+    assert make_a_pile(2) == [2, 4]
+    assert make_a_pile(0) == []
+    assert make_a_pile(10) == [10, 12, 14, 16, 18, 20, 22, 24, 26, 28]
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (4/4 killed; 0 survived)
+Surviving mutants: none

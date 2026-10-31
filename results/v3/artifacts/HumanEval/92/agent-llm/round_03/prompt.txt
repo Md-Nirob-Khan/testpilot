@@ -1,0 +1,85 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import any_int`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `any_int` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: any_int
+Arguments: (ArgumentInfo(name='x', annotation=None, kind='positional'), ArgumentInfo(name='y', annotation=None, kind='positional'), ArgumentInfo(name='z', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: Create a function that takes 3 numbers.
+Returns true if one of the numbers is equal to the sum of the other two, and all numbers are integers.
+Returns false in any other cases.
+
+Examples
+any_int(5, 2, 7) ➞ True
+
+any_int(3, 2, 2) ➞ False
+
+any_int(3, -2, 1) ➞ True
+
+any_int(3.6, -2.2, 2) ➞ False
+Branches: (BranchInfo(line=21, kind='and', condition='isinstance(x,int) and isinstance(y,int) and isinstance(z,int)', alternatives=3), BranchInfo(line=21, kind='if', condition='isinstance(x,int) and isinstance(y,int) and isinstance(z,int)', alternatives=2), BranchInfo(line=22, kind='if', condition='(x+y==z) or (x+z==y) or (y+z==x)', alternatives=2), BranchInfo(line=22, kind='or', condition='(x+y==z) or (x+z==y) or (y+z==x)', alternatives=3))
+Cyclomatic complexity: 7
+
+Source:
+```python
+def any_int(x, y, z):
+    '''
+    Create a function that takes 3 numbers.
+    Returns true if one of the numbers is equal to the sum of the other two, and all numbers are integers.
+    Returns false in any other cases.
+    
+    Examples
+    any_int(5, 2, 7) ➞ True
+    
+    any_int(3, 2, 2) ➞ False
+
+    any_int(3, -2, 1) ➞ True
+    
+    any_int(3.6, -2.2, 2) ➞ False
+  
+
+    
+    '''
+    
+    if isinstance(x,int) and isinstance(y,int) and isinstance(z,int):
+        if (x+y==z) or (x+z==y) or (y+z==x):
+            return True
+        return False
+    return False
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import any_int
+
+def test_any_int():
+    assert any_int(5, 2, 7) == True
+    assert any_int(3, 2, 2) == False
+    assert any_int(3, -2, 1) == True
+    assert any_int(3.6, -2.2, 2) == False
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (6/6)
+Uncovered source lines: none
+Branch coverage: 100.0% (4/4)
+Uncovered branches: none
+Mutation score: 61.5% (8/13 killed; 5 survived)
+Surviving mutants: ('testpilot_target.x_any_int__mutmut_1', 'testpilot_target.x_any_int__mutmut_2', 'testpilot_target.x_any_int__mutmut_3', 'testpilot_target.x_any_int__mutmut_7', 'testpilot_target.x_any_int__mutmut_9')

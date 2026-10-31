@@ -1,0 +1,15 @@
+```python
+import pytest
+from testpilot_target import bf
+
+@pytest.mark.parametrize("planet1, planet2, expected", [
+    ("Jupiter", "Neptune", ("Saturn", "Uranus")),
+    ("Earth", "Mercury", ("Venus")),
+    ("Mercury", "Uranus", ("Venus", "Earth", "Mars", "Jupiter", "Saturn")),
+    ("Pluto", "Mars", ()),
+    ("Earth", "Earth", ()),
+    ("Mercury", "Mercury", ()),
+])
+def test_bf(planet1, planet2, expected):
+    assert bf(planet1, planet2) == expected
+```

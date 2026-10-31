@@ -1,0 +1,63 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import check_dict_case`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `check_dict_case` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: check_dict_case
+Arguments: (ArgumentInfo(name='dict', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a dictionary, return True if all keys are strings in lower 
+case or all keys are strings in upper case, else return False.
+The function should return False is the given dictionary is empty.
+Examples:
+check_dict_case({"a":"apple", "b":"banana"}) should return True.
+check_dict_case({"a":"apple", "A":"banana", "B":"banana"}) should return False.
+check_dict_case({"a":"apple", 8:"banana", "a":"apple"}) should return False.
+check_dict_case({"Name":"John", "Age":"36", "City":"Houston"}) should return False.
+check_dict_case({"STATE":"NC", "ZIP":"12345" }) should return True.
+Branches: (BranchInfo(line=14, kind='if', condition='len(dict.keys()) == 0', alternatives=2), BranchInfo(line=18, kind='for', condition='for', alternatives=2), BranchInfo(line=20, kind='if', condition='isinstance(key, str) == False', alternatives=2), BranchInfo(line=23, kind='if', condition='state == "start"', alternatives=2), BranchInfo(line=24, kind='if', condition='key.isupper()', alternatives=2), BranchInfo(line=26, kind='if', condition='key.islower()', alternatives=2), BranchInfo(line=30, kind='and', condition='state == "lower" and not key.islower()', alternatives=2), BranchInfo(line=30, kind='and', condition='state == "upper" and not key.isupper()', alternatives=2), BranchInfo(line=30, kind='if', condition='(state == "upper" and not key.isupper()) or (state == "lower" and not key.islower())', alternatives=2), BranchInfo(line=30, kind='or', condition='(state == "upper" and not key.isupper()) or (state == "lower" and not key.islower())', alternatives=2), BranchInfo(line=35, kind='or', condition='state == "upper" or state == "lower"', alternatives=2))
+Cyclomatic complexity: 12
+
+Source:
+```python
+def check_dict_case(dict):
+    """
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({"a":"apple", "b":"banana"}) should return True.
+    check_dict_case({"a":"apple", "A":"banana", "B":"banana"}) should return False.
+    check_dict_case({"a":"apple", 8:"banana", "a":"apple"}) should return False.
+    check_dict_case({"Name":"John", "Age":"36", "City":"Houston"}) should return False.
+    check_dict_case({"STATE":"NC", "ZIP":"12345" }) should return True.
+    """
+    if len(dict.keys()) == 0:
+        return False
+    else:
+        state = "start"
+        for key in dict.keys():
+
+            if isinstance(key, str) == False:
+                state = "mixed"
+                break
+            if state == "start":
+                if key.isupper():
+                    state = "upper"
+                elif key.islower():
+                    state = "lower"
+                else:
+                    break
+            elif (state == "upper" and not key.isupper()) or (state == "lower" and not key.islower()):
+                    state = "mixed"
+                    break
+            else:
+                break
+        return state == "upper" or state == "lower"
+```

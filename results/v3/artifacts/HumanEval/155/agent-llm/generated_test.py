@@ -1,0 +1,10 @@
+import pytest
+
+from testpilot_target import even_odd_count
+
+def test_even_odd_count():
+    assert even_odd_count(-12) == (1, 1)
+    assert even_odd_count(123) == (1, 2)
+    assert even_odd_count(0) == (1, 0)
+    assert even_odd_count(1111) == (0, 4)
+    assert even_odd_count(-10101) == (4, 0)

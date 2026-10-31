@@ -1,0 +1,10 @@
+```python
+import pytest
+from testpilot_target import prime_length
+
+def test_prime_length():
+    assert prime_length('Hello') == True
+    assert prime_length('abcdcba') == True
+    assert prime_length('kittens') == True
+    assert prime_length('orange') == False
+```

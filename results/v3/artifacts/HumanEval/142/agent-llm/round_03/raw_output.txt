@@ -1,0 +1,9 @@
+```python
+import pytest
+from testpilot_target import sum_squares
+
+def test_sum_squares():
+    assert sum_squares([1,2,3]) == 6, "Test case 1 failed"
+    assert sum_squares([]) == 0, "Test case 2 failed"
+    assert sum_squares([-1,-5,2,-1,-5]) == -126, "Test case 3 failed"
+```

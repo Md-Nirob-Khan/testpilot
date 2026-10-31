@@ -1,0 +1,6 @@
+import pytest
+from testpilot_target import below_zero
+
+def test_below_zero():
+    assert below_zero([1, 2, 3]) == False
+    assert below_zero([1, 2, -4, 5]) == True

@@ -1,0 +1,79 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import compare`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `compare` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: compare
+Arguments: (ArgumentInfo(name='game', annotation=None, kind='positional'), ArgumentInfo(name='guess', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: I think we all remember that feeling when the result of some long-awaited
+event is finally known. The feelings and thoughts you have at that moment are
+definitely worth noting down and comparing.
+Your task is to determine if a person correctly guessed the results of a number of matches.
+You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+the value is 0, and if not, the value is the absolute difference between the guess and the score.
+
+
+example:
+
+compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def compare(game,guess):
+    """I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """
+    return [abs(x-y) for x,y in zip(game,guess)]
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+from testpilot_target import compare
+
+@pytest.mark.parametrize("game,guess,expected", [
+    ([1,2,3,4,5,1],[1,2,3,4,2,-2], [0,0,0,0,3,3]),
+    ([0,5,0,0,0,4],[4,1,1,0,0,-2], [4,4,1,0,0,6]),
+])
+def test_compare(game, guess, expected):
+    assert compare(game, guess) == expected
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Line coverage: 100.0% (2/2)
+Uncovered source lines: none
+Branch coverage: 100.0% (0/0)
+Uncovered branches: none
+Mutation score: 100.0% (6/6 killed; 0 survived)
+Surviving mutants: none

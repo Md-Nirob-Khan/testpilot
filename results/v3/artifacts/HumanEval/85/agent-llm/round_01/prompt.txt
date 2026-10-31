@@ -1,0 +1,33 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import add`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `add` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: add
+Arguments: (ArgumentInfo(name='lst', annotation=None, kind='positional'),)
+Return annotation: None
+Docstring: Given a non-empty list of integers lst. add the even elements that are at odd indices..
+
+
+Examples:
+    add([4, 2, 6, 7]) ==> 2 
+Branches: ()
+Cyclomatic complexity: 3
+
+Source:
+```python
+def add(lst):
+    """Given a non-empty list of integers lst. add the even elements that are at odd indices..
+
+
+    Examples:
+        add([4, 2, 6, 7]) ==> 2 
+    """
+    return sum([lst[i] for i in range(1, len(lst), 2) if lst[i]%2 == 0])
+```

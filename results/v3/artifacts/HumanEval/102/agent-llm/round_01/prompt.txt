@@ -1,0 +1,43 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import choose_num`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `choose_num` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: choose_num
+Arguments: (ArgumentInfo(name='x', annotation=None, kind='positional'), ArgumentInfo(name='y', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: This function takes two positive numbers x and y and returns the
+biggest even integer number that is in the range [x, y] inclusive. If 
+there's no such number, then the function should return -1.
+
+For example:
+choose_num(12, 15) = 14
+choose_num(13, 12) = -1
+Branches: (BranchInfo(line=11, kind='if', condition='x > y', alternatives=2), BranchInfo(line=13, kind='if', condition='y % 2 == 0', alternatives=2), BranchInfo(line=15, kind='if', condition='x == y', alternatives=2))
+Cyclomatic complexity: 4
+
+Source:
+```python
+def choose_num(x, y):
+    """This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """
+    if x > y:
+        return -1
+    if y % 2 == 0:
+        return y
+    if x == y:
+        return -1
+    return y - 1
+```

@@ -1,0 +1,12 @@
+```python
+import pytest
+from testpilot_target import make_palindrome
+
+@pytest.mark.parametrize("input_str, expected_output", [
+    ("", ""),
+    ("cat", "catac"),
+    ("cata", "catac"),
+])
+def test_make_palindrome(input_str, expected_output):
+    assert make_palindrome(input_str) == expected_output
+```

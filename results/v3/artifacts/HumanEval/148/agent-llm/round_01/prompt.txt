@@ -1,0 +1,58 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. Import the function from testpilot_target and do not copy or redefine it.
+At the top of your test module, include this import:
+`from testpilot_target import bf`. Call the imported function
+by name in every test. The tests must exercise the implementation from
+`testpilot_target`; never shadow `bf` in the test module. A
+suite that passes by testing a local reimplementation is invalid. Test normal
+behavior and meaningful edge cases based on the implementation.
+
+Function: bf
+Arguments: (ArgumentInfo(name='planet1', annotation=None, kind='positional'), ArgumentInfo(name='planet2', annotation=None, kind='positional'))
+Return annotation: None
+Docstring: There are eight planets in our solar system: the closerst to the Sun 
+is Mercury, the next one is Venus, then Earth, Mars, Jupiter, Saturn, 
+Uranus, Neptune.
+Write a function that takes two planet names as strings planet1 and planet2. 
+The function should return a tuple containing all planets whose orbits are 
+located between the orbit of planet1 and the orbit of planet2, sorted by 
+the proximity to the sun. 
+The function should return an empty tuple if planet1 or planet2
+are not correct planet names. 
+Examples
+bf("Jupiter", "Neptune") ==> ("Saturn", "Uranus")
+bf("Earth", "Mercury") ==> ("Venus")
+bf("Mercury", "Uranus") ==> ("Venus", "Earth", "Mars", "Jupiter", "Saturn")
+Branches: (BranchInfo(line=19, kind='if', condition='planet1 not in planet_names or planet2 not in planet_names or planet1 == planet2', alternatives=2), BranchInfo(line=19, kind='or', condition='planet1 not in planet_names or planet2 not in planet_names or planet1 == planet2', alternatives=3), BranchInfo(line=23, kind='if', condition='planet1_index < planet2_index', alternatives=2))
+Cyclomatic complexity: 5
+
+Source:
+```python
+def bf(planet1, planet2):
+    '''
+    There are eight planets in our solar system: the closerst to the Sun 
+    is Mercury, the next one is Venus, then Earth, Mars, Jupiter, Saturn, 
+    Uranus, Neptune.
+    Write a function that takes two planet names as strings planet1 and planet2. 
+    The function should return a tuple containing all planets whose orbits are 
+    located between the orbit of planet1 and the orbit of planet2, sorted by 
+    the proximity to the sun. 
+    The function should return an empty tuple if planet1 or planet2
+    are not correct planet names. 
+    Examples
+    bf("Jupiter", "Neptune") ==> ("Saturn", "Uranus")
+    bf("Earth", "Mercury") ==> ("Venus")
+    bf("Mercury", "Uranus") ==> ("Venus", "Earth", "Mars", "Jupiter", "Saturn")
+    '''
+    planet_names = ("Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune")
+    if planet1 not in planet_names or planet2 not in planet_names or planet1 == planet2:
+        return ()
+    planet1_index = planet_names.index(planet1)
+    planet2_index = planet_names.index(planet2)
+    if planet1_index < planet2_index:
+        return (planet_names[planet1_index + 1: planet2_index])
+    else:
+        return (planet_names[planet2_index + 1 : planet1_index])
+```

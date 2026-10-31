@@ -1,0 +1,20 @@
+```python
+import pytest
+from testpilot_target import reverse_delete
+
+@pytest.mark.parametrize("s, c, expected", [
+    ("abcde", "ae", ('bcd', False)),
+    ("abcdef", "b", ('acdef', False)),
+    ("abcdedcba", "ab", ('cdedc', True)),
+    ("abcdefg", "f", ('abcdef', False)),
+    ("abcdefg", "g", ('abcdef', False)),
+    ("abcdefg", "e", ('abcdef', False)),
+    ("abcdefg", "d", ('abcdef', False)),
+    ("abcdefg", "c", ('abcdef', False)),
+    ("abcdefg", "b", ('abcdef', False)),
+    ("abcdefg", "a", ('abcdef', False)),
+])
+def test_reverse_delete(s, c, expected):
+    result = reverse_delete(s, c)
+    assert result == expected, f"Expected {expected}, but got {result} for s={s}, c={c}"
+```
