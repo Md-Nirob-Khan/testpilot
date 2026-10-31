@@ -1,0 +1,8 @@
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Coverage: unavailable
+Mutation score: 0.0% (0/15 killed; 15 survived)
+Surviving mutants: ('testpilot_target.x_is_palindrome__mutmut_1', 'testpilot_target.x_is_palindrome__mutmut_2', 'testpilot_target.x_is_palindrome__mutmut_3', 'testpilot_target.x_make_palindrome__mutmut_1', 'testpilot_target.x_make_palindrome__mutmut_10', 'testpilot_target.x_make_palindrome__mutmut_11', 'testpilot_target.x_make_palindrome__mutmut_12', 'testpilot_target.x_make_palindrome__mutmut_2', 'testpilot_target.x_make_palindrome__mutmut_3', 'testpilot_target.x_make_palindrome__mutmut_4', 'testpilot_target.x_make_palindrome__mutmut_5', 'testpilot_target.x_make_palindrome__mutmut_6', 'testpilot_target.x_make_palindrome__mutmut_7', 'testpilot_target.x_make_palindrome__mutmut_8', 'testpilot_target.x_make_palindrome__mutmut_9')
+Coverage evaluation failed: RuntimeError: Could not produce coverage JSON: No data to report.

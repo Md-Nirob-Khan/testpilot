@@ -14,12 +14,19 @@ from testpilot.analyzer import FunctionInfo, analyze_file
 from testpilot.benchmarks import HumanEvalProblem, load_humaneval
 from testpilot.engines import AgentEngine, PynguinEngine, SingleShotEngine
 from testpilot.engines.base import GeneratedSuite, TestGenerationEngine
+from testpilot.engines.llm_engine import target_usage_issue
 from testpilot.evaluator import (
     CoverageEvaluator,
     MutationEvaluator,
     WrongTestDetector,
 )
 from testpilot.llm import LLMProvider, LLMProviderError, create_provider
+from testpilot.run_artifacts import (
+    RecordingMutationEvaluator,
+    RecordingProvider,
+    RunArtifactCapture,
+    write_run_artifacts,
+)
 from testpilot.sandbox import passing_test_selection
 
 _CSV_FIELDS = (
@@ -50,6 +57,7 @@ _CSV_FIELDS = (
     "passing_test_count",
     "expected_failure_count",
     "no_scorable_tests",
+    "does_not_call_target",
     "wrong_test_status",
     "wrong_test_reasons_json",
 )
@@ -86,6 +94,7 @@ class ExperimentRow:
     passing_test_count: int | None
     expected_failure_count: int | None
     no_scorable_tests: bool
+    does_not_call_target: bool
     wrong_test_status: str
     wrong_test_reasons_json: str
 
@@ -108,6 +117,8 @@ def run_humaneval_experiment(
     offset: int = 0,
     task_ids: Sequence[str] | None = None,
     resume: bool = False,
+    engine_names: Sequence[str] | None = None,
+    artifact_dir: Path | None = None,
 ) -> ExperimentSummary:
     """Run all three engines on a HumanEval slice and write a CSV report."""
     started = time.perf_counter()
@@ -136,7 +147,18 @@ def run_humaneval_experiment(
     provider = create_provider()
     model_name = _model_name(provider)
     temperature, seed = _sampling_settings(provider)
-    engine_specs = _engine_specs(provider)
+    engine_specs = _engine_specs()
+    if engine_names is not None:
+        if not engine_names or len(set(engine_names)) != len(engine_names):
+            raise ValueError("engine_names must be non-empty and contain no duplicates")
+        known_engines = {engine_name for engine_name, _, _ in engine_specs}
+        unknown = set(engine_names) - known_engines
+        if unknown:
+            raise ValueError(f"Unknown engines: {', '.join(sorted(unknown))}")
+        requested = set(engine_names)
+        engine_specs = tuple(
+            spec for spec in engine_specs if spec[0] in requested
+        )
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -173,13 +195,27 @@ def run_humaneval_experiment(
                 for engine_name, engine_settings, engine_factory in engine_specs:
                     if engine_name in recorded_engines.get(problem.task_id, set()):
                         continue
+                    capture = RunArtifactCapture() if artifact_dir is not None else None
+                    recording_provider = (
+                        RecordingProvider(provider, capture)
+                        if capture is not None
+                        else provider
+                    )
+                    mutation_recorder = (
+                        RecordingMutationEvaluator(MutationEvaluator(), capture)
+                        if capture is not None and engine_name == "agent-llm"
+                        else None
+                    )
                     row = _run_one(
                         problem=problem,
                         function=function,
                         source_path=source_path,
                         engine_name=engine_name,
                         engine_settings=engine_settings,
-                        engine=engine_factory(),
+                        engine=engine_factory(
+                            recording_provider,
+                            mutation_recorder,
+                        ),
                         model_name=model_name,
                         temperature=(
                             temperature if engine_name != "pynguin" else None
@@ -187,6 +223,8 @@ def run_humaneval_experiment(
                         seed=seed if engine_name != "pynguin" else None,
                         run_date=run_date,
                         run_started_at=run_started_at,
+                        artifact_root=artifact_dir,
+                        artifact_capture=capture,
                     )
                     rows.append(row)
                     writer.writerow(asdict(row))
@@ -205,24 +243,41 @@ def run_humaneval_experiment(
 
 
 def _engine_specs(
-    provider: LLMProvider,
-) -> tuple[tuple[str, str, Callable[[], TestGenerationEngine]], ...]:
+) -> tuple[
+    tuple[
+        str,
+        str,
+        Callable[
+            [LLMProvider, RecordingMutationEvaluator | None],
+            TestGenerationEngine,
+        ],
+    ],
+    ...,
+]:
     """Build the engines with explicit, recorded trial settings."""
     return (
         (
             "single-shot-llm",
             "one generation attempt",
-            lambda: SingleShotEngine(provider),
+            lambda engine_provider, _mutation: SingleShotEngine(engine_provider),
         ),
         (
             "agent-llm",
-            "max_rounds=3; benchmark_mode=true",
-            lambda: AgentEngine(provider, max_rounds=3, is_benchmark=True),
+            (
+                "max_rounds=3; benchmark_mode=true; round_1_temperature=0; "
+                "round_1_seed=42; round_2+_temperature=0.7; seed=42+round"
+            ),
+            lambda engine_provider, mutation_evaluator: AgentEngine(
+                engine_provider,
+                max_rounds=3,
+                is_benchmark=True,
+                mutation_evaluator=mutation_evaluator,
+            ),
         ),
         (
             "pynguin",
             "search_time_seconds=30; timeout_seconds=120; seed=42",
-            PynguinEngine,
+            lambda _engine_provider, _mutation: PynguinEngine(),
         ),
     )
 
@@ -239,6 +294,8 @@ def _run_one(
     run_started_at: str,
     temperature: float | None = None,
     seed: int | None = None,
+    artifact_root: Path | None = None,
+    artifact_capture: RunArtifactCapture | None = None,
 ) -> ExperimentRow:
     """Generate and evaluate one engine's tests against a canonical solution."""
     started = time.perf_counter()
@@ -254,17 +311,33 @@ def _run_one(
     passing_test_count = None
     expected_failure_count = 0
     no_scorable_tests = False
+    does_not_call_target = False
     wrong_test_status = ""
     wrong_test_reasons: list[dict[str, str]] = []
     infrastructure_error = False
     selection = None
+    generation_error = ""
     try:
         suite = engine.generate(function, source_path)
     except Exception as exc:
-        errors.append(f"generation: {_format_error(exc)}")
+        generation_error = _format_error(exc)
+        errors.append(f"generation: {generation_error}")
         infrastructure_error = _is_ollama_connection_refused(exc)
 
+    if artifact_root is not None and artifact_capture is not None:
+        write_run_artifacts(
+            artifact_root,
+            problem.task_id,
+            engine_name,
+            suite.test_code if suite is not None else None,
+            artifact_capture,
+            generation_error,
+        )
+
     if suite is not None:
+        does_not_call_target = (
+            target_usage_issue(suite.test_code, function.name) is not None
+        )
         try:
             correctness = WrongTestDetector(timeout_seconds=30.0).evaluate(
                 suite.test_code,
@@ -320,7 +393,7 @@ def _run_one(
             passing_test_count = None
             coverage_deselected = ()
             mutation_deselected = ()
-        if passing_test_count:
+        if passing_test_count and not does_not_call_target:
             try:
                 coverage = CoverageEvaluator(timeout_seconds=30.0).evaluate(
                     suite.test_code,
@@ -351,6 +424,12 @@ def _run_one(
                 except Exception as exc:
                     errors.append(f"mutation: {_format_error(exc)}")
         elif correctness is not None:
+            no_scorable_tests = no_scorable_tests or does_not_call_target
+            line_percent = 0.0
+            branch_percent = 0.0
+            mutation_score = 0.0
+        if does_not_call_target:
+            no_scorable_tests = True
             line_percent = 0.0
             branch_percent = 0.0
             mutation_score = 0.0
@@ -363,8 +442,6 @@ def _run_one(
         function_name=problem.entry_point,
         engine_name=engine_name,
         model_name=model_name,
-        temperature=temperature,
-        seed=seed,
         engine_settings=engine_settings,
         status=(
             "infrastructure_error"
@@ -379,6 +456,16 @@ def _run_one(
         llm_tokens_used=(suite.llm_tokens_used if suite else None),
         estimated_cost_usd=(suite.estimated_cost_usd if suite else None),
         rounds=(suite.rounds if suite else None),
+        temperature=(
+            suite.sampling_temperature
+            if suite is not None and suite.sampling_temperature is not None
+            else temperature
+        ),
+        seed=(
+            suite.sampling_seed
+            if suite is not None and suite.sampling_seed is not None
+            else seed
+        ),
         line_percent=line_percent,
         branch_percent=branch_percent,
         mutation_score=mutation_score,
@@ -389,6 +476,7 @@ def _run_one(
         passing_test_count=passing_test_count,
         expected_failure_count=expected_failure_count,
         no_scorable_tests=no_scorable_tests,
+        does_not_call_target=does_not_call_target,
         wrong_test_status=wrong_test_status,
         wrong_test_reasons_json=json.dumps(wrong_test_reasons, sort_keys=True),
     )
@@ -465,6 +553,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="append to an existing CSV and skip recorded task/engine results",
     )
+    parser.add_argument(
+        "--engines",
+        nargs="+",
+        choices=("single-shot-llm", "agent-llm", "pynguin"),
+        help="generation engines to run (default: all three)",
+    )
+    parser.add_argument(
+        "--artifact-dir",
+        type=Path,
+        help="save generated suites and LLM round traces under this directory",
+    )
     arguments = parser.parse_args(argv)
     if arguments.limit < 1:
         parser.error("--limit must be positive")
@@ -478,6 +577,8 @@ def main(argv: list[str] | None = None) -> int:
         offset=arguments.offset,
         task_ids=arguments.task_ids,
         resume=arguments.resume,
+        engine_names=arguments.engines,
+        artifact_dir=arguments.artifact_dir,
     )
     completed = sum(row.status == "completed" for row in summary.rows)
     print(

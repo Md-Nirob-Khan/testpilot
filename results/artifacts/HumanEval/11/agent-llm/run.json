@@ -1,0 +1,23 @@
+{
+  "engine_name": "agent-llm",
+  "generation_error": "",
+  "round_details": [
+    {
+      "mutation_error": "",
+      "mutation_score": 0.0,
+      "provider_error": "",
+      "returned": true,
+      "round": 1
+    },
+    {
+      "mutation_error": "",
+      "mutation_score": 0.0,
+      "provider_error": "",
+      "returned": false,
+      "round": 2
+    }
+  ],
+  "rounds_recorded": 2,
+  "selected_round": 1,
+  "task_id": "HumanEval/11"
+}

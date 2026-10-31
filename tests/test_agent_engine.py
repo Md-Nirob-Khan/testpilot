@@ -17,10 +17,23 @@ class FakeProvider:
     def __init__(self, generations: list[str]) -> None:
         self.generations = iter(generations)
         self.prompts: list[tuple[str, str]] = []
+        self.temperature = 0.0
+        self.seed = 42
+        self.sampling_settings: list[tuple[float, int]] = []
 
     def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         self.prompts.append((system_prompt, user_prompt))
         return LLMResponse(next(self.generations), 3, 2, 0.01)
+
+    def complete_with_sampling(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        seed: int,
+    ) -> LLMResponse:
+        self.sampling_settings.append((temperature, seed))
+        return self.complete(system_prompt, user_prompt)
 
 
 class FakeCoverageEvaluator:
@@ -123,6 +136,15 @@ def _function_and_source(tmp_path: Path):
     return function_info, source_path
 
 
+def _target_suite(label: str, assertion: str = "double(1) == 2") -> str:
+    """Create distinct valid test modules for engine-loop tests."""
+    return (
+        "from testpilot_target import double\n\n"
+        f"def test_{label}():\n"
+        f"    assert {assertion}\n"
+    ).strip()
+
+
 def _wrong_test_result(status: str, failing_tests: int = 0) -> WrongTestResult:
     test_outcomes = (
         tuple(
@@ -156,7 +178,11 @@ def test_agent_keeps_best_mutation_score_and_stops_when_score_stalls(
     tmp_path: Path,
 ) -> None:
     function_info, source_path = _function_and_source(tmp_path)
-    generated = ["raw round one", "raw round two", "raw round three"]
+    generated = [
+        _target_suite("round_one"),
+        _target_suite("round_two", "double(2) == 4"),
+        _target_suite("round_three", "double(3) == 6"),
+    ]
     provider = FakeProvider(generated)
     coverage = FakeCoverageEvaluator()
     mutation = FakeMutationEvaluator([0.4, 0.8, 0.8])
@@ -169,20 +195,23 @@ def test_agent_keeps_best_mutation_score_and_stops_when_score_stalls(
         wrong_test_detector=wrong_tests,
     ).generate(function_info, source_path)
 
-    assert suite.test_code == "raw round two"
+    assert suite.test_code == generated[1].strip()
     assert suite.engine_name == "agent-llm"
     assert suite.rounds == 3
     assert suite.llm_tokens_used == 15
     assert suite.estimated_cost_usd == pytest.approx(0.03)
     assert suite.wrong_test_count == 0
     assert suite.needs_human_review_count == 0
+    assert suite.sampling_temperature == pytest.approx(0.7)
+    assert suite.sampling_seed == 44
+    assert provider.sampling_settings == [(0.7, 44), (0.7, 45)]
     assert wrong_tests.calls == [
         (raw, source_path, False) for raw in generated
     ]
     assert coverage.suites == generated
     assert mutation.suites == generated
     assert coverage.source_paths == mutation.source_paths == [source_path] * 3
-    assert "raw round one" in provider.prompts[1][1]
+    assert generated[0] in provider.prompts[1][1]
     assert "Uncovered source lines: (4,)" in provider.prompts[1][1]
     assert "Surviving mutants: ('mutant_1',)" in provider.prompts[1][1]
 
@@ -191,7 +220,10 @@ def test_agent_scores_raw_wrong_tests_then_uses_feedback(
     tmp_path: Path,
 ) -> None:
     function_info, source_path = _function_and_source(tmp_path)
-    generated = ["raw incorrect suite", "raw passing suite"]
+    generated = [
+        _target_suite("incorrect", "double(1) == 999"),
+        _target_suite("passing"),
+    ]
     provider = FakeProvider(generated)
     coverage = FakeCoverageEvaluator()
     mutation = FakeMutationEvaluator([0.7])
@@ -211,14 +243,16 @@ def test_agent_scores_raw_wrong_tests_then_uses_feedback(
     ).generate(function_info, source_path)
 
     assert [call[0] for call in wrong_tests.calls] == generated
-    assert coverage.suites == ["raw passing suite"]
-    assert mutation.suites == ["raw passing suite"]
+    assert coverage.suites == [generated[1].strip()]
+    assert mutation.suites == [generated[1].strip()]
     assert coverage.source_paths == mutation.source_paths == [source_path]
-    assert suite.test_code == "raw passing suite"
+    assert suite.test_code == generated[1].strip()
     assert suite.rounds == 2
     assert suite.wrong_test_count == 0
     assert suite.needs_human_review_count == 1
-    assert "raw incorrect suite" in provider.prompts[1][1]
+    assert suite.sampling_temperature == pytest.approx(0.7)
+    assert suite.sampling_seed == 44
+    assert generated[0] in provider.prompts[1][1]
     assert "needs_human_review" in provider.prompts[1][1]
     assert "AssertionError: incorrect expectation" in provider.prompts[1][1]
 
@@ -229,9 +263,10 @@ def test_agent_excludes_xfail_cases_from_scores_and_reports_them(
     function_info, source_path = _function_and_source(tmp_path)
     test_code = (
         "import pytest\n\n"
+        "from testpilot_target import double\n\n"
         "@pytest.mark.xfail(strict=True)\n"
         "def test_expected_exception():\n"
-        "    raise RuntimeError('expected')\n"
+        "    assert double(1) == 999\n"
     )
     provider = FakeProvider([test_code])
     coverage = FakeCoverageEvaluator()
@@ -281,7 +316,8 @@ def test_agent_returns_last_raw_suite_if_all_rounds_fail(
     tmp_path: Path,
 ) -> None:
     function_info, source_path = _function_and_source(tmp_path)
-    provider = FakeProvider(["first raw suite", "last raw suite"])
+    generated = [_target_suite("first"), _target_suite("last", "double(1) == 3")]
+    provider = FakeProvider(generated)
     coverage = FakeCoverageEvaluator()
     mutation = FakeMutationEvaluator([])
     wrong_tests = FakeWrongTestDetector(
@@ -300,7 +336,7 @@ def test_agent_returns_last_raw_suite_if_all_rounds_fail(
         wrong_test_detector=wrong_tests,
     ).generate(function_info, source_path)
 
-    assert suite.test_code == "last raw suite"
+    assert suite.test_code == generated[-1].strip()
     assert suite.rounds == 2
     assert suite.wrong_test_count == 3
     assert suite.needs_human_review_count == 0
@@ -313,7 +349,11 @@ def test_agent_treats_coverage_errors_as_feedback_for_the_next_round(
     tmp_path: Path,
 ) -> None:
     function_info, source_path = _function_and_source(tmp_path)
-    provider = FakeProvider(["first raw suite", "second raw suite"])
+    generated = [
+        _target_suite("coverage_first"),
+        _target_suite("coverage_second", "double(2) == 4"),
+    ]
+    provider = FakeProvider(generated)
     mutation = FakeMutationEvaluator([0.3, 0.3])
 
     class FailingCoverageEvaluator:
@@ -336,11 +376,11 @@ def test_agent_treats_coverage_errors_as_feedback_for_the_next_round(
     ).generate(function_info, source_path)
 
     assert suite.rounds == 2
-    assert suite.test_code == "first raw suite"
+    assert suite.test_code == generated[0].strip()
     assert "Coverage evaluation failed: RuntimeError: No data to report" in (
         provider.prompts[1][1]
     )
-    assert mutation.suites == ["first raw suite", "second raw suite"]
+    assert mutation.suites == [suite_code.strip() for suite_code in generated]
 
 
 def test_agent_scores_only_passing_cases_and_keeps_raw_generation(
@@ -348,10 +388,11 @@ def test_agent_scores_only_passing_cases_and_keeps_raw_generation(
 ) -> None:
     function_info, source_path = _function_and_source(tmp_path)
     raw_suite = (
+        "from testpilot_target import double\n\n"
         "def test_wrong():\n"
-        "    assert 1 == 2\n\n"
+        "    assert double(1) == 999\n\n"
         "def test_right():\n"
-        "    assert 1 == 1\n"
+        "    assert double(1) == 2\n"
     )
     coverage = FakeCoverageEvaluator()
     mutation = FakeMutationEvaluator([0.5])
@@ -393,6 +434,62 @@ def test_agent_scores_only_passing_cases_and_keeps_raw_generation(
     expected_deselection = ("tests/test_generated.py::test_wrong",)
     assert coverage.deselected_test_ids == [expected_deselection]
     assert mutation.deselected_test_ids == [expected_deselection]
+
+
+def test_agent_retries_target_redefinition_with_explicit_feedback(
+    tmp_path: Path,
+) -> None:
+    function_info, source_path = _function_and_source(tmp_path)
+    invalid = (
+        "def double(value):\n"
+        "    return value * 2\n\n"
+        "def test_double():\n"
+        "    assert double(3) == 6\n"
+    )
+    valid = _target_suite("corrected", "double(3) == 6")
+    provider = FakeProvider([invalid, valid])
+    mutation = FakeMutationEvaluator([0.6])
+
+    suite = AgentEngine(
+        provider,
+        max_rounds=2,
+        mutation_evaluator=mutation,
+        wrong_test_detector=FakeWrongTestDetector([_wrong_test_result("passed")]),
+    ).generate(function_info, source_path)
+
+    assert suite.test_code == valid.strip()
+    assert suite.rounds == 2
+    assert mutation.suites == [valid.strip()]
+    assert "Target-usage validation failed" in provider.prompts[1][1]
+    assert "defines 'double'" in provider.prompts[1][1]
+    assert provider.sampling_settings == [(0.7, 44)]
+    assert invalid in provider.prompts[1][1]
+
+
+def test_agent_stops_after_an_exactly_repeated_candidate(
+    tmp_path: Path,
+) -> None:
+    function_info, source_path = _function_and_source(tmp_path)
+    repeated = _target_suite("same")
+    provider = FakeProvider([repeated, repeated, _target_suite("unused")])
+    mutation = FakeMutationEvaluator([0.5])
+    wrong_tests = FakeWrongTestDetector([_wrong_test_result("passed")])
+
+    suite = AgentEngine(
+        provider,
+        max_rounds=3,
+        mutation_evaluator=mutation,
+        wrong_test_detector=wrong_tests,
+    ).generate(function_info, source_path)
+
+    assert suite.test_code == repeated.strip()
+    assert suite.rounds == 2
+    assert len(provider.prompts) == 2
+    assert mutation.suites == [repeated.strip()]
+    assert len(wrong_tests.calls) == 1
+    assert suite.sampling_temperature == 0.0
+    assert suite.sampling_seed == 42
+    assert provider.sampling_settings == [(0.7, 44)]
 
 
 @pytest.mark.parametrize("max_rounds", [0, -1, 1.5, True])

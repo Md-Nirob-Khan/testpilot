@@ -1,0 +1,83 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. At the top of your test module, include this import:
+`from testpilot_target import how_many_times`. Call the imported function
+by name in every test; do not rely on it being a global and do not duplicate the
+implementation in the tests. Test normal behavior and meaningful edge cases
+based on the implementation.
+
+Function: how_many_times
+Arguments: (ArgumentInfo(name='string', annotation='str', kind='positional'), ArgumentInfo(name='substring', annotation='str', kind='positional'))
+Return annotation: 'int'
+Docstring: Find how many times a given substring can be found in the original string. Count overlaping cases.
+>>> how_many_times('', 'a')
+0
+>>> how_many_times('aaa', 'a')
+3
+>>> how_many_times('aaaa', 'aa')
+3
+Branches: (BranchInfo(line=14, kind='for', condition='for', alternatives=2), BranchInfo(line=15, kind='if', condition='string[i:i+len(substring)] == substring', alternatives=2))
+Cyclomatic complexity: 3
+
+Source:
+```python
+def how_many_times(string: str, substring: str) -> int:
+    """ Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """
+    times = 0
+
+    for i in range(len(string) - len(substring) + 1):
+        if string[i:i+len(substring)] == substring:
+            times += 1
+
+    return times
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def how_many_times(string: str, substring: str) -> int:
+    """ Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """
+    times = 0
+
+    for i in range(len(string) - len(substring) + 1):
+        if string[i:i+len(substring)] == substring:
+            times += 1
+
+    return times
+
+def test_how_many_times():
+    assert how_many_times('', 'a') == 0
+    assert how_many_times('aaa', 'a') == 3
+    assert how_many_times('aaaa', 'aa') == 3
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Coverage: unavailable
+Mutation score: 0.0% (0/11 killed; 11 survived)
+Surviving mutants: ('testpilot_target.x_how_many_times__mutmut_1', 'testpilot_target.x_how_many_times__mutmut_10', 'testpilot_target.x_how_many_times__mutmut_11', 'testpilot_target.x_how_many_times__mutmut_2', 'testpilot_target.x_how_many_times__mutmut_3', 'testpilot_target.x_how_many_times__mutmut_4', 'testpilot_target.x_how_many_times__mutmut_5', 'testpilot_target.x_how_many_times__mutmut_6', 'testpilot_target.x_how_many_times__mutmut_7', 'testpilot_target.x_how_many_times__mutmut_8', 'testpilot_target.x_how_many_times__mutmut_9')
+Coverage evaluation failed: RuntimeError: Could not produce coverage JSON: No data to report.

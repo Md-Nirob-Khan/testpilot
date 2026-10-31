@@ -45,6 +45,11 @@ source file contains multiple functions, `--output tests_generated.py` to save
 the suite, and `--run` to run it in the sandbox. The sandbox copies the source
 file and generated suite into a temporary directory, launches pytest in a
 subprocess with a timeout, and removes the temporary directory afterward.
+Both LLM engines are instructed to import and call the target from
+`testpilot_target` without copying or redefining it. Single-shot makes exactly
+one generation request; experiment rows separately flag suites that fail the
+AST target-usage check and assign those suites zero coverage and mutation.
+Generated tests are never edited before they are run or scored.
 This subprocess boundary and timeout are not an OS-level security sandbox;
 Docker isolation is not currently included.
 
@@ -79,10 +84,15 @@ Mutmut runs natively on macOS, with its `use_setproctitle` option disabled.
 ## Iterative agent engine
 
 Phase 3 adds `AgentEngine`, which generates up to three suites by default.
-Every raw suite is sent to the wrong-test detector first. Passing suites are
-measured for coverage and mutation score; failing suites are reported to the
-next model round unchanged. The engine returns the passing suite with the
-highest mutation score, or the last raw suite if none pass.
+The agent uses temperature 0 for round 1 and temperature 0.7 for later Ollama
+rounds, with seed `42 + round number`; its CSV records the sampling settings of
+the returned suite. Target-valid raw suites are sent to the wrong-test detector first. Passing
+suites are measured for coverage and mutation score; failing suites are
+reported to the next model round unchanged. Suites that redefine the target or
+do not directly call its imported implementation are rejected with explicit
+correction feedback. Repeated candidate suites stop the loop without another
+evaluation. The engine returns the passing suite with the highest mutation
+score.
 The result reports benchmark wrong-test failures and user-code failures needing
 human review separately across all attempted rounds.
 
@@ -230,6 +240,10 @@ Use `--task-ids HumanEval/41 HumanEval/42` to rerun selected cases across all
 three engines without running the full benchmark.
 Add `--resume` to append completed rows and skip task/engine pairs already
 present in the output CSV after an interrupted run.
+Use `--artifact-dir results/artifacts` to retain each generated suite. For LLM
+engines, this also saves prompts and raw responses by round; agent traces include
+the evaluator feedback sent to each round and the selected returned round. Limit
+generation with `--engines single-shot-llm agent-llm` when Pynguin is not needed.
 
 Analyze a completed HumanEval CSV and generate a Markdown report plus PNG
 charts. Install the optional analysis dependencies, then run:

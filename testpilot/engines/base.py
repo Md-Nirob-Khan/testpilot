@@ -19,6 +19,8 @@ class GeneratedSuite:
     rounds: int = 1
     wrong_test_count: int = 0
     needs_human_review_count: int = 0
+    sampling_temperature: float | None = None
+    sampling_seed: int | None = None
 
 
 class TestGenerationEngine(Protocol):

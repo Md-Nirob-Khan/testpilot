@@ -1,0 +1,79 @@
+Write a pytest test module for the function below.
+
+The source file is 'testpilot_target.py'. In the sandbox, it is imported as
+`testpilot_target`. At the top of your test module, include this import:
+`from testpilot_target import string_xor`. Call the imported function
+by name in every test; do not rely on it being a global and do not duplicate the
+implementation in the tests. Test normal behavior and meaningful edge cases
+based on the implementation.
+
+Function: string_xor
+Arguments: (ArgumentInfo(name='a', annotation='str', kind='positional'), ArgumentInfo(name='b', annotation='str', kind='positional'))
+Return annotation: 'str'
+Docstring: Input are two strings a and b consisting only of 1s and 0s.
+Perform binary XOR on these inputs and return result also as a string.
+>>> string_xor('010', '110')
+'100'
+Branches: ()
+Cyclomatic complexity: 2
+
+Source:
+```python
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+    def xor(i, j):
+        if i == j:
+            return '0'
+        else:
+            return '1'
+
+    return ''.join(xor(x, y) for x, y in zip(a, b))
+```
+
+Improve the previous test suite using the evaluator feedback. Return a complete
+replacement pytest module, not a patch. Do not assume a failing assertion is
+incorrect when the implementation is user code; use the provided evidence and
+avoid unsupported expectations.
+
+Previous raw generated tests:
+```python
+import pytest
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+    def xor(i, j):
+        if i == j:
+            return '0'
+        else:
+            return '1'
+
+    return ''.join(xor(x, y) for x, y in zip(a, b))
+
+@pytest.mark.parametrize("a, b, expected", [
+    ("010", "110", "100"),
+    ("101", "010", "111"),
+    ("000", "000", "000"),
+    ("111", "111", "000"),
+    ("", "", ""),
+])
+def test_string_xor(a, b, expected):
+    assert string_xor(a, b) == expected
+```
+
+Evaluator feedback:
+Wrong-test status: passed
+Failing tests: 0
+Xfail-marked tests excluded: 0
+Explanation: All non-xfail generated tests passed; xfail-marked tests are reported separately and excluded from scoring.
+Coverage: unavailable
+Mutation score: 0.0% (0/13 killed; 13 survived)
+Surviving mutants: ('testpilot_target.x_string_xor__mutmut_1', 'testpilot_target.x_string_xor__mutmut_10', 'testpilot_target.x_string_xor__mutmut_11', 'testpilot_target.x_string_xor__mutmut_12', 'testpilot_target.x_string_xor__mutmut_13', 'testpilot_target.x_string_xor__mutmut_2', 'testpilot_target.x_string_xor__mutmut_3', 'testpilot_target.x_string_xor__mutmut_4', 'testpilot_target.x_string_xor__mutmut_5', 'testpilot_target.x_string_xor__mutmut_6', 'testpilot_target.x_string_xor__mutmut_7', 'testpilot_target.x_string_xor__mutmut_8', 'testpilot_target.x_string_xor__mutmut_9')
+Coverage evaluation failed: RuntimeError: Could not produce coverage JSON: No data to report.

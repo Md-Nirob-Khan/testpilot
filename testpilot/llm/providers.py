@@ -135,6 +135,25 @@ class OllamaProvider:
 
     def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         """Request one non-streaming chat completion from Ollama."""
+        return self.complete_with_sampling(
+            system_prompt,
+            user_prompt,
+            temperature=self.temperature,
+            seed=self.seed,
+        )
+
+    def complete_with_sampling(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        seed: int,
+    ) -> LLMResponse:
+        """Request one chat completion using per-call reproducible settings."""
+        if not math.isfinite(temperature) or temperature < 0:
+            raise ValueError("Ollama temperature must be finite and non-negative")
+        if isinstance(seed, bool) or not isinstance(seed, int):
+            raise ValueError("Ollama seed must be an integer")
         request = urllib.request.Request(
             f"{self.base_url.rstrip('/')}/api/chat",
             data=json.dumps(
@@ -146,8 +165,8 @@ class OllamaProvider:
                         {"role": "user", "content": user_prompt},
                     ],
                     "options": {
-                        "temperature": self.temperature,
-                        "seed": self.seed,
+                        "temperature": temperature,
+                        "seed": seed,
                     },
                 }
             ).encode("utf-8"),

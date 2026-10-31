@@ -115,7 +115,11 @@ def test_trial_writes_three_benchmark_engine_rows(
     class FakeEngine:
         def generate(self, function_info, source_path):
             return GeneratedSuite(
-                test_code="def test_add():\n    assert True\n",
+                test_code=(
+                    "from testpilot_target import add\n\n"
+                    "def test_add():\n"
+                    "    assert add(1, 2) == 3\n"
+                ),
                 engine_name="fake",
                 wall_clock_seconds=0.25,
                 llm_tokens_used=12,
@@ -185,7 +189,7 @@ def test_trial_writes_three_benchmark_engine_rows(
     monkeypatch.setattr(
         experiment,
         "AgentEngine",
-        lambda provider, max_rounds, is_benchmark: FakeEngine(),
+        lambda provider, max_rounds, is_benchmark, mutation_evaluator=None: FakeEngine(),
     )
     monkeypatch.setattr(experiment, "PynguinEngine", FakeEngine)
     monkeypatch.setattr(experiment, "WrongTestDetector", FakeWrongTestDetector)
@@ -228,7 +232,9 @@ def test_trial_writes_three_benchmark_engine_rows(
     assert all(row["line_percent"] == "75.0" for row in rows)
     assert all(row["branch_percent"] == "50.0" for row in rows)
     assert all(row["mutation_score"] == "0.5" for row in rows)
-    assert rows[1]["engine_settings"] == "max_rounds=3; benchmark_mode=true"
+    assert rows[1]["engine_settings"].startswith(
+        "max_rounds=3; benchmark_mode=true;"
+    )
     assert rows[2]["engine_settings"].endswith("seed=42")
     assert events == [True, True, True]
 
@@ -269,10 +275,11 @@ def test_experiment_scores_passing_cases_and_records_failure_reasons(
     dataset_path = tmp_path / "HumanEval.jsonl"
     dataset_path.write_text(json.dumps(_record()), encoding="utf-8")
     raw_suite = (
+        "from testpilot_target import add\n\n"
         "def test_wrong():\n"
-        "    assert 1 == 2\n\n"
+        "    assert add(1, 2) == 999\n\n"
         "def test_right():\n"
-        "    assert 1 == 1\n"
+        "    assert add(1, 2) == 3\n"
     )
     evaluated_suites: list[tuple[str, tuple[str, ...]]] = []
 
@@ -352,7 +359,7 @@ def test_experiment_scores_passing_cases_and_records_failure_reasons(
     monkeypatch.setattr(
         experiment,
         "AgentEngine",
-        lambda provider, max_rounds, is_benchmark: FakeEngine(),
+        lambda provider, max_rounds, is_benchmark, mutation_evaluator=None: FakeEngine(),
     )
     monkeypatch.setattr(experiment, "PynguinEngine", FakeEngine)
     monkeypatch.setattr(experiment, "WrongTestDetector", FakeWrongTestDetector)
@@ -367,6 +374,7 @@ def test_experiment_scores_passing_cases_and_records_failure_reasons(
 
     assert all(row.status == "completed" for row in summary.rows)
     assert all(row.wrong_test_count == 1 for row in summary.rows)
+    assert all(not row.does_not_call_target for row in summary.rows)
     assert all(row.passing_test_count == 1 for row in summary.rows)
     assert all(row.expected_failure_count == 0 for row in summary.rows)
     assert all(row.mutation_score == 1.0 for row in summary.rows)
@@ -456,7 +464,7 @@ def test_experiment_flags_passing_tests_that_never_cover_target(
     monkeypatch.setattr(
         experiment,
         "AgentEngine",
-        lambda provider, max_rounds, is_benchmark: FakeEngine(),
+        lambda provider, max_rounds, is_benchmark, mutation_evaluator=None: FakeEngine(),
     )
     monkeypatch.setattr(experiment, "PynguinEngine", FakeEngine)
     monkeypatch.setattr(experiment, "WrongTestDetector", FakeWrongTestDetector)
@@ -477,9 +485,16 @@ def test_experiment_flags_passing_tests_that_never_cover_target(
     assert all(row.status == "completed" for row in summary.rows)
     assert all(row.passing_test_count == 1 for row in summary.rows)
     assert all(row.no_scorable_tests for row in summary.rows)
+    assert all(row.does_not_call_target for row in summary.rows)
     assert all(row.line_percent == 0.0 for row in summary.rows)
     assert all(row.branch_percent == 0.0 for row in summary.rows)
     assert all(row.mutation_score == 0.0 for row in summary.rows)
+    with (tmp_path / "no-scorable.csv").open(
+        newline="",
+        encoding="utf-8",
+    ) as csv_file:
+        rows = list(csv.DictReader(csv_file))
+    assert all(row["does_not_call_target"] == "True" for row in rows)
 
 
 def test_experiment_excludes_xfails_for_every_engine(
@@ -492,9 +507,10 @@ def test_experiment_excludes_xfails_for_every_engine(
     dataset_path.write_text(json.dumps(_record()), encoding="utf-8")
     xfail_suite = (
         "import pytest\n\n"
+        "from testpilot_target import add\n\n"
         "@pytest.mark.xfail(strict=True)\n"
         "def test_expected_exception():\n"
-        "    raise RuntimeError('expected')\n"
+        "    assert add(1, 2) == 4\n"
     )
 
     class FakeEngine:
@@ -516,7 +532,7 @@ def test_experiment_excludes_xfails_for_every_engine(
     monkeypatch.setattr(
         experiment,
         "AgentEngine",
-        lambda provider, max_rounds, is_benchmark: FakeEngine(),
+        lambda provider, max_rounds, is_benchmark, mutation_evaluator=None: FakeEngine(),
     )
     monkeypatch.setattr(experiment, "PynguinEngine", FakeEngine)
 
@@ -541,6 +557,7 @@ def test_experiment_excludes_xfails_for_every_engine(
     assert all(row.mutation_score == 0 for row in summary.rows)
     assert all(row["expected_failure_count"] == "1" for row in rows)
     assert all(row["no_scorable_tests"] == "True" for row in rows)
+    assert all(row["does_not_call_target"] == "False" for row in rows)
 
 
 def test_end_to_end_add_control_scores_correct_and_counts_wrong_test(

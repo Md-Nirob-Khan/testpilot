@@ -1,0 +1,118 @@
+import pytest
+
+def truncate_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """
+    return number % 1.0
+
+def test_truncate_number():
+    assert truncate_number(3.5) == 0.5
+    assert truncate_number(0.9) == 0.9
+    assert truncate_number(10.0) == 0.0
+    assert truncate_number(0.0) == 0.0
+    assert truncate_number(1.1) == 0.1
+    assert truncate_number(2.2) == 0.2
+    assert truncate_number(3.3) == 0.3
+    assert truncate_number(4.4) == 0.4
+    assert truncate_number(5.5) == 0.5
+    assert truncate_number(6.6) == 0.6
+    assert truncate_number(7.7) == 0.7
+    assert truncate_number(8.8) == 0.8
+    assert truncate_number(9.9) == 0.9
+    assert truncate_number(10.1) == 0.1
+    assert truncate_number(11.1) == 0.1
+    assert truncate_number(12.1) == 0.1
+    assert truncate_number(13.1) == 0.1
+    assert truncate_number(14.1) == 0.1
+    assert truncate_number(15.1) == 0.1
+    assert truncate_number(16.1) == 0.1
+    assert truncate_number(17.1) == 0.1
+    assert truncate_number(18.1) == 0.1
+    assert truncate_number(19.1) == 0.1
+    assert truncate_number(20.1) == 0.1
+    assert truncate_number(21.1) == 0.1
+    assert truncate_number(22.1) == 0.1
+    assert truncate_number(23.1) == 0.1
+    assert truncate_number(24.1) == 0.1
+    assert truncate_number(25.1) == 0.1
+    assert truncate_number(26.1) == 0.1
+    assert truncate_number(27.1) == 0.1
+    assert truncate_number(28.1) == 0.1
+    assert truncate_number(29.1) == 0.1
+    assert truncate_number(30.1) == 0.1
+    assert truncate_number(31.1) == 0.1
+    assert truncate_number(32.1) == 0.1
+    assert truncate_number(33.1) == 0.1
+    assert truncate_number(34.1) == 0.1
+    assert truncate_number(35.1) == 0.1
+    assert truncate_number(36.1) == 0.1
+    assert truncate_number(37.1) == 0.1
+    assert truncate_number(38.1) == 0.1
+    assert truncate_number(39.1) == 0.1
+    assert truncate_number(40.1) == 0.1
+    assert truncate_number(41.1) == 0.1
+    assert truncate_number(42.1) == 0.1
+    assert truncate_number(43.1) == 0.1
+    assert truncate_number(44.1) == 0.1
+    assert truncate_number(45.1) == 0.1
+    assert truncate_number(46.1) == 0.1
+    assert truncate_number(47.1) == 0.1
+    assert truncate_number(48.1) == 0.1
+    assert truncate_number(49.1) == 0.1
+    assert truncate_number(50.1) == 0.1
+    assert truncate_number(51.1) == 0.1
+    assert truncate_number(52.1) == 0.1
+    assert truncate_number(53.1) == 0.1
+    assert truncate_number(54.1) == 0.1
+    assert truncate_number(55.1) == 0.1
+    assert truncate_number(56.1) == 0.1
+    assert truncate_number(57.1) == 0.1
+    assert truncate_number(58.1) == 0.1
+    assert truncate_number(59.1) == 0.1
+    assert truncate_number(60.1) == 0.1
+    assert truncate_number(61.1) == 0.1
+    assert truncate_number(62.1) == 0.1
+    assert truncate_number(63.1) == 0.1
+    assert truncate_number(64.1) == 0.1
+    assert truncate_number(65.1) == 0.1
+    assert truncate_number(66.1) == 0.1
+    assert truncate_number(67.1) == 0.1
+    assert truncate_number(68.1) == 0.1
+    assert truncate_number(69.1) == 0.1
+    assert truncate_number(70.1) == 0.1
+    assert truncate_number(71.1) == 0.1
+    assert truncate_number(72.1) == 0.1
+    assert truncate_number(73.1) == 0.1
+    assert truncate_number(74.1) == 0.1
+    assert truncate_number(75.1) == 0.1
+    assert truncate_number(76.1) == 0.1
+    assert truncate_number(77.1) == 0.1
+    assert truncate_number(78.1) == 0.1
+    assert truncate_number(79.1) == 0.1
+    assert truncate_number(80.1) == 0.1
+    assert truncate_number(81.1) == 0.1
+    assert truncate_number(82.1) == 0.1
+    assert truncate_number(83.1) == 0.1
+    assert truncate_number(84.1) == 0.1
+    assert truncate_number(85.1) == 0.1
+    assert truncate_number(86.1) == 0.1
+    assert truncate_number(87.1) == 0.1
+    assert truncate_number(88.1) == 0.1
+    assert truncate_number(89.1) == 0.1
+    assert truncate_number(90.1) == 0.1
+    assert truncate_number(91.1) == 0.1
+    assert truncate_number(92.1) == 0.1
+    assert truncate_number(93.1) == 0.1
+    assert truncate_number(94.1) == 0.1
+    assert truncate_number(95.1) == 0.1
+    assert truncate_number(96.1) == 0.1
+    assert truncate_number(97.1) == 0.1
+    assert truncate_number(98.1) == 0.1
+    assert truncate_number(99.1) == 0.1
+    assert truncate_number(100.1) == 0.1

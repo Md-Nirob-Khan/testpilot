@@ -1,0 +1,25 @@
+{
+  "engine_name": "agent-llm",
+  "generated_test_source": "last_successful_round_output; engine did not return",
+  "generation_error": "TimeoutError: timed out",
+  "round_details": [
+    {
+      "mutation_error": "",
+      "mutation_score": null,
+      "provider_error": "",
+      "returned": false,
+      "round": 1
+    },
+    {
+      "mutation_error": "",
+      "mutation_score": null,
+      "provider_error": "TimeoutError: timed out",
+      "returned": false,
+      "round": 2
+    }
+  ],
+  "rounds_recorded": 2,
+  "selected_round": null,
+  "suite_returned": false,
+  "task_id": "HumanEval/2"
+}

@@ -58,6 +58,21 @@
 - Done: Found missing target imports in fixed-seed LLM output, made the import instruction explicit, corrected runtime failure classification, pinned Pynguin's seed, added the end-to-end add control, and reran the six selected tasks.
 - Outcome: needed fixes
 
+## 2026-10-30 — HumanEval generation artifact capture
+- Asked: Save generated suites and agent round prompts, outputs, evaluator feedback, and returned-round metadata; reproduce selected HumanEval cases without modifying scoring or agent logic.
+- Done: Added opt-in experiment artifact capture and saved traces for HumanEval/2, /10, /11, and /18 using single-shot and agent engines. The agent run for /2 timed out during its second provider call; its first-round output and failed retry prompt were preserved.
+- Outcome: needed fixes
+
+## 2026-10-30 — HumanEval generation validation
+- Asked: After reviewing the reproduction evidence, implement target-usage validation and stop agent rounds when a generated suite repeats exactly.
+- Done: Added AST validation with one corrective retry for single-shot generation, explicit target-usage feedback for agent rounds, duplicate-candidate stopping, artifact returned-round accuracy, documentation, and regression tests.
+- Outcome: needed fixes
+
+## 2026-10-30 — HumanEval v3 full experiment
+- Asked: Keep single-shot to one attempt, record target-usage failures, vary deterministic agent sampling after round one, validate the reproduction, run all tests, commit and push, then start a resumable artifact-captured 164-function run.
+- Done: Completed the requested settings and measurement changes, reproduced selected HumanEval cases, passed the full test suite, and started the v3 full run with `caffeinate`.
+- Outcome: worked as is
+
 ## 2026-10-30 — HumanEval full-run analysis
 - Asked: Analyze the completed 164-function CSV with paired metrics, failure counts, Wilcoxon tests, Pynguin xfail-only count, and charts; test the summary logic, run all tests, then commit and push.
 - Done: Added an optional SciPy/Matplotlib analysis command, generated `results/v2/summary.md` and three charts, and validated the complete 492-row dataset.

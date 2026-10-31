@@ -10,6 +10,7 @@ from testpilot.engines.llm_engine import (
     _SYSTEM_PROMPT,
     _strip_markdown_fence,
     build_test_prompt,
+    target_usage_issue,
 )
 from testpilot.evaluator import CoverageEvaluator, MutationEvaluator, WrongTestDetector
 from testpilot.evaluator.coverage_evaluator import CoverageResult
@@ -92,7 +93,9 @@ class AgentEngine:
         wrong_test_count = 0
         needs_human_review_count = 0
         latest_suite: GeneratedSuite | None = None
+        latest_invalid_suite: GeneratedSuite | None = None
         rounds = 0
+        seen_candidates: set[str] = set()
 
         for round_number in range(1, self._max_rounds + 1):
             user_prompt = build_test_prompt(
@@ -101,7 +104,32 @@ class AgentEngine:
                 feedback=feedback,
                 previous_tests=previous_tests,
             )
-            response = self._provider.complete(_SYSTEM_PROMPT, user_prompt)
+            round_temperature = getattr(self._provider, "temperature", None)
+            round_seed = getattr(self._provider, "seed", None)
+            if round_number > 1:
+                complete_with_sampling = getattr(
+                    self._provider,
+                    "complete_with_sampling",
+                    None,
+                )
+                supports_sampling_overrides = getattr(
+                    self._provider,
+                    "supports_sampling_overrides",
+                    True,
+                )
+                if callable(complete_with_sampling) and supports_sampling_overrides:
+                    round_temperature = 0.7
+                    round_seed = 42 + round_number
+                    response = complete_with_sampling(
+                        _SYSTEM_PROMPT,
+                        user_prompt,
+                        temperature=round_temperature,
+                        seed=round_seed,
+                    )
+                else:
+                    response = self._provider.complete(_SYSTEM_PROMPT, user_prompt)
+            else:
+                response = self._provider.complete(_SYSTEM_PROMPT, user_prompt)
             test_code = _strip_markdown_fence(response.content)
             if not test_code.strip():
                 raise ValueError("The LLM provider returned an empty test suite")
@@ -109,6 +137,33 @@ class AgentEngine:
             rounds = round_number
             tokens_used += response.total_tokens
             estimated_cost += response.estimated_cost_usd
+
+            if test_code in seen_candidates:
+                break
+            seen_candidates.add(test_code)
+
+            target_issue = target_usage_issue(test_code, function_info.name)
+            if target_issue is not None:
+                latest_invalid_suite = GeneratedSuite(
+                    test_code=test_code,
+                    engine_name="agent-llm",
+                    wall_clock_seconds=time.perf_counter() - started,
+                    llm_tokens_used=tokens_used,
+                    estimated_cost_usd=estimated_cost,
+                    rounds=rounds,
+                    wrong_test_count=wrong_test_count,
+                    needs_human_review_count=needs_human_review_count,
+                    sampling_temperature=round_temperature,
+                    sampling_seed=round_seed,
+                )
+                previous_tests = test_code
+                feedback = (
+                    f"Target-usage validation failed: {target_issue}\n"
+                    "Return a complete replacement pytest module that imports "
+                    f"and calls {function_info.name} from testpilot_target. "
+                    "Do not define, copy, or shadow the target function."
+                )
+                continue
 
             correctness = self._wrong_test_detector.evaluate(
                 test_code,
@@ -168,6 +223,8 @@ class AgentEngine:
                 rounds=rounds,
                 wrong_test_count=wrong_test_count,
                 needs_human_review_count=needs_human_review_count,
+                sampling_temperature=round_temperature,
+                sampling_seed=round_seed,
             )
             latest_suite = candidate
 
@@ -188,7 +245,7 @@ class AgentEngine:
                 evaluator_errors,
             )
 
-        selected_suite = best_suite or latest_suite
+        selected_suite = best_suite or latest_suite or latest_invalid_suite
         if selected_suite is None:
             raise RuntimeError("Agent engine did not generate a test suite")
         return GeneratedSuite(
@@ -200,6 +257,8 @@ class AgentEngine:
             rounds=rounds,
             wrong_test_count=wrong_test_count,
             needs_human_review_count=needs_human_review_count,
+            sampling_temperature=selected_suite.sampling_temperature,
+            sampling_seed=selected_suite.sampling_seed,
         )
 
 

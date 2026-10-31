@@ -1,0 +1,25 @@
+Wrong-test status: wrong_test
+Failing tests: 1
+Xfail-marked tests excluded: 0
+Explanation: The generated suite failed against the canonical benchmark solution and is classified as a wrong test suite.
+Raw pytest output:
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________________________ test_truncate_number _____________________________
+
+    def test_truncate_number():
+        assert truncate_number(3.5) == 0.5
+        assert truncate_number(0.9) == 0.9
+        assert truncate_number(10.0) == 0.0
+        assert truncate_number(0.0) == 0.0
+>       assert truncate_number(1.1) == 0.1
+E       assert 0.10000000000000009 == 0.1
+E        +  where 0.10000000000000009 = truncate_number(1.1)
+
+test_generated.py:19: AssertionError
+=========================== short test summary info ============================
+FAILED test_generated.py::test_truncate_number - assert 0.10000000000000009 =...
+1 failed in 0.08s
+
+Coverage: unavailable
+Mutation score: unavailable

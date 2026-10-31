@@ -95,6 +95,20 @@ def test_ollama_provider_sends_configured_sampling_settings() -> None:
     assert request_data["options"] == {"temperature": 0.25, "seed": 7}
 
 
+def test_ollama_provider_accepts_per_call_sampling_settings() -> None:
+    payload = {"message": {"content": "generated"}}
+    with patch("urllib.request.urlopen", return_value=_mock_response(payload)) as urlopen:
+        OllamaProvider().complete_with_sampling(
+            "system",
+            "user",
+            temperature=0.7,
+            seed=44,
+        )
+
+    request_data = json.loads(urlopen.call_args.args[0].data)
+    assert request_data["options"] == {"temperature": 0.7, "seed": 44}
+
+
 @pytest.mark.parametrize(
     ("temperature", "seed"),
     [(-0.1, 42), (float("inf"), 42), (0.0, True)],
