@@ -92,3 +92,8 @@
 - Asked: Switch from Copilot to Claude Code after Copilot's credit limit; inspect the uncommitted diff, finish the remaining work without redoing it, update README and this log, run all tests, then commit and push.
 - Done: Reviewed the Copilot changes and confirmed that all seven dashboard items were already implemented, including no remaining `use_container_width` and a CSV-derived Experiment results page. Ran the full suite and found one failing test (`test_history_page_renders_flaky_merge_and_mutant_details`): Copilot's change renders selected merge tests as markdown, but the test still looked for them in text elements. I fixed the test assertion only. The suite then passed with 143 tests. I did not run the dashboard in a browser, so the visual look is not verified. Untracked experiment artifacts under `results/` and `.vscode/` were not part of this commit.
 - Outcome: worked as is
+
+## 2026-10-31 — Colorful dashboard polish
+- Asked: Give each engine a fixed color, add gradient hero headers, accent metric cards with a Best badge, labeled status badges, transparent Plotly charts, a prominent headline callout, and Inter font styling, with UI changes only.
+- Done: Added `testpilot/dashboard_ui.py` (colors, CSS, HTML builders, Plotly figure) with tests, rewired `app.py` to use it, and added the `plotly` dependency because the request names Plotly charts. Updated two app tests whose visible-text checks moved from title and warning elements to markdown. All 150 tests pass. I did not view the result in a browser, so the visual polish, per-tab colors and Google Fonts loading are unverified.
+- Outcome: worked as is

@@ -12,6 +12,18 @@ from dotenv import load_dotenv
 
 from testpilot.analyzer import SourceAnalysisError, analyze_source
 from testpilot.comparison import ENGINE_NAMES, compare_functions
+from testpilot.dashboard_ui import (
+    STYLESHEET,
+    badge_html,
+    build_bar_figure,
+    callout_html,
+    engine_color,
+    hero_html,
+    metric_card_html,
+    status_badge_kinds,
+    tab_stylesheet,
+    ENGINE_ICONS,
+)
 from testpilot.engines import AgentEngine
 from testpilot.engines.llm_engine import target_usage_issue
 from testpilot.llm import LLMProvider, create_provider
@@ -289,9 +301,14 @@ def _render_results(results: tuple[EngineRun, ...] | list[EngineRun]) -> None:
             and result.engine_name != "best-of-merge"
         ]
         if tabs_results:
+            st.markdown(
+                f"<style>{tab_stylesheet([r.engine_name for r in tabs_results])}</style>",
+                unsafe_allow_html=True,
+            )
             tabs = st.tabs(
                 [
-                    _ENGINE_LABELS.get(result.engine_name, result.engine_name)
+                    f"{ENGINE_ICONS.get(result.engine_name, '🧪')} "
+                    f"{_ENGINE_LABELS.get(result.engine_name, result.engine_name)}"
                     for result in tabs_results
                 ]
             )
@@ -308,48 +325,67 @@ def _render_results(results: tuple[EngineRun, ...] | list[EngineRun]) -> None:
 
 
 def _render_engine_scorecards(results: list[EngineRun]) -> None:
-    """Show seven core metrics for each engine and highlight the top score."""
+    """Show metric cards in each engine's color and mark the best engine."""
     if not results:
         return
     best = _best_engine(results)
-    cards = st.columns(len(results))
-    for card, result in zip(cards, results):
-        with card:
-            with st.container(border=True):
-                label = _ENGINE_LABELS.get(result.engine_name, result.engine_name)
-                st.markdown(f"#### {label}")
-                if result is best:
-                    st.success("Best mutation score")
-                if result.error:
-                    st.error(result.error)
-                first_row = st.columns(4)
-                first_row[0].metric("Line coverage", _percent(result.line_percent))
-                first_row[1].metric("Branch coverage", _percent(result.branch_percent))
-                first_row[2].metric(
+    columns = st.columns(len(results))
+    for column, result in zip(columns, results):
+        with column:
+            color = engine_color(result.engine_name)
+            icon = ENGINE_ICONS.get(result.engine_name, "🧪")
+            label = _ENGINE_LABELS.get(result.engine_name, result.engine_name)
+            is_best = result is best
+            target_issue = (
+                target_usage_issue(result.test_code, result.function_name)
+                if result.test_code is not None
+                else None
+            )
+            kinds = status_badge_kinds(
+                result.status,
+                result.error,
+                result.wrong_test_count,
+                bool(target_issue),
+            )
+            best_badge = "<span class='tp-best'>★ Best</span>" if is_best else ""
+            st.markdown(
+                f"<div class='tp-engine-head' style='--accent:{color}'>"
+                f"{icon} {label}{best_badge}</div>"
+                + "".join(badge_html(kind) for kind in kinds),
+                unsafe_allow_html=True,
+            )
+            if result.error:
+                st.error(result.error)
+            cards = [
+                ("Line coverage", _percent(result.line_percent), "📏"),
+                ("Branch coverage", _percent(result.branch_percent), "🔀"),
+                (
                     "Mutation score",
                     _percent(
                         result.mutation_score * 100
                         if result.mutation_score is not None
                         else None
                     ),
-                )
-                first_row[3].metric(
-                    "Wrong tests",
-                    _number(result.wrong_test_count),
-                )
-                second_row = st.columns(3)
-                target_issue = (
-                    target_usage_issue(result.test_code, result.function_name)
-                    if result.test_code is not None
-                    else None
-                )
-                second_row[0].metric(
+                    "🧬",
+                ),
+                ("Wrong tests", _number(result.wrong_test_count), "❌"),
+                (
                     "Calls target",
                     "No" if target_issue else "Yes" if result.test_code else "N/A",
-                    help=target_issue or "Tests import and call the target implementation.",
-                )
-                second_row[1].metric("Time", _seconds(result.wall_clock_seconds))
-                second_row[2].metric("Cost", _currency(result.estimated_cost_usd))
+                    "🎯",
+                ),
+                ("Time", _seconds(result.wall_clock_seconds), "⏱"),
+                ("Cost", _currency(result.estimated_cost_usd), "💲"),
+            ]
+            for row_start in range(0, len(cards), 2):
+                row = st.columns(2)
+                for cell, (card_label, value, card_icon) in zip(
+                    row, cards[row_start : row_start + 2]
+                ):
+                    cell.markdown(
+                        metric_card_html(card_label, value, card_icon, color, is_best),
+                        unsafe_allow_html=True,
+                    )
 
 
 def _best_engine(results: list[EngineRun]) -> EngineRun | None:
@@ -399,7 +435,15 @@ def _render_suite_tab(result: EngineRun, index: int) -> None:
     """Show generated code, download, correctness, stability, and explanations."""
     if result.error:
         st.error(result.error)
-    st.caption(f"Status: {result.status}")
+    st.markdown(
+        "".join(
+            badge_html(kind)
+            for kind in status_badge_kinds(
+                result.status, result.error, result.wrong_test_count, False
+            )
+        ),
+        unsafe_allow_html=True,
+    )
     if result.test_code is not None:
         st.code(
             result.test_code,
@@ -520,35 +564,52 @@ def _render_experiment_page() -> None:
         f"{summary.task_count} functions in the CSV  |  "
         f"{summary.paired_function_count} complete paired functions"
     )
+    best_engine = max(
+        (e for e in summary.engines if e.mutation_score is not None),
+        key=lambda e: e.mutation_score or 0.0,
+        default=None,
+    )
+    st.markdown(
+        callout_html(
+            summary.single_shot_passed_without_target, summary.task_count
+        ),
+        unsafe_allow_html=True,
+    )
     metric_columns = st.columns(len(summary.engines))
     for column, engine in zip(metric_columns, summary.engines):
+        color = engine_color(engine.engine_name)
+        is_best = engine is best_engine
         with column:
-            with st.container(border=True):
-                st.markdown(f"#### {_ENGINE_LABELS[engine.engine_name]}")
-                st.metric("Line coverage", _percent(engine.line_coverage))
-                st.metric("Branch coverage", _percent(engine.branch_coverage))
-                st.metric(
+            st.markdown(
+                f"<div class='tp-engine-head' style='--accent:{color}'>"
+                f"{ENGINE_ICONS[engine.engine_name]} "
+                f"{_ENGINE_LABELS[engine.engine_name]}"
+                f"{'<span class=tp-best>★ Best</span>' if is_best else ''}</div>",
+                unsafe_allow_html=True,
+            )
+            for label, value, icon in (
+                ("Line coverage", _percent(engine.line_coverage), "📏"),
+                ("Branch coverage", _percent(engine.branch_coverage), "🔀"),
+                (
                     "Mutation score",
                     _percent(
                         engine.mutation_score * 100
                         if engine.mutation_score is not None
                         else None
                     ),
+                    "🧬",
+                ),
+                ("Average wrong tests", _decimal(engine.average_wrong_tests), "❌"),
+                ("Average time", _seconds(engine.average_time_seconds), "⏱"),
+                ("Average cost", _currency(engine.average_cost_usd), "💲"),
+            ):
+                st.markdown(
+                    metric_card_html(label, value, icon, color, is_best),
+                    unsafe_allow_html=True,
                 )
-                st.metric(
-                    "Average wrong tests",
-                    _decimal(engine.average_wrong_tests),
-                )
-                st.metric("Average time", _seconds(engine.average_time_seconds))
-                st.metric("Average cost", _currency(engine.average_cost_usd))
-                st.caption(
-                    f"Based on {engine.paired_functions} shared complete-case functions."
-                )
-
-    st.warning(
-        f"**{summary.single_shot_passed_without_target} of {summary.task_count}** "
-        "single-shot suites passed their tests but did not call the target function."
-    )
+            st.caption(
+                f"Based on {engine.paired_functions} shared complete-case functions."
+            )
 
     mutation_rows = [
         {
@@ -639,82 +700,40 @@ def _render_bar_chart(
     metrics: tuple[str, ...],
     maximum: float | None,
 ) -> None:
-    """Render grouped Vega-Lite bars with a consistent zero-based scale."""
-    chart_rows = [
-        {"Engine": row["Engine"], "Metric": metric, "Value": row[metric]}
+    """Render a transparent Plotly chart with one fixed color per engine."""
+    label_to_name = {label: name for name, label in _ENGINE_LABELS.items()}
+    values_by_engine = {
+        label_to_name.get(str(row["Engine"]), str(row["Engine"])): [
+            row.get(metric) for metric in metrics
+        ]
         for row in rows
-        for metric in metrics
-        if row.get(metric) is not None
+    }
+    numbers = [
+        float(value)
+        for values in values_by_engine.values()
+        for value in values
+        if value is not None
     ]
-    if not chart_rows:
+    if not numbers:
         st.info("No complete metrics are available to chart.")
         return
-    scale_maximum = maximum or max(
-        (float(row["Value"]) for row in chart_rows),
-        default=1.0,
-    ) * 1.15
-    st.vega_lite_chart(
-        chart_rows,
-        {
-            "mark": {
-                "type": "bar",
-                "cornerRadiusTopLeft": 3,
-                "cornerRadiusTopRight": 3,
-            },
-            "encoding": {
-                "x": {
-                    "field": "Engine",
-                    "type": "nominal",
-                    "axis": {"labelAngle": 0},
-                    "sort": None,
-                },
-                "y": {
-                    "field": "Value",
-                    "type": "quantitative",
-                    "scale": {"domain": [0, scale_maximum]},
-                    "axis": {"title": metrics[0] if len(metrics) == 1 else None},
-                },
-                "color": {
-                    "field": "Metric",
-                    "type": "nominal",
-                    "legend": {"title": None},
-                },
-                "xOffset": {"field": "Metric"},
-                "tooltip": [
-                    {"field": "Engine", "type": "nominal"},
-                    {"field": "Metric", "type": "nominal"},
-                    {"field": "Value", "type": "quantitative", "format": ".2f"},
-                ],
-            },
-            "height": 280,
-        },
-        width="stretch",
+    figure = build_bar_figure(
+        [metric.split(" (")[0] for metric in metrics],
+        values_by_engine,
+        maximum or max(numbers),
+        "Percent" if maximum else metrics[0],
     )
+    st.plotly_chart(figure, width="stretch", config={"displayModeBar": False})
 
 
 def _render_page_heading(title: str, subtitle: str) -> None:
-    """Render a consistent title and short page description."""
-    st.title(title)
-    st.markdown(f"<div class='page-subtitle'>{subtitle}</div>", unsafe_allow_html=True)
+    """Render the gradient hero banner for the current page."""
+    st.markdown(hero_html(title, subtitle), unsafe_allow_html=True)
 
 
 def _inject_styles() -> None:
-    """Apply dashboard-specific spacing and typography over the configured theme."""
-    st.markdown(
-        """
-        <style>
-        .block-container { padding-top: 2rem; padding-bottom: 3rem; }
-        .page-subtitle { color: #a7b3c5; margin: -0.5rem 0 1.5rem; }
-        [data-testid="stMetric"] { min-height: 5rem; }
-        [data-testid="stSidebar"] { border-right: 1px solid #263449; }
-        div[data-testid="stVerticalBlockBorderWrapper"] {
-            border-color: #29384d;
-            border-radius: 0.8rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    """Apply the dashboard font, spacing, cards, badges, and banner styles."""
+    st.markdown(f"<style>{STYLESHEET}</style>", unsafe_allow_html=True)
 
 
 def _format_run_summary(summary: RunSummary) -> str:

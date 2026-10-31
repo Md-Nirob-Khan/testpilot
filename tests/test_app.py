@@ -15,7 +15,7 @@ def test_dashboard_renders_generation_page(tmp_path: Path, monkeypatch) -> None:
     app = AppTest.from_file(str(app_path)).run()
 
     assert not app.exception
-    assert app.title[0].value == "Generate & compare"
+    assert any("<h1>Generate &amp; compare</h1>" in m.value for m in app.markdown)
     assert next(radio for radio in app.radio if radio.label == "Workspace").value == (
         "Generate & compare"
     )
@@ -85,10 +85,9 @@ def test_experiment_results_page_renders_csv_derived_summary() -> None:
     app = workspace.set_value("Experiment results").run(timeout=20)
 
     assert not app.exception
-    assert app.title[0].value == "Experiment results"
+    assert any("<h1>Experiment results</h1>" in item.value for item in app.markdown)
     assert any(
-        "single-shot suites passed their tests but did not call the target"
-        in item.value
-        for item in app.warning
+        "single-shot suites passed their tests but never called" in item.value
+        for item in app.markdown
     )
     assert len(app.dataframe) == 2
