@@ -19,7 +19,8 @@ def test_dashboard_renders_generation_page(tmp_path: Path, monkeypatch) -> None:
     assert next(radio for radio in app.radio if radio.label == "Workspace").value == (
         "Generate & compare"
     )
-    assert "Grade score" in app.selectbox[0].options[0]
+    assert app.selectbox[0].options[0] == "Ticket price - age boundaries"
+    assert any("Grade score" in option for option in app.selectbox[0].options)
 
 
 def test_history_page_renders_flaky_merge_and_mutant_details(

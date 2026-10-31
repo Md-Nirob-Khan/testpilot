@@ -38,6 +38,15 @@ from testpilot.llm import LLMProvider, create_provider
 from testpilot.storage import EngineRun, RunHistory, RunSummary
 
 _SAMPLES = {
+    "Ticket price - age boundaries": """def ticket_price(age: int) -> int:
+    if age < 0:
+        raise ValueError("age cannot be negative")
+    if age < 12:
+        return 5
+    if age >= 65:
+        return 7
+    return 12
+""",
     "Grade score - thresholds and boundaries": """def grade(score: float) -> str:
     if not 0 <= score <= 100:
         raise ValueError("score must be between 0 and 100")

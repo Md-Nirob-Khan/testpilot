@@ -107,3 +107,8 @@
 - Asked: Show why each wrong test is wrong, give surviving-mutant cards plain-language titles sorted by number, and show Run history timestamps in local time.
 - Done: Added `testpilot/failure_reasons.py` (runs the suite in the sandbox after generation and parses pytest's failing assertion), a "Why this test is wrong" box, mutant titles and numeric sorting, and local-time formatting, with tests; 170 tests pass. The reasons are stored in a new additive `wrong_test_reasons_json` column of the SQLite history, so this goes slightly beyond UI code; older runs show no reasons. Mutmut's diff line numbers are relative to the function's first line, not the file, so titles read "Line 2 of ticket_price()", which I checked on a real mutmut run. The extra sandbox run happens only for suites that have wrong tests. Not checked in a browser.
 - Outcome: worked as is
+
+## 2026-10-31 — Final cleanup before submission
+- Asked: Add the "Ticket price - age boundaries" sample first, commit the untracked experiment data, ignore `.vscode/`, make the README explain install, dashboard and experiment reproduction, run all tests, then commit, push and show git status.
+- Done: Added the sample and updated the app test, added a README quick start and a "Reproducing the final experiment" section, added `.vscode/` to `.gitignore`, and committed the remaining v3 data and artifacts (the v1 and v2 files were already tracked). 170 tests pass. The README states that the script which produced the rescored CSV is not in the repository.
+- Outcome: worked as is
