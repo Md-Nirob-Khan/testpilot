@@ -97,3 +97,8 @@
 - Asked: Give each engine a fixed color, add gradient hero headers, accent metric cards with a Best badge, labeled status badges, transparent Plotly charts, a prominent headline callout, and Inter font styling, with UI changes only.
 - Done: Added `testpilot/dashboard_ui.py` (colors, CSS, HTML builders, Plotly figure) with tests, rewired `app.py` to use it, and added the `plotly` dependency because the request names Plotly charts. Updated two app tests whose visible-text checks moved from title and warning elements to markdown. All 150 tests pass. I did not view the result in a browser, so the visual polish, per-tab colors and Google Fonts loading are unverified.
 - Outcome: worked as is
+
+## 2026-10-31 — Dashboard UI fixes (icons, Best badges, errors, cost, order)
+- Asked: Fix the "uploadUpload" icon-font bug, make Best badges direction-aware with no badge on ties, show plain-English error causes with collapsed technical details, label zero cost as local, and fix engine order.
+- Done: Scoped Inter away from Material icon elements; added per-metric `best_flags`, `classify_failure` and `ordered_by_engine` in `testpilot/dashboard_ui.py` with tests; zero cost shows "$0.00 (local model)" (Pynguin shows "$0.00 (no LLM)" because it uses no model). All 160 tests pass. The icon fix and the look of every page were not checked in a browser (no browser tool here), so please confirm that no icon names still show as text.
+- Outcome: worked as is

@@ -23,6 +23,9 @@ from testpilot.dashboard_ui import (
     status_badge_kinds,
     tab_stylesheet,
     ENGINE_ICONS,
+    best_flags,
+    classify_failure,
+    ordered_by_engine,
 )
 from testpilot.engines import AgentEngine
 from testpilot.engines.llm_engine import target_usage_issue
@@ -287,19 +290,17 @@ def _render_results(results: tuple[EngineRun, ...] | list[EngineRun]) -> None:
             result for result in results if result.function_name == function_name
         ]
         st.markdown(f"### `{function_name}`")
-        engine_results = [
-            result
-            for result in function_results
-            if result.engine_name != "best-of-merge"
-        ]
+        engine_results = ordered_by_engine(
+            [
+                result
+                for result in function_results
+                if result.engine_name != "best-of-merge"
+            ],
+            lambda result: result.engine_name,
+        )
         _render_engine_scorecards(engine_results)
         _render_engine_chart(engine_results)
-        tabs_results = [
-            result
-            for result in function_results
-            if result.test_code is not None
-            and result.engine_name != "best-of-merge"
-        ]
+        tabs_results = [result for result in engine_results if result.test_code is not None]
         if tabs_results:
             st.markdown(
                 f"<style>{tab_stylesheet([r.engine_name for r in tabs_results])}</style>",
@@ -325,17 +326,27 @@ def _render_results(results: tuple[EngineRun, ...] | list[EngineRun]) -> None:
 
 
 def _render_engine_scorecards(results: list[EngineRun]) -> None:
-    """Show metric cards in each engine's color and mark the best engine."""
+    """Show metric cards per engine with a Best badge on each winning metric."""
     if not results:
         return
-    best = _best_engine(results)
+    mutation_percent = [
+        result.mutation_score * 100 if result.mutation_score is not None else None
+        for result in results
+    ]
+    flags = {
+        "line": best_flags([r.line_percent for r in results], True),
+        "branch": best_flags([r.branch_percent for r in results], True),
+        "mutation": best_flags(mutation_percent, True),
+        "wrong": best_flags([r.wrong_test_count for r in results], False),
+        "time": best_flags([r.wall_clock_seconds for r in results], False),
+        "cost": best_flags([r.estimated_cost_usd for r in results], False),
+    }
     columns = st.columns(len(results))
-    for column, result in zip(columns, results):
+    for index, (column, result) in enumerate(zip(columns, results)):
         with column:
             color = engine_color(result.engine_name)
             icon = ENGINE_ICONS.get(result.engine_name, "🧪")
             label = _ENGINE_LABELS.get(result.engine_name, result.engine_name)
-            is_best = result is best
             target_issue = (
                 target_usage_issue(result.test_code, result.function_name)
                 if result.test_code is not None
@@ -346,65 +357,75 @@ def _render_engine_scorecards(results: list[EngineRun]) -> None:
                 result.error,
                 result.wrong_test_count,
                 bool(target_issue),
+                result.engine_name,
             )
-            best_badge = "<span class='tp-best'>★ Best</span>" if is_best else ""
             st.markdown(
                 f"<div class='tp-engine-head' style='--accent:{color}'>"
-                f"{icon} {label}{best_badge}</div>"
+                f"{icon} {label}</div>"
                 + "".join(badge_html(kind) for kind in kinds),
                 unsafe_allow_html=True,
             )
-            if result.error:
-                st.error(result.error)
+            _render_error(result)
             cards = [
-                ("Line coverage", _percent(result.line_percent), "📏"),
-                ("Branch coverage", _percent(result.branch_percent), "🔀"),
+                ("Line coverage", _percent(result.line_percent), "📏", flags["line"]),
+                (
+                    "Branch coverage",
+                    _percent(result.branch_percent),
+                    "🔀",
+                    flags["branch"],
+                ),
                 (
                     "Mutation score",
-                    _percent(
-                        result.mutation_score * 100
-                        if result.mutation_score is not None
-                        else None
-                    ),
+                    _percent(mutation_percent[index]),
                     "🧬",
+                    flags["mutation"],
                 ),
-                ("Wrong tests", _number(result.wrong_test_count), "❌"),
+                (
+                    "Wrong tests",
+                    _number(result.wrong_test_count),
+                    "❌",
+                    flags["wrong"],
+                ),
                 (
                     "Calls target",
                     "No" if target_issue else "Yes" if result.test_code else "N/A",
                     "🎯",
+                    [False] * len(results),
                 ),
-                ("Time", _seconds(result.wall_clock_seconds), "⏱"),
-                ("Cost", _currency(result.estimated_cost_usd), "💲"),
+                (
+                    "Time",
+                    _seconds(result.wall_clock_seconds),
+                    "⏱",
+                    flags["time"],
+                ),
+                (
+                    "Cost",
+                    _currency(result.estimated_cost_usd, result.engine_name),
+                    "💲",
+                    flags["cost"],
+                ),
             ]
             for row_start in range(0, len(cards), 2):
                 row = st.columns(2)
-                for cell, (card_label, value, card_icon) in zip(
+                for cell, (card_label, value, card_icon, card_flags) in zip(
                     row, cards[row_start : row_start + 2]
                 ):
                     cell.markdown(
-                        metric_card_html(card_label, value, card_icon, color, is_best),
+                        metric_card_html(
+                            card_label, value, card_icon, color, card_flags[index]
+                        ),
                         unsafe_allow_html=True,
                     )
 
 
-def _best_engine(results: list[EngineRun]) -> EngineRun | None:
-    """Choose the completed engine with the strongest mutation and line scores."""
-    candidates = [
-        result
-        for result in results
-        if result.status == "completed" and result.mutation_score is not None
-    ]
-    if not candidates:
-        return None
-    return max(
-        candidates,
-        key=lambda result: (
-            result.mutation_score or 0.0,
-            result.line_percent or 0.0,
-            -(result.wall_clock_seconds or 0.0),
-        ),
-    )
+def _render_error(result: EngineRun) -> None:
+    """Show a plain-English cause with the raw error in a collapsed expander."""
+    if not result.error:
+        return
+    _, summary = classify_failure(result.error, result.engine_name)
+    st.markdown(summary)
+    with st.expander("Technical details"):
+        st.code(result.error, language="text", width="stretch")
 
 
 def _render_engine_chart(results: list[EngineRun]) -> None:
@@ -433,17 +454,20 @@ def _render_engine_chart(results: list[EngineRun]) -> None:
 
 def _render_suite_tab(result: EngineRun, index: int) -> None:
     """Show generated code, download, correctness, stability, and explanations."""
-    if result.error:
-        st.error(result.error)
     st.markdown(
         "".join(
             badge_html(kind)
             for kind in status_badge_kinds(
-                result.status, result.error, result.wrong_test_count, False
+                result.status,
+                result.error,
+                result.wrong_test_count,
+                False,
+                result.engine_name,
             )
         ),
         unsafe_allow_html=True,
     )
+    _render_error(result)
     if result.test_code is not None:
         st.code(
             result.test_code,
@@ -469,7 +493,7 @@ def _render_merge_result(result: EngineRun) -> None:
     st.markdown("#### Best-of merge")
     with st.container(border=True):
         if result.error:
-            st.error(result.error)
+            _render_error(result)
         else:
             st.success("Merged passing tests into a smaller suite.")
             st.write(
@@ -564,32 +588,34 @@ def _render_experiment_page() -> None:
         f"{summary.task_count} functions in the CSV  |  "
         f"{summary.paired_function_count} complete paired functions"
     )
-    best_engine = max(
-        (e for e in summary.engines if e.mutation_score is not None),
-        key=lambda e: e.mutation_score or 0.0,
-        default=None,
-    )
+    engines = ordered_by_engine(summary.engines, lambda e: e.engine_name)
+    flags = {
+        "line": best_flags([e.line_coverage for e in engines], True),
+        "branch": best_flags([e.branch_coverage for e in engines], True),
+        "mutation": best_flags([e.mutation_score for e in engines], True),
+        "wrong": best_flags([e.average_wrong_tests for e in engines], False),
+        "time": best_flags([e.average_time_seconds for e in engines], False),
+        "cost": best_flags([e.average_cost_usd for e in engines], False),
+    }
     st.markdown(
         callout_html(
             summary.single_shot_passed_without_target, summary.task_count
         ),
         unsafe_allow_html=True,
     )
-    metric_columns = st.columns(len(summary.engines))
-    for column, engine in zip(metric_columns, summary.engines):
+    metric_columns = st.columns(len(engines))
+    for index, (column, engine) in enumerate(zip(metric_columns, engines)):
         color = engine_color(engine.engine_name)
-        is_best = engine is best_engine
         with column:
             st.markdown(
                 f"<div class='tp-engine-head' style='--accent:{color}'>"
                 f"{ENGINE_ICONS[engine.engine_name]} "
-                f"{_ENGINE_LABELS[engine.engine_name]}"
-                f"{'<span class=tp-best>★ Best</span>' if is_best else ''}</div>",
+                f"{_ENGINE_LABELS[engine.engine_name]}</div>",
                 unsafe_allow_html=True,
             )
-            for label, value, icon in (
-                ("Line coverage", _percent(engine.line_coverage), "📏"),
-                ("Branch coverage", _percent(engine.branch_coverage), "🔀"),
+            for label, value, icon, key in (
+                ("Line coverage", _percent(engine.line_coverage), "📏", "line"),
+                ("Branch coverage", _percent(engine.branch_coverage), "🔀", "branch"),
                 (
                     "Mutation score",
                     _percent(
@@ -598,13 +624,24 @@ def _render_experiment_page() -> None:
                         else None
                     ),
                     "🧬",
+                    "mutation",
                 ),
-                ("Average wrong tests", _decimal(engine.average_wrong_tests), "❌"),
-                ("Average time", _seconds(engine.average_time_seconds), "⏱"),
-                ("Average cost", _currency(engine.average_cost_usd), "💲"),
+                (
+                    "Average wrong tests",
+                    _decimal(engine.average_wrong_tests),
+                    "❌",
+                    "wrong",
+                ),
+                ("Average time", _seconds(engine.average_time_seconds), "⏱", "time"),
+                (
+                    "Average cost",
+                    _currency(engine.average_cost_usd, engine.engine_name),
+                    "💲",
+                    "cost",
+                ),
             ):
                 st.markdown(
-                    metric_card_html(label, value, icon, color, is_best),
+                    metric_card_html(label, value, icon, color, flags[key][index]),
                     unsafe_allow_html=True,
                 )
             st.caption(
@@ -620,7 +657,7 @@ def _render_experiment_page() -> None:
                 else None
             ),
         }
-        for engine in summary.engines
+        for engine in engines
     ]
     coverage_rows = [
         {
@@ -628,14 +665,14 @@ def _render_experiment_page() -> None:
             "Line coverage (%)": engine.line_coverage,
             "Branch coverage (%)": engine.branch_coverage,
         }
-        for engine in summary.engines
+        for engine in engines
     ]
     time_rows = [
         {
             "Engine": _ENGINE_LABELS[engine.engine_name],
             "Average time (s)": engine.average_time_seconds,
         }
-        for engine in summary.engines
+        for engine in engines
     ]
     chart_columns = st.columns(2)
     with chart_columns[0]:
@@ -669,7 +706,7 @@ def _render_experiment_page() -> None:
             "no_scorable_tests": engine.no_scorable_tests_rows,
             "Mutation errors": engine.mutation_error_rows,
         }
-        for engine in summary.engines
+        for engine in engines
     ]
     st.dataframe(failure_rows, width="stretch", hide_index=True)
     st.caption(
@@ -764,9 +801,13 @@ def _seconds(value: float | None) -> str:
     return f"{value:.2f} s" if value is not None else "-"
 
 
-def _currency(value: float | None) -> str:
-    """Format estimated cost in dollars or show that it is unavailable."""
-    return f"${value:.6f}" if value is not None else "-"
+def _currency(value: float | None, engine_name: str | None = None) -> str:
+    """Format estimated cost, labeling zero cost as local or LLM-free."""
+    if value is None:
+        return "-"
+    if value == 0:
+        return "$0.00 (no LLM)" if engine_name == "pynguin" else "$0.00 (local model)"
+    return f"${value:.6f}"
 
 
 def _sample_filename(sample_name: str) -> str:

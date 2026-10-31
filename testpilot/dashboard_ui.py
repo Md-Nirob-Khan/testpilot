@@ -1,7 +1,11 @@
 """Presentation helpers for the Streamlit dashboard: colors, HTML, charts."""
 
+import math
+import re
 from html import escape
 from typing import Any, Sequence
+
+ENGINE_ORDER = ("single-shot-llm", "agent-llm", "pynguin")
 
 ENGINE_COLORS = {
     "single-shot-llm": "#3B82F6",
@@ -27,8 +31,13 @@ BADGE_STYLES = {
 
 STYLESHEET = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-html, body, [class*="st-"], .stMarkdown, button, input, textarea {
+.stApp, .stMarkdown, .stButton button, .stDownloadButton button, input, textarea,
+[data-testid="stSidebar"] {
     font-family: 'Inter', system-ui, sans-serif;
+}
+[data-testid="stIconMaterial"], .material-icons, .material-symbols-rounded,
+[class*="material-symbols"], [class*="MaterialIcon"] {
+    font-family: "Material Symbols Rounded", "Material Icons" !important;
 }
 .block-container { padding-top: 1.5rem; padding-bottom: 3rem; max-width: 1400px; }
 [data-testid="stSidebar"] { border-right: 1px solid #263449; }
@@ -49,6 +58,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 14px; }
 .tp-card.best { box-shadow: 0 0 0 2px var(--accent), 0 6px 22px rgba(0,0,0,.35); }
 .tp-card .icon { font-size: 1.2rem; }
 .tp-card .value { font-size: 2rem; font-weight: 800; color: #F8FAFC; line-height: 1.15; }
+.tp-card .value.long { font-size: 1.15rem; padding: 0.55rem 0; }
 .tp-card .label { font-size: 0.78rem; color: #A7B3C5; text-transform: uppercase;
     letter-spacing: 0.06em; font-weight: 600; }
 .tp-best { background: #FACC15; color: #1F1300; font-weight: 800; font-size: 0.7rem;
@@ -108,7 +118,7 @@ def metric_card_html(
     return (
         f"<div class='tp-card{' best' if best else ''}' style='--accent:{color}'>"
         f"<div class='label'><span class='icon'>{icon}</span> {escape(label)}{badge}</div>"
-        f"<div class='value'>{escape(value)}</div></div>"
+        f"<div class='value{' long' if len(value) > 10 else ''}'>{escape(value)}</div></div>"
     )
 
 
@@ -118,24 +128,73 @@ def badge_html(kind: str) -> str:
     return f"<span class='tp-badge' style='--badge:{color}'>{escape(text)}</span>"
 
 
+def classify_failure(error: str, engine_name: str | None = None) -> tuple[str, str]:
+    """Map a raw error message to a badge kind and a one-line plain summary."""
+    text = error.lower()
+    missing = re.search(r"no module named ['\"]([\w.]+)['\"]", error, re.IGNORECASE)
+    if "never imported" in text or "no data to report" in text:
+        return (
+            "no-target",
+            "The generated tests never call your function, so coverage and "
+            "mutation could not be measured.",
+        )
+    if missing:
+        package = missing.group(1).split(".")[0]
+        if engine_name == "pynguin":
+            return (
+                "error",
+                f"Pynguin could not import your code: the package {package} is "
+                "missing from the Pynguin environment (.venv-pynguin).",
+            )
+        return (
+            "error",
+            f"Your code needs the package {package}, which is not installed "
+            "in the environment that ran it.",
+        )
+    if "timeout" in text or "timed out" in text or re.search(r"exceeded [\d.]+ s", text):
+        return ("timeout", "The run exceeded its time limit and was stopped.")
+    if "connection" in text and ("refused" in text or "error" in text):
+        return ("error", "TestPilot could not reach the LLM provider; check that it is running.")
+    first_line = error.strip().splitlines()[0] if error.strip() else "(no details)"
+    return ("error", f"The engine failed: {first_line[:140]}")
+
+
 def status_badge_kinds(
     status: str,
     error: str | None,
     wrong_test_count: int | float | None,
     does_not_call_target: bool,
+    engine_name: str | None = None,
 ) -> list[str]:
     """Choose the status badges that describe one engine result."""
-    message = (error or "").lower()
-    if "timeout" in message or "timed out" in message:
-        return ["timeout"]
-    if status != "completed" or error:
-        return ["error"]
-    kinds = []
+    kinds: list[str] = []
+    if error:
+        kinds.append(classify_failure(error, engine_name)[0])
+    elif status != "completed":
+        kinds.append("error")
     if wrong_test_count:
         kinds.append("wrong")
-    if does_not_call_target:
+    if does_not_call_target and "no-target" not in kinds:
         kinds.append("no-target")
     return kinds or ["passed"]
+
+
+def best_flags(values: Sequence[float | None], higher_is_better: bool) -> list[bool]:
+    """Flag the best values; flag nothing when fewer than two differ."""
+    present = [v for v in values if v is not None]
+    if len(present) < 2 or all(math.isclose(v, present[0], abs_tol=1e-12) for v in present):
+        return [False] * len(values)
+    target = max(present) if higher_is_better else min(present)
+    return [v is not None and math.isclose(v, target, abs_tol=1e-12) for v in values]
+
+
+def ordered_by_engine(items: Sequence[Any], key: Any) -> list[Any]:
+    """Sort items so engines always appear as single-shot, agent, Pynguin."""
+    def position(item: Any) -> int:
+        name = key(item)
+        return ENGINE_ORDER.index(name) if name in ENGINE_ORDER else len(ENGINE_ORDER)
+
+    return sorted(items, key=position)
 
 
 def callout_html(count: int, total: int) -> str:

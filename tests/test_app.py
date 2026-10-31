@@ -91,3 +91,17 @@ def test_experiment_results_page_renders_csv_derived_summary() -> None:
         for item in app.markdown
     )
     assert len(app.dataframe) == 2
+
+
+def test_currency_labels_zero_cost() -> None:
+    """Zero cost is labeled as a local model, or LLM-free for Pynguin."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "dashboard_app", Path(__file__).parents[1] / "app.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module._currency(0.0, "agent-llm") == "$0.00 (local model)"
+    assert module._currency(0.0, "pynguin") == "$0.00 (no LLM)"
+    assert module._currency(None) == "-"

@@ -2,6 +2,10 @@
 
 from testpilot.dashboard_ui import (
     ENGINE_COLORS,
+    STYLESHEET,
+    best_flags,
+    classify_failure,
+    ordered_by_engine,
     badge_html,
     build_bar_figure,
     callout_html,
@@ -57,3 +61,76 @@ def test_bar_figure_uses_engine_colors() -> None:
     assert figure.data[0].marker.color == ENGINE_COLORS["pynguin"]
     assert figure.data[1].marker.color == ENGINE_COLORS["agent-llm"]
     assert figure.layout.paper_bgcolor == "rgba(0,0,0,0)"
+
+
+def test_best_flags_direction() -> None:
+    """Highest wins for coverage-like metrics; lowest wins for cost-like ones."""
+    assert best_flags([37.8, 85.3, 51.2], True) == [False, True, False]
+    assert best_flags([0.30, 0.28, 0.0], False) == [False, False, True]
+    assert best_flags([17.9, 38.8, 6.7], False) == [False, False, True]
+
+
+def test_best_flags_none_on_tie_or_single_value() -> None:
+    """All-equal values and lone values earn no badge; missing values are skipped."""
+    assert best_flags([0.0, 0.0, 0.0], False) == [False, False, False]
+    assert best_flags([None, 5.0, None], True) == [False, False, False]
+    assert best_flags([None, 5.0, 3.0], True) == [False, True, False]
+
+
+def test_best_flags_shared_best_both_flagged() -> None:
+    """Engines tied for best are both flagged when others differ."""
+    assert best_flags([0.0, 0.0, 2.0], False) == [True, True, False]
+
+
+def test_classify_pynguin_missing_package_is_error_not_timeout() -> None:
+    """A missing package in Pynguin explains the cause and is not a timeout."""
+    kind, summary = classify_failure(
+        "RuntimeError: Pynguin exited: No module named 'numpy'", "pynguin"
+    )
+    assert kind == "error"
+    assert summary == (
+        "Pynguin could not import your code: the package numpy is missing from "
+        "the Pynguin environment (.venv-pynguin)."
+    )
+
+
+def test_classify_never_imported_is_no_target() -> None:
+    """Coverage's never-imported warning maps to the amber no-target badge."""
+    kind, summary = classify_failure(
+        "Coverage: RuntimeError: Module testpilot_target was never imported."
+    )
+    assert kind == "no-target"
+    assert "never call your function" in summary
+
+
+def test_classify_timeout_and_generic() -> None:
+    """Timeouts and unknown failures get distinct badges and short summaries."""
+    assert classify_failure("TimeoutError: mutmut run exceeded 300 seconds")[0] == "timeout"
+    kind, summary = classify_failure("ValueError: boom\nTraceback...")
+    assert kind == "error" and summary == "The engine failed: ValueError: boom"
+
+
+def test_status_badge_uses_classification() -> None:
+    """The badge kind follows the real cause of the error."""
+    assert status_badge_kinds(
+        "error", "Pynguin exited: No module named 'numpy'", None, False, "pynguin"
+    ) == ["error"]
+    assert status_badge_kinds(
+        "error", "Module testpilot_target was never imported", None, False
+    ) == ["no-target"]
+
+
+def test_ordered_by_engine_is_canonical() -> None:
+    """Engines are always ordered single-shot, agent, Pynguin."""
+    names = ["pynguin", "single-shot-llm", "agent-llm"]
+    assert ordered_by_engine(names, lambda n: n) == [
+        "single-shot-llm",
+        "agent-llm",
+        "pynguin",
+    ]
+
+
+def test_stylesheet_keeps_material_icon_font() -> None:
+    """Icon elements keep their own font instead of Inter."""
+    assert "Material Symbols Rounded" in STYLESHEET
+    assert '[class*="st-"]' not in STYLESHEET
