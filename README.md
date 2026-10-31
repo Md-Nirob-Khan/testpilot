@@ -152,34 +152,43 @@ print(suite.test_code)
 
 ## Dashboard and run history
 
-Start the Streamlit dashboard from the project root:
+Install the base project dependencies and start Streamlit from the repository
+root:
 
 ```sh
-streamlit run app.py
+python -m pip install -e ".[dev]"
+python -m streamlit run app.py
 ```
 
-Paste Python source or upload a `.py` file, select functions and generation
-engines, then generate and evaluate their suites. The comparison shows line and
-branch coverage, mutation score, wrong-test status, elapsed time, and estimated
-cost, with a download button for each generated suite. LLM engines use the
-provider configured through `.env`; Pynguin runs in `.venv-pynguin`.
+The app opens on `localhost` with a dark, wide-layout interface. Its sidebar
+lets you choose engines, the LLM provider and model, and the agent's maximum
+rounds. Configure provider credentials and local Ollama settings in `.env`
+before running LLM engines.
+
+On **Generate & compare**, select one of four built-in examples or paste/upload
+Python source. The default `grade(score)` example includes threshold branches
+and boundary values, so it can be run immediately. Choose functions and
+engines, then select **Generate, evaluate & compare**. Results show per-engine
+metric cards, a coverage/mutation comparison chart, and syntax-highlighted
+engine tabs with downloads. Best-of merge output, repeated-run flaky checks,
+and expandable surviving-mutant explanations are shown with the run.
 
 Every submitted comparison, including engine failures, is stored in the local
 SQLite database `testpilot_runs.sqlite3`. Set `TESTPILOT_DB_PATH` to choose a
-different database location. Use the Run history page to review saved metrics
-and download previously generated suites. Generated tests and Pynguin run in
-the existing timeout-bounded subprocesses with a minimal environment that does
-not inherit provider credentials. These are not OS-level security sandboxes.
+different database location. **Run history** restores saved metrics and
+generated suites. Generated tests and Pynguin run in the existing
+timeout-bounded subprocesses with a minimal environment that does not inherit
+provider credentials. These are not OS-level security sandboxes.
 
-For each generated suite, the dashboard repeats execution three times and
-flags tests whose outcomes change. The best-of merge isolates passing test
-cases, measures each case's mutant kills, and greedily selects cases with the
-most additional kills; it validates the merged suite before reporting its
-metrics. Survivor explanations are based on mutmut's source diff and suggest a
-test case that distinguishes the original from the mutation. The merge performs
-additional mutation runs and can take longer than generating a single suite.
-The history page retains the merged suite, selected test cases, stability
-results, and mutant explanations along with the original engine outputs.
+**Experiment results** reads
+`results/v3/humaneval_full_164_rescored.csv` and computes the engine summaries,
+charts, failure counts, target-call callout, and paired Wilcoxon p-values from
+that CSV. Install the optional analysis dependencies to enable its statistical
+tests:
+
+```sh
+python -m pip install -e ".[analysis]"
+```
 
 Run TestPilot's unit tests with:
 

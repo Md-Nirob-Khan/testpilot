@@ -15,8 +15,11 @@ def test_dashboard_renders_generation_page(tmp_path: Path, monkeypatch) -> None:
     app = AppTest.from_file(str(app_path)).run()
 
     assert not app.exception
-    assert app.title[0].value == "TestPilot"
-    assert app.radio[0].value == "Generate & compare"
+    assert app.title[0].value == "Generate & compare"
+    assert next(radio for radio in app.radio if radio.label == "Workspace").value == (
+        "Generate & compare"
+    )
+    assert "Grade score" in app.selectbox[0].options[0]
 
 
 def test_history_page_renders_flaky_merge_and_mutant_details(
@@ -54,19 +57,38 @@ def test_history_page_renders_flaky_merge_and_mutant_details(
     app_path = Path(__file__).parents[1] / "app.py"
     app = AppTest.from_file(str(app_path)).run(timeout=10)
 
-    app.radio[0].set_value("Run history").run(timeout=10)
+    workspace = next(radio for radio in app.radio if radio.label == "Workspace")
+    workspace.set_value("Run history").run(timeout=10)
 
     assert not app.exception
     assert any("Flaky tests" in item.value for item in app.warning)
     assert any(
-        "Surviving mutant explanations" in item.value
+        "Surviving mutants" in item.value
         for item in app.markdown
     )
     assert any(
         "Missing test case" in item.value
-        for item in app.text
+        for item in app.markdown
     )
     assert any(
         "Selected tests" in item.value
-        for item in app.text
+        for item in app.markdown
     )
+
+
+def test_experiment_results_page_renders_csv_derived_summary() -> None:
+    """Render the final experiment page from its checked-in result CSV."""
+    app_path = Path(__file__).parents[1] / "app.py"
+    app = AppTest.from_file(str(app_path)).run(timeout=20)
+
+    workspace = next(radio for radio in app.radio if radio.label == "Workspace")
+    app = workspace.set_value("Experiment results").run(timeout=20)
+
+    assert not app.exception
+    assert app.title[0].value == "Experiment results"
+    assert any(
+        "single-shot suites passed their tests but did not call the target"
+        in item.value
+        for item in app.warning
+    )
+    assert len(app.dataframe) == 2

@@ -1,40 +1,123 @@
 """Streamlit dashboard for comparing generated test suites."""
 
+import os
 import re
 import tempfile
+from dataclasses import replace
 from pathlib import Path
+from typing import Callable
 
 import streamlit as st
+from dotenv import load_dotenv
 
 from testpilot.analyzer import SourceAnalysisError, analyze_source
 from testpilot.comparison import ENGINE_NAMES, compare_functions
+from testpilot.engines import AgentEngine
+from testpilot.engines.llm_engine import target_usage_issue
+from testpilot.llm import LLMProvider, create_provider
 from testpilot.storage import EngineRun, RunHistory, RunSummary
+
+_SAMPLES = {
+    "Grade score - thresholds and boundaries": """def grade(score: float) -> str:
+    if not 0 <= score <= 100:
+        raise ValueError("score must be between 0 and 100")
+    if score >= 90:
+        return "A"
+    if score >= 80:
+        return "B"
+    if score >= 70:
+        return "C"
+    if score >= 60:
+        return "D"
+    return "F"
+""",
+    "Clamp value - lower and upper bounds": """def clamp(value: float, lower: float, upper: float) -> float:
+    if lower > upper:
+        raise ValueError("lower must not exceed upper")
+    if value < lower:
+        return lower
+    if value > upper:
+        return upper
+    return value
+""",
+    "Shipping cost - free-shipping threshold": """def shipping_cost(total: float, expedited: bool = False) -> float:
+    if total < 0:
+        raise ValueError("total must be non-negative")
+    if total >= 50:
+        return 12.0 if expedited else 0.0
+    return 20.0 if expedited else 5.0
+""",
+    "Classify integer - negative, zero, positive": """def classify(value: int) -> str:
+    if value < 0:
+        return "negative"
+    if value == 0:
+        return "zero"
+    return "positive"
+""",
+}
+
+_ENGINE_LABELS = {
+    "single-shot-llm": "Single-shot LLM",
+    "agent-llm": "Agent LLM",
+    "pynguin": "Pynguin",
+    "best-of-merge": "Best-of merge",
+}
 
 
 def main() -> None:
-    """Render the generation dashboard and persisted run history."""
-    st.set_page_config(page_title="TestPilot", layout="wide")
-    st.title("TestPilot")
-    st.caption("Generate and honestly compare pytest suites for Python functions.")
-    page = st.radio(
-        "Page",
-        ("Generate & compare", "Run history"),
-        horizontal=True,
+    """Render the generation, run-history, and experiment-results pages."""
+    st.set_page_config(
+        page_title="TestPilot | Test quality, measured",
+        layout="wide",
+    )
+    _inject_styles()
+    st.sidebar.markdown("## TestPilot")
+    st.sidebar.caption("Test quality, measured.")
+    page = st.sidebar.radio(
+        "Workspace",
+        ("Generate & compare", "Experiment results", "Run history"),
         label_visibility="collapsed",
     )
     history = RunHistory()
     if page == "Generate & compare":
         _render_generation_page(history)
+    elif page == "Experiment results":
+        _render_experiment_page()
     else:
         _render_history_page(history)
 
 
 def _render_generation_page(history: RunHistory) -> None:
     """Collect source and options, then run and persist selected engines."""
-    input_mode = st.radio("Python source", ("Paste code", "Upload .py file"))
+    _render_page_heading(
+        "Generate & compare",
+        "Compare three independent test-generation approaches on the same function.",
+    )
+    selected_engines, provider_factory, agent_rounds = _render_run_settings()
+
+    input_mode = st.radio(
+        "Source",
+        ("Built-in sample", "Paste Python", "Upload .py file"),
+        horizontal=True,
+    )
     source_name: str
-    source_code: str
-    if input_mode == "Upload .py file":
+    if input_mode == "Built-in sample":
+        if "source_code" not in st.session_state:
+            st.session_state.source_code = next(iter(_SAMPLES.values()))
+        sample_name = st.selectbox(
+            "Choose a branch-and-boundary example",
+            tuple(_SAMPLES),
+            key="sample_name",
+            on_change=_load_selected_sample,
+        )
+        source_name = _sample_filename(sample_name)
+        source_code = st.text_area(
+            "Python source",
+            height=270,
+            key="source_code",
+            help="The sample is ready to run; edit it here if you want to explore.",
+        )
+    elif input_mode == "Upload .py file":
         uploaded_file = st.file_uploader("Choose a Python file", type=["py"])
         if uploaded_file is None:
             st.info("Upload a .py file to continue.")
@@ -45,12 +128,14 @@ def _render_generation_page(history: RunHistory) -> None:
         except UnicodeDecodeError as exc:
             st.error(f"The uploaded file is not valid UTF-8: {exc}")
             return
-        st.code(source_code, language="python")
+        with st.expander("Preview source", expanded=False):
+            st.code(source_code, language="python", width="stretch")
     else:
         source_name = st.text_input("Source filename", "submitted.py")
         source_code = st.text_area(
             "Paste Python source",
-            height=260,
+            height=270,
+            key="pasted_source",
             placeholder="def example(value):\n    return value * 2",
         )
 
@@ -68,24 +153,18 @@ def _render_generation_page(history: RunHistory) -> None:
         st.warning("No top-level Python functions were found in this source.")
         return
 
-    with st.form("generation-options"):
-        selected_functions = st.multiselect(
-            "Functions",
-            [function.name for function in function_infos],
-            default=[function.name for function in function_infos],
-        )
-        selected_engines = st.multiselect(
-            "Generation engines",
-            ENGINE_NAMES,
-            default=["Pynguin"],
-        )
-        submitted = st.form_submit_button(
-            "Generate, evaluate, and save run",
-            type="primary",
-            disabled=not selected_functions or not selected_engines,
-        )
-
-    if not submitted:
+    selected_functions = st.multiselect(
+        "Functions to test",
+        [function.name for function in function_infos],
+        default=[function.name for function in function_infos],
+    )
+    run_clicked = st.button(
+        "Generate, evaluate & compare",
+        type="primary",
+        disabled=not selected_functions or not selected_engines,
+        width="content",
+    )
+    if not run_clicked:
         return
 
     functions_by_name = {function.name: function for function in function_infos}
@@ -94,10 +173,18 @@ def _render_generation_page(history: RunHistory) -> None:
         with tempfile.TemporaryDirectory(prefix="testpilot-dashboard-") as directory:
             source_path = Path(directory) / (Path(source_name).name or "submitted.py")
             source_path.write_text(source_code, encoding="utf-8")
+            factories = {}
+            if "Agent LLM" in selected_engines:
+                factories["Agent LLM"] = lambda: AgentEngine(
+                    provider_factory(),
+                    max_rounds=agent_rounds,
+                )
             results = compare_functions(
                 source_path,
                 chosen_functions,
                 selected_engines,
+                engine_factories=factories,
+                provider_factory=provider_factory,
             )
         run_id = history.save_run(source_name, selected_functions, results)
 
@@ -106,8 +193,58 @@ def _render_generation_page(history: RunHistory) -> None:
     _render_results(results)
 
 
+def _render_run_settings() -> tuple[list[str], Callable[[], LLMProvider], int]:
+    """Render engine, model, and agent-round controls in the sidebar."""
+    load_dotenv()
+    st.sidebar.markdown("### Run settings")
+    selected_engines = st.sidebar.multiselect(
+        "Engines",
+        ENGINE_NAMES,
+        default=list(ENGINE_NAMES),
+    )
+    provider_name = st.sidebar.selectbox(
+        "LLM provider",
+        ("ollama", "anthropic"),
+        index=0 if os.getenv("TESTPILOT_LLM_PROVIDER", "ollama") == "ollama" else 1,
+        disabled=not any(
+            engine in selected_engines for engine in ("Single-shot LLM", "Agent LLM")
+        ),
+    )
+    default_model = os.getenv(
+        "OLLAMA_MODEL" if provider_name == "ollama" else "ANTHROPIC_MODEL",
+        "llama3.1" if provider_name == "ollama" else "claude-haiku-5-5",
+    )
+    model_name = st.sidebar.text_input("Model", value=default_model)
+    agent_rounds = st.sidebar.selectbox(
+        "Agent maximum rounds",
+        (1, 2, 3, 4, 5),
+        index=2,
+        disabled="Agent LLM" not in selected_engines,
+    )
+    st.sidebar.caption(
+        "Generated suites run in timeout-bounded subprocesses. "
+        "The agent setting controls its maximum iteration count."
+    )
+
+    def provider_factory() -> LLMProvider:
+        provider = create_provider(provider_name)
+        return replace(provider, model=model_name.strip())
+
+    return selected_engines, provider_factory, agent_rounds
+
+
+def _load_selected_sample() -> None:
+    """Load the selected built-in source into the editable sample field."""
+    sample_name = st.session_state.sample_name
+    st.session_state.source_code = _SAMPLES[sample_name]
+
+
 def _render_history_page(history: RunHistory) -> None:
     """Show saved runs and their persisted metrics and generated files."""
+    _render_page_heading(
+        "Run history",
+        "Revisit saved comparisons, generated suites, and quality checks.",
+    )
     runs = history.list_runs()
     if not runs:
         st.info("No saved runs yet. Generate a comparison to start your history.")
@@ -119,75 +256,220 @@ def _render_history_page(history: RunHistory) -> None:
     )
     stored_run = history.get_run(selected_run.run_id)
     st.caption(
-        f"Source: {stored_run.summary.source_name} | "
+        f"Source: {stored_run.summary.source_name}  |  "
         f"Functions: {', '.join(stored_run.summary.function_names)}"
     )
     _render_results(stored_run.results)
 
 
 def _render_results(results: tuple[EngineRun, ...] | list[EngineRun]) -> None:
-    """Display comparison metrics and download buttons for generated suites."""
+    """Render per-function scorecards, comparison charts, and engine tabs."""
     if not results:
         st.warning("This run did not produce any engine results.")
         return
 
-    table_rows = [_table_row(result) for result in results]
-    st.subheader("Side-by-side comparison")
-    st.dataframe(table_rows, use_container_width=True, hide_index=True)
+    st.markdown("## Comparison")
+    function_names = list(dict.fromkeys(result.function_name for result in results))
+    for function_name in function_names:
+        function_results = [
+            result for result in results if result.function_name == function_name
+        ]
+        st.markdown(f"### `{function_name}`")
+        engine_results = [
+            result
+            for result in function_results
+            if result.engine_name != "best-of-merge"
+        ]
+        _render_engine_scorecards(engine_results)
+        _render_engine_chart(engine_results)
+        tabs_results = [
+            result
+            for result in function_results
+            if result.test_code is not None
+            and result.engine_name != "best-of-merge"
+        ]
+        if tabs_results:
+            tabs = st.tabs(
+                [
+                    _ENGINE_LABELS.get(result.engine_name, result.engine_name)
+                    for result in tabs_results
+                ]
+            )
+            for index, (tab, result) in enumerate(zip(tabs, tabs_results)):
+                with tab:
+                    _render_suite_tab(result, index)
+        merge_results = [
+            result
+            for result in function_results
+            if result.engine_name == "best-of-merge"
+        ]
+        for result in merge_results:
+            _render_merge_result(result)
 
-    for index, result in enumerate(results):
-        label = f"{result.function_name} | {_display_engine(result.engine_name)}"
-        with st.expander(label, expanded=bool(result.error)):
-            if result.error:
-                st.error(result.error)
-            if result.test_code is not None:
-                st.code(result.test_code, language="python")
-                st.download_button(
-                    "Download generated test file",
-                    data=result.test_code,
-                    file_name=_test_filename(result),
-                    mime="text/x-python",
-                    key=(
-                        f"download-{result.function_name}-"
-                        f"{result.engine_name}-{index}"
+
+def _render_engine_scorecards(results: list[EngineRun]) -> None:
+    """Show seven core metrics for each engine and highlight the top score."""
+    if not results:
+        return
+    best = _best_engine(results)
+    cards = st.columns(len(results))
+    for card, result in zip(cards, results):
+        with card:
+            with st.container(border=True):
+                label = _ENGINE_LABELS.get(result.engine_name, result.engine_name)
+                st.markdown(f"#### {label}")
+                if result is best:
+                    st.success("Best mutation score")
+                if result.error:
+                    st.error(result.error)
+                first_row = st.columns(4)
+                first_row[0].metric("Line coverage", _percent(result.line_percent))
+                first_row[1].metric("Branch coverage", _percent(result.branch_percent))
+                first_row[2].metric(
+                    "Mutation score",
+                    _percent(
+                        result.mutation_score * 100
+                        if result.mutation_score is not None
+                        else None
                     ),
                 )
-            if result.flaky_run_count is not None:
-                _render_flaky_result(result)
-            if result.mutant_explanations:
-                _render_mutant_explanations(result)
-            if result.merge_selected_test_names:
-                st.text(
-                    "Selected tests: "
-                    + ", ".join(result.merge_selected_test_names)
+                first_row[3].metric(
+                    "Wrong tests",
+                    _number(result.wrong_test_count),
                 )
-                if (
-                    result.merge_mutants_killed is not None
-                    and result.merge_mutants_available is not None
-                ):
-                    st.text(
-                        "Mutants killed by selected cases: "
-                        f"{result.merge_mutants_killed}/"
-                        f"{result.merge_mutants_available}"
-                    )
+                second_row = st.columns(3)
+                target_issue = (
+                    target_usage_issue(result.test_code, result.function_name)
+                    if result.test_code is not None
+                    else None
+                )
+                second_row[0].metric(
+                    "Calls target",
+                    "No" if target_issue else "Yes" if result.test_code else "N/A",
+                    help=target_issue or "Tests import and call the target implementation.",
+                )
+                second_row[1].metric("Time", _seconds(result.wall_clock_seconds))
+                second_row[2].metric("Cost", _currency(result.estimated_cost_usd))
+
+
+def _best_engine(results: list[EngineRun]) -> EngineRun | None:
+    """Choose the completed engine with the strongest mutation and line scores."""
+    candidates = [
+        result
+        for result in results
+        if result.status == "completed" and result.mutation_score is not None
+    ]
+    if not candidates:
+        return None
+    return max(
+        candidates,
+        key=lambda result: (
+            result.mutation_score or 0.0,
+            result.line_percent or 0.0,
+            -(result.wall_clock_seconds or 0.0),
+        ),
+    )
+
+
+def _render_engine_chart(results: list[EngineRun]) -> None:
+    """Compare line, branch, and mutation percentages across engines."""
+    chart_rows = [
+        {
+            "Engine": _ENGINE_LABELS.get(result.engine_name, result.engine_name),
+            "Line coverage": result.line_percent,
+            "Branch coverage": result.branch_percent,
+            "Mutation score": (
+                result.mutation_score * 100
+                if result.mutation_score is not None
+                else None
+            ),
+        }
+        for result in results
+        if result.engine_name != "best-of-merge"
+    ]
+    if chart_rows:
+        _render_bar_chart(
+            chart_rows,
+            ("Line coverage", "Branch coverage", "Mutation score"),
+            maximum=100,
+        )
+
+
+def _render_suite_tab(result: EngineRun, index: int) -> None:
+    """Show generated code, download, correctness, stability, and explanations."""
+    if result.error:
+        st.error(result.error)
+    st.caption(f"Status: {result.status}")
+    if result.test_code is not None:
+        st.code(
+            result.test_code,
+            language="python",
+            line_numbers=True,
+            width="stretch",
+        )
+        st.download_button(
+            "Download generated test file",
+            data=result.test_code,
+            file_name=_test_filename(result),
+            mime="text/x-python",
+            key=f"download-{result.function_name}-{result.engine_name}-{index}",
+            width="stretch",
+        )
+    if result.flaky_run_count is not None:
+        _render_flaky_result(result)
+    _render_mutant_explanations(result)
+
+
+def _render_merge_result(result: EngineRun) -> None:
+    """Present best-of merge outcome, selected tests, and stability clearly."""
+    st.markdown("#### Best-of merge")
+    with st.container(border=True):
+        if result.error:
+            st.error(result.error)
+        else:
+            st.success("Merged passing tests into a smaller suite.")
+            st.write(
+                f"**Mutation score:** {_percent(result.mutation_score * 100 if result.mutation_score is not None else None)}"
+                f"  |  **Coverage:** {_percent(result.line_percent)} line / "
+                f"{_percent(result.branch_percent)} branch"
+            )
+        if result.merge_selected_test_names:
+            st.write("**Selected tests**")
+            st.write(", ".join(result.merge_selected_test_names))
+            st.caption(
+                f"Mutants killed by selected cases: "
+                f"{result.merge_mutants_killed}/{result.merge_mutants_available}"
+            )
+        if result.flaky_run_count is not None:
+            _render_flaky_result(result)
+        _render_mutant_explanations(result)
+        if result.test_code is not None:
+            st.code(
+                result.test_code,
+                language="python",
+                line_numbers=True,
+                width="stretch",
+            )
+            st.download_button(
+                "Download merged test suite",
+                data=result.test_code,
+                file_name=_test_filename(result),
+                mime="text/x-python",
+                key=f"download-merge-{result.function_name}",
+                width="stretch",
+            )
 
 
 def _render_flaky_result(result: EngineRun) -> None:
     """Show repeated-run stability and timeout details."""
     if result.flaky_test_names:
-        st.warning(
-            "Flaky tests: " + ", ".join(result.flaky_test_names)
-        )
+        st.warning("Flaky tests: " + ", ".join(result.flaky_test_names))
     elif result.flaky_run_count and not (
         result.flaky_timed_out_runs or result.flaky_inconclusive_runs
     ):
-        st.caption(
-            f"No flaky tests detected across {result.flaky_run_count} runs."
-        )
+        st.success(f"Stable across {result.flaky_run_count} repeated runs.")
     elif result.flaky_run_count:
-        st.caption(
-            "Flakiness could not be determined for every run."
-        )
+        st.info("Flakiness could not be determined for every run.")
     if result.flaky_timed_out_runs:
         st.warning(
             "Flakiness was inconclusive for timed-out runs: "
@@ -202,64 +484,237 @@ def _render_flaky_result(result: EngineRun) -> None:
 
 def _render_mutant_explanations(result: EngineRun) -> None:
     """Show each surviving mutant and a targeted missing-test suggestion."""
-    st.markdown("**Surviving mutant explanations**")
+    if not result.mutant_explanations:
+        return
+    st.markdown("**Surviving mutants**")
     for explanation in result.mutant_explanations:
-        st.text(f"Mutant: {explanation.mutant_name}")
-        st.text(f"What changed: {explanation.description}")
-        st.text(f"Missing test case: {explanation.missing_test_case}")
-        if explanation.diff:
-            st.code(explanation.diff, language="diff")
+        with st.expander(explanation.mutant_name):
+            st.write(f"**What changed:** {explanation.description}")
+            st.write(f"**Missing test case:** {explanation.missing_test_case}")
+            if explanation.diff:
+                st.code(explanation.diff, language="diff", width="stretch")
 
 
-def _table_row(result: EngineRun) -> dict[str, str]:
-    """Format one engine result for the comparison table."""
-    wrong_tests = "-"
-    if result.wrong_test_status is not None:
-        count = result.wrong_test_count
-        count_text = str(count) if count is not None else "?"
-        wrong_tests = f"{count_text} ({_human_status(result.wrong_test_status)})"
+def _render_experiment_page() -> None:
+    """Present data-derived metrics for the final 164-function experiment."""
+    from testpilot.dashboard_summary import load_experiment_dashboard_summary
 
-    return {
-        "Function": result.function_name,
-        "Engine": _display_engine(result.engine_name),
-        "Line coverage": _percent(result.line_percent),
-        "Branch coverage": _percent(result.branch_percent),
-        "Mutation score": (
-            _percent(result.mutation_score * 100)
-            if result.mutation_score is not None
-            else "Not scored"
-        ),
-        "Scorable tests": (
-            "No scorable tests" if result.no_scorable_tests else "Available"
-        ),
-        "Wrong tests / status": wrong_tests,
-        "Flaky tests": (
-            ", ".join(result.flaky_test_names)
-            if result.flaky_test_names
-            else (
-                (
-                    f"Inconclusive on runs "
-                    f"{result.flaky_timed_out_runs + result.flaky_inconclusive_runs}"
+    _render_page_heading(
+        "Experiment results",
+        "Final HumanEval run - three engines - paired, CSV-derived analysis.",
+    )
+    csv_path = (
+        Path(__file__).resolve().parent
+        / "results"
+        / "v3"
+        / "humaneval_full_164_rescored.csv"
+    )
+    try:
+        summary = load_experiment_dashboard_summary(csv_path)
+    except (OSError, ValueError, ImportError) as exc:
+        st.error(f"Could not load experiment results: {exc}")
+        return
+
+    st.caption(
+        f"Source: `{csv_path.relative_to(Path(__file__).resolve().parent)}`  |  "
+        f"{summary.task_count} functions in the CSV  |  "
+        f"{summary.paired_function_count} complete paired functions"
+    )
+    metric_columns = st.columns(len(summary.engines))
+    for column, engine in zip(metric_columns, summary.engines):
+        with column:
+            with st.container(border=True):
+                st.markdown(f"#### {_ENGINE_LABELS[engine.engine_name]}")
+                st.metric("Line coverage", _percent(engine.line_coverage))
+                st.metric("Branch coverage", _percent(engine.branch_coverage))
+                st.metric(
+                    "Mutation score",
+                    _percent(
+                        engine.mutation_score * 100
+                        if engine.mutation_score is not None
+                        else None
+                    ),
                 )
-                if result.flaky_timed_out_runs or result.flaky_inconclusive_runs
-                else f"None ({result.flaky_run_count} runs)"
-            )
-            if result.flaky_run_count is not None
-            else "-"
-        ),
-        "Time (s)": _number(result.wall_clock_seconds),
-        "Cost (USD)": _currency(result.estimated_cost_usd),
-        "Merged tests": (
-            f"{len(result.merge_selected_test_names)} selected; "
-            f"{result.merge_mutants_killed}/{result.merge_mutants_available} mutants"
-            if result.merge_selected_test_names
-            and result.merge_mutants_killed is not None
-            and result.merge_mutants_available is not None
-            else "-"
-        ),
-        "Run status": result.status,
-        "Details": result.error or "",
-    }
+                st.metric(
+                    "Average wrong tests",
+                    _decimal(engine.average_wrong_tests),
+                )
+                st.metric("Average time", _seconds(engine.average_time_seconds))
+                st.metric("Average cost", _currency(engine.average_cost_usd))
+                st.caption(
+                    f"Based on {engine.paired_functions} shared complete-case functions."
+                )
+
+    st.warning(
+        f"**{summary.single_shot_passed_without_target} of {summary.task_count}** "
+        "single-shot suites passed their tests but did not call the target function."
+    )
+
+    mutation_rows = [
+        {
+            "Engine": _ENGINE_LABELS[engine.engine_name],
+            "Mutation score (%)": (
+                engine.mutation_score * 100
+                if engine.mutation_score is not None
+                else None
+            ),
+        }
+        for engine in summary.engines
+    ]
+    coverage_rows = [
+        {
+            "Engine": _ENGINE_LABELS[engine.engine_name],
+            "Line coverage (%)": engine.line_coverage,
+            "Branch coverage (%)": engine.branch_coverage,
+        }
+        for engine in summary.engines
+    ]
+    time_rows = [
+        {
+            "Engine": _ENGINE_LABELS[engine.engine_name],
+            "Average time (s)": engine.average_time_seconds,
+        }
+        for engine in summary.engines
+    ]
+    chart_columns = st.columns(2)
+    with chart_columns[0]:
+        st.markdown("### Mutation score")
+        _render_bar_chart(
+            mutation_rows,
+            ("Mutation score (%)",),
+            maximum=100,
+        )
+    with chart_columns[1]:
+        st.markdown("### Coverage")
+        _render_bar_chart(
+            coverage_rows,
+            ("Line coverage (%)", "Branch coverage (%)"),
+            maximum=100,
+        )
+    st.markdown("### Average runtime")
+    _render_bar_chart(
+        time_rows,
+        ("Average time (s)",),
+        maximum=None,
+    )
+
+    st.markdown("### Failure breakdown")
+    failure_rows = [
+        {
+            "Engine": _ENGINE_LABELS[engine.engine_name],
+            "Timeout rows": engine.timeout_rows,
+            "Wrong test cases": engine.wrong_test_cases,
+            "does_not_call_target": engine.does_not_call_target_rows,
+            "no_scorable_tests": engine.no_scorable_tests_rows,
+            "Mutation errors": engine.mutation_error_rows,
+        }
+        for engine in summary.engines
+    ]
+    st.dataframe(failure_rows, width="stretch", hide_index=True)
+    st.caption(
+        "Wrong tests are summed test cases; other failure columns count result rows. "
+        "Failure categories may overlap."
+    )
+
+    st.markdown("### Paired Wilcoxon signed-rank tests")
+    wilcoxon_rows = [
+        {
+            "Engine pair": (
+                f"{_ENGINE_LABELS[test.engine_a]} vs "
+                f"{_ENGINE_LABELS[test.engine_b]}"
+            ),
+            "Paired functions": test.functions_included,
+            "p-value": (
+                f"{test.p_value:.6g}" if test.p_value is not None else "Unavailable"
+            ),
+        }
+        for test in summary.wilcoxon_tests
+    ]
+    st.dataframe(wilcoxon_rows, width="stretch", hide_index=True)
+    st.caption("Two-sided tests use each engine pair's shared functions with mutation scores.")
+
+
+def _render_bar_chart(
+    rows: list[dict[str, float | str | None]],
+    metrics: tuple[str, ...],
+    maximum: float | None,
+) -> None:
+    """Render grouped Vega-Lite bars with a consistent zero-based scale."""
+    chart_rows = [
+        {"Engine": row["Engine"], "Metric": metric, "Value": row[metric]}
+        for row in rows
+        for metric in metrics
+        if row.get(metric) is not None
+    ]
+    if not chart_rows:
+        st.info("No complete metrics are available to chart.")
+        return
+    scale_maximum = maximum or max(
+        (float(row["Value"]) for row in chart_rows),
+        default=1.0,
+    ) * 1.15
+    st.vega_lite_chart(
+        chart_rows,
+        {
+            "mark": {
+                "type": "bar",
+                "cornerRadiusTopLeft": 3,
+                "cornerRadiusTopRight": 3,
+            },
+            "encoding": {
+                "x": {
+                    "field": "Engine",
+                    "type": "nominal",
+                    "axis": {"labelAngle": 0},
+                    "sort": None,
+                },
+                "y": {
+                    "field": "Value",
+                    "type": "quantitative",
+                    "scale": {"domain": [0, scale_maximum]},
+                    "axis": {"title": metrics[0] if len(metrics) == 1 else None},
+                },
+                "color": {
+                    "field": "Metric",
+                    "type": "nominal",
+                    "legend": {"title": None},
+                },
+                "xOffset": {"field": "Metric"},
+                "tooltip": [
+                    {"field": "Engine", "type": "nominal"},
+                    {"field": "Metric", "type": "nominal"},
+                    {"field": "Value", "type": "quantitative", "format": ".2f"},
+                ],
+            },
+            "height": 280,
+        },
+        width="stretch",
+    )
+
+
+def _render_page_heading(title: str, subtitle: str) -> None:
+    """Render a consistent title and short page description."""
+    st.title(title)
+    st.markdown(f"<div class='page-subtitle'>{subtitle}</div>", unsafe_allow_html=True)
+
+
+def _inject_styles() -> None:
+    """Apply dashboard-specific spacing and typography over the configured theme."""
+    st.markdown(
+        """
+        <style>
+        .block-container { padding-top: 2rem; padding-bottom: 3rem; }
+        .page-subtitle { color: #a7b3c5; margin: -0.5rem 0 1.5rem; }
+        [data-testid="stMetric"] { min-height: 5rem; }
+        [data-testid="stSidebar"] { border-right: 1px solid #263449; }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border-color: #29384d;
+            border-radius: 0.8rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _format_run_summary(summary: RunSummary) -> str:
@@ -270,39 +725,35 @@ def _format_run_summary(summary: RunSummary) -> str:
     )
 
 
-def _display_engine(engine_name: str) -> str:
-    """Map persisted engine identifiers to readable names."""
-    return {
-        "single-shot-llm": "Single-shot LLM",
-        "agent-llm": "Agent LLM",
-        "pynguin": "Pynguin",
-        "best-of-merge": "Best-of merge",
-    }.get(engine_name, engine_name)
-
-
-def _human_status(status: str) -> str:
-    """Clarify correctness status without calling user-code failures wrong tests."""
-    return {
-        "passed": "passed",
-        "wrong_test": "wrong test",
-        "needs_human_review": "needs review",
-        "timed_out": "timed out",
-    }.get(status, status.replace("_", " "))
-
-
 def _percent(value: float | None) -> str:
     """Format a percentage or show that the measurement is unavailable."""
     return f"{value:.1f}%" if value is not None else "-"
 
 
-def _number(value: float | None) -> str:
-    """Format a numeric metric or show that it is unavailable."""
+def _number(value: float | int | None) -> str:
+    """Format a number or show that the measurement is unavailable."""
+    return f"{value:.0f}" if value is not None else "-"
+
+
+def _decimal(value: float | None) -> str:
+    """Format a decimal metric or show that the measurement is unavailable."""
     return f"{value:.2f}" if value is not None else "-"
+
+
+def _seconds(value: float | None) -> str:
+    """Format elapsed time in seconds."""
+    return f"{value:.2f} s" if value is not None else "-"
 
 
 def _currency(value: float | None) -> str:
     """Format estimated cost in dollars or show that it is unavailable."""
     return f"${value:.6f}" if value is not None else "-"
+
+
+def _sample_filename(sample_name: str) -> str:
+    """Build a stable source filename from a display label."""
+    stem = re.sub(r"[^A-Za-z0-9_-]+", "_", sample_name.split(" - ", 1)[0])
+    return f"{stem.lower() or 'sample'}.py"
 
 
 def _test_filename(result: EngineRun) -> str:

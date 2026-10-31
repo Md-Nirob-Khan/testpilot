@@ -82,3 +82,13 @@
 - Asked: Analyze the completed 164-function CSV with paired metrics, failure counts, Wilcoxon tests, Pynguin xfail-only count, and charts; test the summary logic, run all tests, then commit and push.
 - Done: Added an optional SciPy/Matplotlib analysis command, generated `results/v2/summary.md` and three charts, and validated the complete 492-row dataset.
 - Outcome: needed fixes
+
+## 2026-10-31 — Dashboard redesign (GitHub Copilot, first half)
+- Asked: Redesign the Streamlit dashboard (wide layout, dark theme, sidebar settings, sample dropdown, metric cards, engine tabs, mutant cards, Experiment results page, `width` parameter instead of `use_container_width`) without touching engines, evaluator, scoring or experiment code.
+- Done: GitHub Copilot produced most of `app.py`, `.streamlit/config.toml`, `testpilot/dashboard_summary.py`, its tests and a README draft, then ran out of credits before finishing, with the work uncommitted and the test suite not yet verified.
+- Outcome: needed fixes
+
+## 2026-10-31 — Dashboard redesign (finished with Claude Code)
+- Asked: Switch from Copilot to Claude Code after Copilot's credit limit; inspect the uncommitted diff, finish the remaining work without redoing it, update README and this log, run all tests, then commit and push.
+- Done: Reviewed the Copilot changes and confirmed that all seven dashboard items were already implemented, including no remaining `use_container_width` and a CSV-derived Experiment results page. Ran the full suite and found one failing test (`test_history_page_renders_flaky_merge_and_mutant_details`): Copilot's change renders selected merge tests as markdown, but the test still looked for them in text elements. I fixed the test assertion only. The suite then passed with 143 tests. I did not run the dashboard in a browser, so the visual look is not verified. Untracked experiment artifacts under `results/` and `.vscode/` were not part of this commit.
+- Outcome: worked as is
