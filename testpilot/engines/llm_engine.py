@@ -113,6 +113,7 @@ def target_usage_issue(test_code: str, function_name: str) -> str | None:
 
     imported_names: set[str] = set()
     module_names: set[str] = set()
+    sys_module_names: set[str] = set()
     for node in ast.walk(module):
         if (
             isinstance(node, ast.ImportFrom)
@@ -124,11 +125,27 @@ def target_usage_issue(test_code: str, function_name: str) -> str | None:
                 if alias.name == function_name
             )
         elif isinstance(node, ast.Import):
-            module_names.update(
-                alias.asname or alias.name.split(".", maxsplit=1)[0]
-                for alias in node.names
-                if alias.name == "testpilot_target"
-            )
+            for alias in node.names:
+                if alias.name == "testpilot_target":
+                    module_names.add(
+                        alias.asname or alias.name.split(".", maxsplit=1)[0]
+                    )
+                elif alias.name == "sys":
+                    sys_module_names.add(alias.asname or alias.name)
+
+    module_aliases_from_sys_modules: dict[str, ast.Name] = {}
+    for node in ast.walk(module):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        value = node.value
+        if not _is_target_sys_modules_lookup(value, sys_module_names):
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        for target in targets:
+            if isinstance(target, ast.Name):
+                module_aliases_from_sys_modules[target.id] = target
+    module_names.update(module_aliases_from_sys_modules)
+
     if not imported_names and not module_names:
         return (
             f"the generated module does not import {function_name!r} "
@@ -139,6 +156,11 @@ def target_usage_issue(test_code: str, function_name: str) -> str | None:
     for node in ast.walk(module):
         bound_name = None
         if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            if any(
+                node is assignment_target
+                for assignment_target in module_aliases_from_sys_modules.values()
+            ):
+                continue
             bound_name = node.id
         elif isinstance(
             node,
@@ -147,8 +169,22 @@ def target_usage_issue(test_code: str, function_name: str) -> str | None:
             bound_name = node.name
         elif isinstance(node, ast.arg):
             bound_name = node.arg
+        elif (
+            isinstance(node, ast.Attribute)
+            and isinstance(node.ctx, ast.Store)
+            and node.attr == function_name
+            and isinstance(node.value, ast.Name)
+            and node.value.id in module_names
+        ):
+            return (
+                f"the generated module redefines target attribute "
+                f"{function_name!r}"
+            )
         if bound_name in imported_bindings:
-            return f"the generated module shadows imported target binding {bound_name!r}"
+            return (
+                "the generated module shadows imported target binding "
+                f"{bound_name!r}"
+            )
 
     test_functions = [
         node
@@ -159,15 +195,31 @@ def target_usage_issue(test_code: str, function_name: str) -> str | None:
     if not test_functions:
         return "the generated module has no pytest test functions that call the target"
 
-    for test_function in test_functions:
-        calls_target = any(
-            _calls_target(node, function_name, imported_names, module_names)
-            for node in ast.walk(test_function)
-            if isinstance(node, ast.Call)
-        )
-        if not calls_target:
-            return f"{test_function.name} does not directly call {function_name!r}"
+    calls_target = any(
+        _calls_target(node, function_name, imported_names, module_names)
+        for test_function in test_functions
+        for node in ast.walk(test_function)
+        if isinstance(node, ast.Call)
+    )
+    if not calls_target:
+        return f"no pytest test directly calls {function_name!r}"
     return None
+
+
+def _is_target_sys_modules_lookup(
+    value: ast.expr | None,
+    sys_module_names: set[str],
+) -> bool:
+    """Return whether an expression retrieves testpilot_target from sys.modules."""
+    return (
+        isinstance(value, ast.Subscript)
+        and isinstance(value.value, ast.Attribute)
+        and value.value.attr == "modules"
+        and isinstance(value.value.value, ast.Name)
+        and value.value.value.id in sys_module_names
+        and isinstance(value.slice, ast.Constant)
+        and value.slice.value == "testpilot_target"
+    )
 
 
 def _calls_target(

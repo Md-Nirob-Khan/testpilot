@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from testpilot.analyzer import analyze_source
 from testpilot.engines import SingleShotEngine
 from testpilot.engines.llm_engine import target_usage_issue
@@ -66,30 +68,87 @@ def test_single_shot_makes_exactly_one_attempt_for_invalid_target_usage() -> Non
 
 
 def test_target_usage_validation_requires_direct_calls_to_the_imported_target() -> None:
-    aliased_import = (
-        "from testpilot_target import double as target\n\n"
-        "def test_double():\n"
-        "    assert target(3) == 6\n"
-    )
-    imported_but_unused = (
-        "from testpilot_target import double\n\n"
-        "def test_double():\n"
-        "    assert 3 == 3\n"
-    )
-    shadowed_import = (
+    valid_suites = [
         "from testpilot_target import double\n"
-        "double = lambda value: value\n\n"
-        "def test_double():\n"
-        "    assert double(3) == 3\n"
+        "def test_double():\n    assert double(3) == 6\n",
+        "from testpilot_target import double as target\n"
+        "def test_double():\n    assert target(3) == 6\n",
+        "import testpilot_target\n"
+        "def test_double():\n    assert testpilot_target.double(3) == 6\n",
+        "import testpilot_target as module_0\n"
+        "def test_double():\n    assert module_0.double(3) == 6\n",
+    ]
+    for suite in valid_suites:
+        assert target_usage_issue(suite, "double") is None
+
+    invalid_suites = [
+        (
+            "from testpilot_target import double\n"
+            "def test_double():\n    assert 3 == 3\n",
+            "no pytest test directly calls",
+        ),
+        (
+            "from testpilot_target import double\n"
+            "double = lambda value: value\n"
+            "def test_double():\n    assert double(3) == 3\n",
+            "shadows imported target binding",
+        ),
+        (
+            "import testpilot_target as module_0\n"
+            "module_0 = object()\n"
+            "def test_double():\n    assert module_0.double(3) == 6\n",
+            "shadows imported target binding",
+        ),
+        (
+            "import testpilot_target as module_0\n"
+            "module_0.double = lambda value: value\n"
+            "def test_double():\n    assert module_0.double(3) == 3\n",
+            "redefines target attribute",
+        ),
+        (
+            "def double(value):\n    return value * 2\n"
+            "def test_double():\n    assert double(3) == 6\n",
+            "defines 'double'",
+        ),
+    ]
+    for suite, expected_issue in invalid_suites:
+        assert expected_issue in (target_usage_issue(suite, "double") or "")
+
+
+def test_target_usage_validation_accepts_saved_pynguin_module_alias() -> None:
+    fixture_path = (
+        Path(__file__).parent / "fixtures" / "pynguin_module_alias.py"
     )
 
-    assert target_usage_issue(aliased_import, "double") is None
-    assert "does not directly call" in (
-        target_usage_issue(imported_but_unused, "double") or ""
+    assert target_usage_issue(
+        fixture_path.read_text(encoding="utf-8"),
+        "has_close_elements",
+    ) is None
+
+
+def test_target_usage_validation_allows_pytest_suites_with_noncalling_tests() -> None:
+    suite = (
+        "import testpilot_target as module_0\n"
+        "def test_helper_only():\n    assert True\n"
+        "def test_calls_target():\n    assert module_0.double(3) == 6\n"
     )
-    assert "shadows imported target binding" in (
-        target_usage_issue(shadowed_import, "double") or ""
-    )
+
+    assert target_usage_issue(suite, "double") is None
+
+
+@pytest.mark.parametrize(
+    "suite",
+    [
+        "from testpilot_target import double as target\n"
+        "def test_double():\n    assert target(3) == 6\n",
+        "import testpilot_target as module_0\n"
+        "def test_double():\n    assert module_0.double(3) == 6\n",
+    ],
+)
+def test_target_usage_validation_allows_alias_parameters_in_tests(
+    suite: str,
+) -> None:
+    assert target_usage_issue(suite, "double") is None
 
 
 def test_single_shot_engine_rejects_empty_completion() -> None:

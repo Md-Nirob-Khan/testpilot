@@ -48,7 +48,10 @@ subprocess with a timeout, and removes the temporary directory afterward.
 Both LLM engines are instructed to import and call the target from
 `testpilot_target` without copying or redefining it. Single-shot makes exactly
 one generation request; experiment rows separately flag suites that fail the
-AST target-usage check and assign those suites zero coverage and mutation.
+AST target-usage check and assign those suites zero coverage and mutation. The
+check recognizes direct function imports and aliases, module imports and
+aliases, plus Pynguin's `sys.modules["testpilot_target"]` module reference.
+It flags suites that redefine or shadow the function or never call it.
 Generated tests are never edited before they are run or scored.
 This subprocess boundary and timeout are not an OS-level security sandbox;
 Docker isolation is not currently included.

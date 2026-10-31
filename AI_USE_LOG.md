@@ -68,6 +68,11 @@
 - Done: Added AST validation with one corrective retry for single-shot generation, explicit target-usage feedback for agent rounds, duplicate-candidate stopping, artifact returned-round accuracy, documentation, and regression tests.
 - Outcome: needed fixes
 
+## 2026-10-31 — HumanEval target-flag audit
+- Asked: Cross-check all flagged v3 suites, rescore rows whose flags were wrong using saved artifacts, generate the rescored analysis and charts, run all tests, then commit and push.
+- Done: Confirmed 160 Pynguin target-usage flags were false positives and 73 LLM flags were confirmed; rescored all 160 affected Pynguin rows, recorded three mutmut errors per row, generated the v3 summary and charts, and passed all 140 tests.
+- Outcome: needed fixes
+
 ## 2026-10-30 — HumanEval v3 full experiment
 - Asked: Keep single-shot to one attempt, record target-usage failures, vary deterministic agent sampling after round one, validate the reproduction, run all tests, commit and push, then start a resumable artifact-captured 164-function run.
 - Done: Completed the requested settings and measurement changes, reproduced selected HumanEval cases, passed the full test suite, and started the v3 full run with `caffeinate`.
